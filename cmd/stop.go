@@ -16,7 +16,7 @@ import (
 var stopCmd = &cobra.Command{
 	Use:   "stop [task name or ID]",
 	Short: "Stop a task and mark it as completed",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		taskManager, err := utils.NewTaskManager(configFile)
 		if err != nil {
@@ -41,19 +41,22 @@ var stopCmd = &cobra.Command{
 			return fmt.Errorf("cannot stop a task that hasn't been started")
 		}
 
-		endTime := time.Now()
-		var elapsed time.Duration
+		now := time.Now()
+		task.EndTime = now
 
 		if task.Status == models.StatusActive {
-			elapsed = endTime.Sub(task.StartTime)
-		}else{
-			existingDuration,_ := time.ParseDuration(task.Duration)
-			elapsed = existingDuration
+			var currentPeriodDuration time.Duration
+			if task.LastResumeTime.IsZero() {
+				currentPeriodDuration = now.Sub(task.StartTime)
+			} else {
+				currentPeriodDuration = now.Sub(task.LastResumeTime)
+			}
+			task.AccumulatedTime += currentPeriodDuration
 		}
 
 		task.Status = models.StatusCompleted
-		task.EndTime = endTime
-		task.Duration = elapsed.Round(time.Second).String()
+		task.Duration = task.AccumulatedTime.Round(time.Second).String()
+		task.LastResumeTime = time.Time{}
 
 		tasks[index] = *task
 		if err := taskManager.SaveTasks(tasks); err != nil {
@@ -67,14 +70,4 @@ var stopCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(stopCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// stopCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// stopCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

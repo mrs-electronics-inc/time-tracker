@@ -24,6 +24,7 @@ var createCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		taskName := args[0]
+		now := time.Now()
 
 		configData, err := os.ReadFile(configFile)
 		if err != nil {
@@ -39,12 +40,14 @@ var createCmd = &cobra.Command{
 			ID:        uuid.New().String(),
 			Name:      taskName,
 			Status:    models.StatusNotStarted,
+			AccumulatedTime: 0,
+			Duration: "0s",
 		}
 
 		if startOnCreate {
 			task.Status = models.StatusActive
-			task.StartTime = time.Now()
-			task.Duration = "0s"
+			task.StartTime = now
+			task.LastResumeTime = now
 		}
 
 		taskFile := filepath.Join(config.StoragePath, "tasks.json")
@@ -86,14 +89,4 @@ var createCmd = &cobra.Command{
 func init() {
 	createCmd.Flags().BoolVarP(&startOnCreate, "start", "s", false, "Start the task immediately after creation")
 	rootCmd.AddCommand(createCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

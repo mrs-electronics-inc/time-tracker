@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/LeanMendez/time-tracker/models"
 )
@@ -71,4 +72,20 @@ func (tm *TaskManager) FindTask(nameOrID string) (*models.Task, int, error) {
 	}
 
 	return nil, -1, fmt.Errorf("task not found: %s", nameOrID)
+}
+
+func CalculateTaskDuration(task models.Task) (time.Duration, error) {
+	switch task.Status{
+	case models.StatusNotStarted:
+		return 0, nil
+	case models.StatusPaused, models.StatusCompleted:
+		return task.AccumulatedTime, nil
+	case models.StatusActive:
+		if task.LastResumeTime.IsZero(){
+			return task.AccumulatedTime + time.Since(task.StartTime), nil
+		}
+		return task.AccumulatedTime + time.Since(task.LastResumeTime), nil
+	default:
+		return 0, fmt.Errorf("unknow task status")
+	}
 }

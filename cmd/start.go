@@ -41,11 +41,14 @@ var startCmd = &cobra.Command{
 			return fmt.Errorf("cannot start a completed task")
 		}
 
+		now := time.Now()
 		task.Status = models.StatusActive
+		task.LastResumeTime = now
+
 		if task.StartTime.IsZero() {
-			task.StartTime = time.Now()
+			task.StartTime = now
+			task.AccumulatedTime = 0
 		}
-		task.Duration = "0s"
 
 		tasks[index] = *task
 		if err := taskManager.SaveTasks(tasks); err != nil {
@@ -59,14 +62,4 @@ var startCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(startCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// startCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

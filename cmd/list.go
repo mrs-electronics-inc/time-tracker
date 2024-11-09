@@ -12,9 +12,18 @@ import (
 	"time"
 
 	"github.com/LeanMendez/time-tracker/models"
+	"github.com/LeanMendez/time-tracker/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
+
+func calculateCurrentDuration(task models.Task) string {
+	duration, err := utils.CalculateTaskDuration(task)
+	if err != nil {
+		return "error"
+	}
+	return duration.Round(time.Second).String()
+}
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
@@ -93,10 +102,7 @@ If a task name is provided, it shows only that specific task.`,
 			}
 
 			// Calculate current duration for active tasks
-			duration := task.Duration
-			if task.Status == models.StatusActive {
-				duration = time.Since(task.StartTime).Round(time.Second).String()
-			}
+			duration := calculateCurrentDuration(task)
 
 			// Truncate ID for better display
 			shortID := task.ID[:8]
@@ -153,14 +159,4 @@ If a task name is provided, it shows only that specific task.`,
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

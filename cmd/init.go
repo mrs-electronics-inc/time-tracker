@@ -7,16 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/LeanMendez/time-tracker/config"
 	"github.com/spf13/cobra"
 )
-
-type Config struct {
-	StoragePath string `JSON:"storagePath"`
-}
-
-var configFile = filepath.Join(os.Getenv("HOME"), ".timer-cli-config.json")
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -31,16 +25,16 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
 		
-		config := Config{
+		configLocal := config.Config{
 			StoragePath: path,
 		}
 
-		configData, err := json.Marshal(config)
+		configData, err := json.Marshal(configLocal)
 		if err != nil {
 			return fmt.Errorf("failed to marshal config: %w", err)
 		}
 
-		if err := os.WriteFile(configFile, configData, 0644); err != nil {
+		if err := os.WriteFile(config.ConfigFile, configData, 0644); err != nil {
 			return fmt.Errorf("failed to write config file: %w", err)
 		}
 
@@ -52,14 +46,4 @@ var initCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

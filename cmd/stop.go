@@ -7,18 +7,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/LeanMendez/time-tracker/config"
 	"github.com/LeanMendez/time-tracker/models"
 	"github.com/LeanMendez/time-tracker/utils"
 	"github.com/spf13/cobra"
 )
 
-// stopCmd represents the stop command
 var stopCmd = &cobra.Command{
 	Use:   "stop [task name or ID]",
 	Short: "Stop a task and mark it as completed",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		taskManager, err := utils.NewTaskManager(configFile)
+		taskManager, err := utils.NewTaskManager(config.ConfigFile)
 		if err != nil {
 			return err
 		}

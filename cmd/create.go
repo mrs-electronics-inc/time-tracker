@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/LeanMendez/time-tracker/config"
 	"github.com/LeanMendez/time-tracker/models"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -26,12 +27,12 @@ var createCmd = &cobra.Command{
 		taskName := args[0]
 		now := time.Now()
 
-		configData, err := os.ReadFile(configFile)
+		configData, err := os.ReadFile(config.ConfigFile)
 		if err != nil {
 			return fmt.Errorf("failed to read config file. Run 'timer-cli init' first: %w", err)
 		}
 
-		var config Config
+		var config config.Config
 		if err := json.Unmarshal(configData, &config); err != nil {
 			return fmt.Errorf("failed to parse config: %w", err)
 		}

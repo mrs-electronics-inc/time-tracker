@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LeanMendez/time-tracker/config"
 	"github.com/LeanMendez/time-tracker/models"
 )
 
@@ -75,17 +76,35 @@ func (tm *TaskManager) FindTask(nameOrID string) (*models.Task, int, error) {
 }
 
 func CalculateTaskDuration(task models.Task) (time.Duration, error) {
-	switch task.Status{
+	switch task.Status {
 	case models.StatusNotStarted:
 		return 0, nil
 	case models.StatusPaused, models.StatusCompleted:
 		return task.AccumulatedTime, nil
 	case models.StatusActive:
-		if task.LastResumeTime.IsZero(){
+		if task.LastResumeTime.IsZero() {
 			return task.AccumulatedTime + time.Since(task.StartTime), nil
 		}
 		return task.AccumulatedTime + time.Since(task.LastResumeTime), nil
 	default:
 		return 0, fmt.Errorf("unknow task status")
 	}
+}
+
+func RetrieveTaskFile(configFile string) (string, error) {
+	configData, err := os.ReadFile(configFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read config file. Run 'timer-cli init' first: %w", err)
+	}
+
+	var config config.Config
+	if err := json.Unmarshal(configData, &config); err != nil {
+		return "", fmt.Errorf("failed to parse config: %w", err)
+	}
+
+	taskFile := filepath.Join(config.StoragePath, "tasks.json")
+	if _, err := os.Stat(taskFile); err != nil {
+		return "", fmt.Errorf("no tasks found. Create some tasks first")
+	}
+	return taskFile, nil
 }

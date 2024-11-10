@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/LeanMendez/time-tracker/config"
 	"github.com/LeanMendez/time-tracker/models"
 	"github.com/LeanMendez/time-tracker/utils"
 	"github.com/olekukonko/tablewriter"
@@ -35,18 +35,8 @@ If a task name is provided, it shows only that specific task.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		configData, err := os.ReadFile(configFile)
+		tasksFile, err := utils.RetrieveTaskFile(config.ConfigFile)
 		if err != nil {
-			return fmt.Errorf("failed to read config file. Run 'timer-cli init' first: %w", err)
-		}
-
-		var config Config
-		if err := json.Unmarshal(configData, &config); err != nil {
-			return fmt.Errorf("failed to parse config: %w", err)
-		}
-
-		tasksFile := filepath.Join(config.StoragePath, "tasks.json")
-		if _, err := os.Stat(tasksFile); err != nil {
 			return fmt.Errorf("no tasks found. Create some tasks first")
 		}
 

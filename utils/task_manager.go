@@ -56,7 +56,10 @@ func (tm *TaskManager) SaveTasks(tasks []models.Task) error {
 	}
 
 	tasksFile := filepath.Join(tm.StoragePath, "tasks.json")
-	return os.WriteFile(tasksFile, tasksData, 0644)
+	if err := os.WriteFile(tasksFile, tasksData, 0644); err != nil {
+		return fmt.Errorf("failed to writing the file: %w", err)
+	}
+	return nil
 }
 
 func (tm *TaskManager) FindTask(nameOrID string) (*models.Task, int, error) {
@@ -89,6 +92,14 @@ func CalculateTaskDuration(task models.Task) (time.Duration, error) {
 	default:
 		return 0, fmt.Errorf("unknow task status")
 	}
+}
+
+func CalculateTaskDurationString(task models.Task) (string, error) {
+	duration, err := CalculateTaskDuration(task)
+	if err != nil {
+		return "", err
+	}
+	return duration.Round(time.Second).String(), nil
 }
 
 func RetrieveTaskFile(configFile string) (string, error) {

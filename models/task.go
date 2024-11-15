@@ -1,3 +1,6 @@
+/*
+Copyright (c) 2024 Leandro Méndez <leandroa.mendez@gmail.com>
+*/
 package models
 
 import "time"

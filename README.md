@@ -28,8 +28,10 @@ timer-cli create [task name] --start
 To start a task use 
 ```bash
 timer-cli start [task name]
+```
 
-//or you can use the task ID
+or you can use the task ID
+```bash
 timer-cli start [task ID]
 ```
 
@@ -43,8 +45,10 @@ It will display all your tasks in a table format.
 To list a specific task use 
 ```bash
 timer-cli list [task name]
+```
 
-//or you can use the task ID
+or you can use the task ID
+```bash
 timer-cli list [task ID]
 ```
 
@@ -52,8 +56,10 @@ timer-cli list [task ID]
 To remove a task use 
 ```bash
 timer-cli remove [task name]
+```
 
-//or you can use the task ID
+or you can use the task ID
+```bash
 timer-cli remove [task ID]
 ```
 
@@ -61,8 +67,9 @@ timer-cli remove [task ID]
 To stop a task use 
 ```bash
 timer-cli stop [task name]
-
-//or you can use the task ID
+```
+or you can use the task ID
+```bash
 timer-cli stop [task ID]
 ```
 Stopping a task marks it as completed.

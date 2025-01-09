@@ -5,6 +5,44 @@ It will create a JSON file where all the data is stored in the location you spec
 
 It is a project in progress. Any feedback is welcome.
 
+## Install
+
+### Requirements
+To install this application, you will need **Go 1.23.2 or higher**.  
+You can download it from the [official Golang website](https://go.dev/dl/).
+To verify your Go installation and version, run the following command in your terminal:
+```bash
+go version
+```
+
+### Steps to Install
+
+1. Clone the repository:
+```bash
+git clone https://github.com/LeanMendez/time-tracker.git
+```
+2. Navigate to the repository directory:
+```bash
+cd time-tracker
+```
+From here, you have two options to compile and install the application:
+
+#### Option A: Install with Go
+Use the go install command to compile and install the binary automatically in your *$GOPATH/bin* directory:
+```bash
+go install
+```
+
+#### Option B: Build with Task
+Use [Task](https://taskfile.dev/) to compile the binary. Make sure you have Task installed before proceeding.
+```bash
+task build
+
+```
+This command will generate the binary at *./bin/time-tracker*.
+
+If you want the binary to be accessible globally, you’ll need to add its path to your system’s PATH environment variable.
+
 ## Usage
 
 ### Init command
@@ -12,6 +50,7 @@ To start using the CLI you need to initialize the application by running
 ```bash
 timer-cli init [path]
 ```
+This will create a *tasks.json* file in the specified path where all your tasks will be stored.
 
 ### Create command
 Then you can create tasks by running 

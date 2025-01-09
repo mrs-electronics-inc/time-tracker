@@ -12,4 +12,4 @@ type Config struct {
 	StoragePath string `JSON:"storagePath"`
 }
 
-var ConfigFile = filepath.Join(os.Getenv("HOME"), ".timer-cli-config.json")
+var ConfigFile = filepath.Join(os.Getenv("HOME"), ".time-tracker-config.json")

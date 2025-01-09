@@ -9,10 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 var rootCmd = &cobra.Command{
-	Use:   "timer-cli",
+	Use:   "time-tracker",
 	Short: "A simple time tracker cli",
 	Long: `A simple time tracker cli application. 
 
@@ -31,5 +29,3 @@ func Execute() {
 func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-

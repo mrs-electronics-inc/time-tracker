@@ -1,6 +1,6 @@
-# Task-timer
+# Time-tracker
 
-Task-timer is a simple CLI tool to manage your tasks and track their time.
+Time-tracker is a simple CLI tool to manage your tasks and track their time.
 It will create a JSON file where all the data is stored in the location you specify in the init command.
 
 It is a project in progress. Any feedback is welcome.
@@ -48,68 +48,68 @@ If you want the binary to be accessible globally, you’ll need to add its path 
 ### Init command
 To start using the CLI you need to initialize the application by running 
 ```bash
-timer-cli init [path]
+time-tracker init [path]
 ```
 This will create a *tasks.json* file in the specified path where all your tasks will be stored.
 
 ### Create command
 Then you can create tasks by running 
 ```bash
-timer-cli create [task name]
+time-tracker create [task name]
 ```
 Creating a task doens't mean it is started.
 You can also start a task by running the `start` command or when creating it by using the `--start` or `-s` flag.
 ```bash
-timer-cli create [task name] --start
+time-tracker create [task name] --start
 ```
 
 ### Start command
 To start a task use 
 ```bash
-timer-cli start [task name]
+time-tracker start [task name]
 ```
 
 or you can use the task ID
 ```bash
-timer-cli start [task ID]
+time-tracker start [task ID]
 ```
 
 
 ### List command
 To list your tasks use 
 ```bash
-timer-cli list
+time-tracker list
 ```
 It will display all your tasks in a table format.
 To list a specific task use 
 ```bash
-timer-cli list [task name]
+time-tracker list [task name]
 ```
 
 or you can use the task ID
 ```bash
-timer-cli list [task ID]
+time-tracker list [task ID]
 ```
 
 ### Remove command
 To remove a task use 
 ```bash
-timer-cli remove [task name]
+time-tracker remove [task name]
 ```
 
 or you can use the task ID
 ```bash
-timer-cli remove [task ID]
+time-tracker remove [task ID]
 ```
 
 ### Stop command
 To stop a task use 
 ```bash
-timer-cli stop [task name]
+time-tracker stop [task name]
 ```
 or you can use the task ID
 ```bash
-timer-cli stop [task ID]
+time-tracker stop [task ID]
 ```
 Stopping a task marks it as completed.
 

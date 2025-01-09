@@ -22,7 +22,7 @@ type TaskManager struct {
 func NewTaskManager(configFile string) (*TaskManager, error) {
 	configData, err := os.ReadFile(configFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file. Run 'timer-cli init' first: %w", err)
+		return nil, fmt.Errorf("failed to read config file. Run 'time-tracker init' first: %w", err)
 	}
 
 	var config struct {
@@ -108,7 +108,7 @@ func CalculateTaskDurationString(task models.Task) (string, error) {
 func RetrieveTaskFile(configFile string) (string, error) {
 	configData, err := os.ReadFile(configFile)
 	if err != nil {
-		return "", fmt.Errorf("failed to read config file. Run 'timer-cli init' first: %w", err)
+		return "", fmt.Errorf("failed to read config file. Run 'time-tracker init' first: %w", err)
 	}
 
 	var config config.Config

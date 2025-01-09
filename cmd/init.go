@@ -15,16 +15,16 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init [path]",
-	Short: "Initialize timer-cli with a storage path",
+	Short: "Initialize time-tracker with a storage path",
 	Long:  `Initializes the application by defining a path to the storage file where the data of the tasks created in the application will be saved.`,
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := args[0]
 
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
-		
+
 		configLocal := config.Config{
 			StoragePath: path,
 		}
@@ -38,8 +38,8 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("failed to write config file: %w", err)
 		}
 
-		fmt.Printf("Initialized timer-cli with storage path: %s \n", path)
-		
+		fmt.Printf("Initialized time-tracker with storage path: %s \n", path)
+
 		return nil
 	},
 }

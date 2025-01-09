@@ -18,7 +18,6 @@ import (
 
 var startOnCreate bool
 
-
 var createCmd = &cobra.Command{
 	Use:   "create [task name]",
 	Short: "Create a new task",
@@ -29,7 +28,7 @@ var createCmd = &cobra.Command{
 
 		configData, err := os.ReadFile(config.ConfigFile)
 		if err != nil {
-			return fmt.Errorf("failed to read config file. Run 'timer-cli init' first: %w", err)
+			return fmt.Errorf("failed to read config file. Run 'time-tracker init' first: %w", err)
 		}
 
 		var config config.Config
@@ -38,11 +37,11 @@ var createCmd = &cobra.Command{
 		}
 
 		task := models.Task{
-			ID:        uuid.New().String(),
-			Name:      taskName,
-			Status:    models.StatusNotStarted,
+			ID:              uuid.New().String(),
+			Name:            taskName,
+			Status:          models.StatusNotStarted,
 			AccumulatedTime: 0,
-			Duration: "0s",
+			Duration:        "0s",
 		}
 
 		if startOnCreate {

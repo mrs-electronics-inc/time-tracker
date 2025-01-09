@@ -91,7 +91,7 @@ func stopSingleTask(taskManager *utils.TaskManager, tasks []models.Task, taskIde
 		return fmt.Errorf("failed to save tasks: %w", err)
 	}
 
-	fmt.Printf("Completed task: %s (Total duration: %s)\n", task.Name, task.Duration)
+	fmt.Printf("Completed task: %s (Total duration: %s)\n", task.Name, stoppedTask.Duration)
 	return nil
 }
 

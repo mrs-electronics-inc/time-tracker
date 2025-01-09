@@ -33,6 +33,10 @@ Use the go install command to compile and install the binary automatically in yo
 go install
 ```
 
+**Note** - if *$GOPATH* is not defined on your system, look in the following locations:
+- Unix systems: `$HOME/go`
+- Windows: `%USERPROFILE%\go`
+
 #### Option B: Build with Task
 Use [Task](https://taskfile.dev/) to compile the binary. Make sure you have Task installed before proceeding.
 ```bash

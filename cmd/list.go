@@ -42,7 +42,8 @@ If a task name is provided, it shows only that specific task.`,
 		filteredTasks := filterTasks(tasks, args)
 
 		if len(filteredTasks) == 0 {
-			return fmt.Errorf("no tasks found matching: %w", err)
+			fmt.Printf("no tasks found matching %s\n", args[0])
+			return nil
 		}
 
 		displayTasksTable(filteredTasks)

@@ -42,7 +42,7 @@ If a task name is provided, it shows only that specific task.`,
 		filteredTasks := filterTasks(tasks, args)
 
 		if len(filteredTasks) == 0 {
-			fmt.Printf("no tasks found matching %s\n", args[0])
+			fmt.Printf("no tasks found matching \"%s\"\n", args[0])
 			return nil
 		}
 

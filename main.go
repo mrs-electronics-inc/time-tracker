@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/LeanMendez/time-tracker/cmd"
+	"github.com/mrs-electronics-inc/time-tracker/cmd"
 )
 
 func main() {

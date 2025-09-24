@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/LeanMendez/time-tracker/config"
-	"github.com/LeanMendez/time-tracker/models"
 	"github.com/google/uuid"
+	"github.com/mrs-electronics-inc/time-tracker/config"
+	"github.com/mrs-electronics-inc/time-tracker/models"
 	"github.com/spf13/cobra"
 )
 

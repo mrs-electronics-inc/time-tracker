@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/LeanMendez/time-tracker/config"
-	"github.com/LeanMendez/time-tracker/models"
-	"github.com/LeanMendez/time-tracker/utils"
+	"github.com/mrs-electronics-inc/time-tracker/config"
+	"github.com/mrs-electronics-inc/time-tracker/models"
+	"github.com/mrs-electronics-inc/time-tracker/utils"
 	"github.com/spf13/cobra"
 )
 

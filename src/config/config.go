@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	StoragePath string `JSON:"storagePath"`
+	StoragePath string `json:"storagePath"`
 }
 
 var ConfigFile = filepath.Join(os.Getenv("HOME"), ".config/time-tracker/config.json")

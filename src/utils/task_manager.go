@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"time-tracker/config"
 	"time-tracker/models"
 )
@@ -76,6 +77,34 @@ func (tm *TaskManager) FindTask(nameOrID string) (*models.Task, int, error) {
 	}
 
 	return nil, -1, fmt.Errorf("task not found: %s", nameOrID)
+}
+
+func (tm *TaskManager) CreateTask(taskName string) (*models.Task, error) {
+	tasks, err := tm.LoadTasks()
+	if err != nil {
+		// If tasks file doesn't exist, start with empty slice
+		if os.IsNotExist(err) {
+			tasks = []models.Task{}
+		} else {
+			return nil, err
+		}
+	}
+
+	task := models.Task{
+		ID:              uuid.New().String(),
+		Name:            taskName,
+		Status:          models.StatusNotStarted,
+		AccumulatedTime: 0,
+		Duration:        "0s",
+	}
+
+	tasks = append(tasks, task)
+
+	if err := tm.SaveTasks(tasks); err != nil {
+		return nil, err
+	}
+
+	return &task, nil
 }
 
 func CalculateTaskDuration(task models.Task) (time.Duration, error) {

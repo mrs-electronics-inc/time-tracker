@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"time-tracker/config"
@@ -13,21 +14,22 @@ import (
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init [path]",
-	Short: "Initialize time-tracker with a storage path",
-	Long:  `Initializes the application by defining a path to the storage file where the data of the tasks created in the application will be saved.`,
-	Args:  cobra.ExactArgs(1),
+	Use:   "init",
+	Short: "Initialize time-tracker",
+	Long:  `Initializes the application by creating the configuration and storage files in the user's config directory.`,
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		path := args[0]
+		// Get the storage path (same directory as config file)
+		storagePath := filepath.Dir(config.ConfigFile)
 
 		// Create the storage path
-		if err := os.MkdirAll(path, 0755); err != nil {
+		if err := os.MkdirAll(storagePath, 0755); err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)
 		}
 
 		// Save the storage path to the configuration file
 		configLocal := config.Config{
-			StoragePath: path,
+			StoragePath: storagePath,
 		}
 		configData, err := json.Marshal(configLocal)
 		if err != nil {
@@ -47,7 +49,7 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("failed to create tasks.json: %w", err)
 		}
 
-		fmt.Printf("Initialized time-tracker with storage path: %s \n", path)
+		fmt.Printf("Initialized time-tracker with storage path: %s \n", storagePath)
 
 		return nil
 	},

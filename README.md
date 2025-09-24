@@ -58,25 +58,10 @@ go install
 To start using the CLI you need to initialize the application by running
 
 ```bash
-time-tracker init [path]
+time-tracker init
 ```
 
-This will create a `tasks.json` file in the specified path where all your tasks will be stored.
-
-### Create
-
-Then you can create tasks by running
-
-```bash
-time-tracker create [task name]
-```
-
-Creating a task does not mean it is started.
-You can also start a task by running the `start` command or when creating it by using the `--start` or `-s` flag.
-
-```bash
-time-tracker create [task name] --start
-```
+This will create a configuration file and `tasks.json` file in your user config directory (`~/.config/time-tracker/`) where all your tasks will be stored.
 
 ### Start
 
@@ -91,6 +76,8 @@ or you can use the task ID
 ```bash
 time-tracker start [task ID]
 ```
+
+If the task doesn't exist, it will be created automatically and then started.
 
 ### List
 

@@ -151,7 +151,7 @@ func CalculateTaskDuration(task models.Task) (time.Duration, error) {
 		}
 		return task.AccumulatedTime + time.Since(task.LastResumeTime), nil
 	default:
-		return 0, fmt.Errorf("unknow task status")
+		return 0, fmt.Errorf("unknown task status")
 	}
 }
 

@@ -107,7 +107,7 @@ Displays all entries in chronological order (newest first) with ID, start time, 
 To run the automated tests from the repository root:
 
 ```bash
-go test ./tests/...
+go test ./src/tests/...
 ```
 
 This will run contract tests, integration tests, and unit tests.

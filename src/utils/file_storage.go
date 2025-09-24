@@ -26,12 +26,6 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Ensure the directory exists
-	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
-		return nil, fmt.Errorf("failed to create config directory: %w", err)
-	}
-
-	
 	// Ensure data file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		initialData := DataStore{TimeEntries: []models.TimeEntry{}}

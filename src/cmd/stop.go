@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"time-tracker/config"
 	"time-tracker/utils"
 )
 
@@ -12,10 +13,11 @@ var stopCmd = &cobra.Command{
 	Short: "Stop the currently running time entry",
 	Long:  `Stops the currently running time entry by setting its end timestamp to the current time.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		taskManager, err := utils.NewTaskManager("data.json")
+		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
-			return fmt.Errorf("failed to initialize task manager: %w", err)
+			return fmt.Errorf("failed to initialize storage: %w", err)
 		}
+		taskManager := utils.NewTaskManager(storage)
 
 		entry, err := taskManager.StopEntry()
 		if err != nil {

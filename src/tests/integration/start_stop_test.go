@@ -1,56 +1,53 @@
 package integration
 
 import (
-	"os"
-	"os/exec"
-	"strings"
 	"testing"
 	"time"
+
+	"time-tracker/utils"
 )
 
 func TestStartStopScenario(t *testing.T) {
-	// Clean up any existing data.json
-	os.Remove("../../data.json")
-
-	// Build the binary
-	os.Remove("../../time-tracker")
-	cmd := exec.Command("go", "build", "-o", "time-tracker")
-	cmd.Dir = "../../"
-	err := cmd.Run()
-	if err != nil {
-		t.Fatalf("Failed to build binary: %v", err)
-	}
+	// Create task manager with memory storage
+	storage := utils.NewMemoryStorage()
+	tm := utils.NewTaskManager(storage)
 
 	// Start tracking
-	cmd = exec.Command("./time-tracker", "start", "test-project", "Test task")
-	cmd.Dir = "../../"
-	_, err = cmd.Output()
+	entry, err := tm.StartEntry("test-project", "Test task")
 	if err != nil {
-		t.Fatalf("Start command failed: %v", err)
+		t.Fatalf("Start entry failed: %v", err)
 	}
 
 	// Wait a bit
 	time.Sleep(100 * time.Millisecond)
 
 	// Stop tracking
-	cmd = exec.Command("./time-tracker", "stop")
-	cmd.Dir = "../../"
-	stopOutput, err := cmd.CombinedOutput()
+	stoppedEntry, err := tm.StopEntry()
 	if err != nil {
-		t.Fatalf("Stop command failed: %v, output: %s", err, string(stopOutput))
+		t.Fatalf("Stop entry failed: %v", err)
+	}
+
+	// Check the stopped entry
+	if stoppedEntry.ID != entry.ID {
+		t.Errorf("Expected stopped entry ID %d, got %d", entry.ID, stoppedEntry.ID)
+	}
+	if stoppedEntry.End == nil {
+		t.Errorf("Expected end time to be set")
+	}
+	if stoppedEntry.Title != "Test task" {
+		t.Errorf("Expected title 'Test task', got %s", stoppedEntry.Title)
 	}
 
 	// List entries
-	cmd = exec.Command("./time-tracker", "list")
-	cmd.Dir = "../../"
-	output, err := cmd.Output()
+	entries, err := tm.ListEntries()
 	if err != nil {
-		t.Fatalf("List command failed: %v", err)
+		t.Fatalf("List entries failed: %v", err)
 	}
 
-	outputStr := string(output)
-	// Should contain the entry with duration
-	if !strings.Contains(outputStr, "test-project") || !strings.Contains(outputStr, "Test task") {
-		t.Errorf("Expected entry in list, got: %s", outputStr)
+	if len(entries) != 1 {
+		t.Errorf("Expected 1 entry, got %d", len(entries))
+	}
+	if entries[0].Project != "test-project" {
+		t.Errorf("Expected project 'test-project', got %s", entries[0].Project)
 	}
 }

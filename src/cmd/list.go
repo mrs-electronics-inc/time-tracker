@@ -8,6 +8,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"time-tracker/config"
 	"time-tracker/models"
 	"time-tracker/utils"
 )
@@ -17,10 +18,11 @@ var listCmd = &cobra.Command{
 	Short: "List all time entries",
 	Long:  `List all time entries from data.json in chronological order (newest first).`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		taskManager, err := utils.NewTaskManager("data.json")
+		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
-			return fmt.Errorf("failed to initialize task manager: %w", err)
+			return fmt.Errorf("failed to initialize storage: %w", err)
 		}
+		taskManager := utils.NewTaskManager(storage)
 
 		entries, err := taskManager.ListEntries()
 		if err != nil {

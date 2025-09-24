@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"time-tracker/config"
 	"time-tracker/utils"
 )
 
@@ -16,10 +17,11 @@ var startCmd = &cobra.Command{
 		project := args[0]
 		title := args[1]
 
-		taskManager, err := utils.NewTaskManager("data.json")
+		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
-			return fmt.Errorf("failed to initialize task manager: %w", err)
+			return fmt.Errorf("failed to initialize storage: %w", err)
 		}
+		taskManager := utils.NewTaskManager(storage)
 
 		entry, err := taskManager.StartEntry(project, title)
 		if err != nil {

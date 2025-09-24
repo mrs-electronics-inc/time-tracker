@@ -1,51 +1,56 @@
 package integration
 
 import (
-	"os"
-	"os/exec"
-	"strings"
 	"testing"
+
+	"time-tracker/utils"
 )
 
 func TestAutoStopScenario(t *testing.T) {
-	// Clean up
-	os.Remove("../../data.json")
-
-	// Build
-	cmd := exec.Command("go", "build", "-o", "time-tracker")
-	cmd.Dir = "../../"
-	err := cmd.Run()
-	if err != nil {
-		t.Fatalf("Failed to build binary: %v", err)
-	}
+	// Create task manager with memory storage
+	storage := utils.NewMemoryStorage()
+	tm := utils.NewTaskManager(storage)
 
 	// Start first task
-	cmd = exec.Command("./time-tracker", "start", "project1", "Task 1")
-	cmd.Dir = "../../"
-	err = cmd.Run()
+	entry1, err := tm.StartEntry("project1", "Task 1")
 	if err != nil {
-		t.Fatalf("Start command 1 failed: %v", err)
+		t.Fatalf("Start entry 1 failed: %v", err)
 	}
 
 	// Start second task (should auto-stop first)
-	cmd = exec.Command("./time-tracker", "start", "project2", "Task 2")
-	cmd.Dir = "../../"
-	err = cmd.Run()
+	entry2, err := tm.StartEntry("project2", "Task 2")
 	if err != nil {
-		t.Fatalf("Start command 2 failed: %v", err)
+		t.Fatalf("Start entry 2 failed: %v", err)
 	}
 
-	// List
-	cmd = exec.Command("./time-tracker", "list")
-	cmd.Dir = "../../"
-	output, err := cmd.Output()
+	// List entries
+	entries, err := tm.ListEntries()
 	if err != nil {
-		t.Fatalf("List command failed: %v", err)
+		t.Fatalf("List entries failed: %v", err)
 	}
 
-	outputStr := string(output)
-	// Should have both entries, first stopped, second running
-	if !strings.Contains(outputStr, "project1") || !strings.Contains(outputStr, "project2") || !strings.Contains(outputStr, "running") {
-		t.Errorf("Expected both entries with first stopped and second running, got: %s", outputStr)
+	// Should have 2 entries, first stopped, second running
+	if len(entries) != 2 {
+		t.Errorf("Expected 2 entries, got %d", len(entries))
+	}
+	
+	// Find the entries (since sorted by start desc, entry2 first)
+	var found1, found2 bool
+	for _, e := range entries {
+		if e.ID == entry1.ID {
+			found1 = true
+			if e.End == nil {
+				t.Errorf("Entry 1 should be stopped")
+			}
+		}
+		if e.ID == entry2.ID {
+			found2 = true
+			if e.End != nil {
+				t.Errorf("Entry 2 should be running")
+			}
+		}
+	}
+	if !found1 || !found2 {
+		t.Errorf("Both entries not found in list")
 	}
 }

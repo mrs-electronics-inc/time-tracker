@@ -9,7 +9,8 @@ import (
 
 func TestStopCommand(t *testing.T) {
 	// Build the binary
-	os.Remove("../../time-tracker")
+	os.Remove("../../data.json")
+os.Remove("../../time-tracker")
 	cmd := exec.Command("go", "build", "-o", "time-tracker")
 	cmd.Dir = "../../"
 	err := cmd.Run()

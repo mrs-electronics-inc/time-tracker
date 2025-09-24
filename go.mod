@@ -1,4 +1,4 @@
-module github.com/mrs-electronics-inc/time-tracker
+module time-tracker
 
 go 1.25.0
 

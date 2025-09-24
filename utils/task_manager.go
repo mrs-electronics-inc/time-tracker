@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mrs-electronics-inc/time-tracker/config"
-	"github.com/mrs-electronics-inc/time-tracker/models"
+	"time-tracker/config"
+	"time-tracker/models"
 )
 
 type TaskManager struct {

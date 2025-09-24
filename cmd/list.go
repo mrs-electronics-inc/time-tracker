@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mrs-electronics-inc/time-tracker/config"
-	"github.com/mrs-electronics-inc/time-tracker/models"
-	"github.com/mrs-electronics-inc/time-tracker/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"time-tracker/config"
+	"time-tracker/models"
+	"time-tracker/utils"
 )
 
 var listCmd = &cobra.Command{

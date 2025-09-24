@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -8,8 +9,9 @@ import (
 
 func TestStopCommand(t *testing.T) {
 	// Build the binary
+	os.Remove("../../time-tracker")
 	cmd := exec.Command("go", "build", "-o", "time-tracker")
-	cmd.Dir = "../../src"
+	cmd.Dir = "../../"
 	err := cmd.Run()
 	if err != nil {
 		t.Fatalf("Failed to build binary: %v", err)
@@ -17,7 +19,7 @@ func TestStopCommand(t *testing.T) {
 
 	// First start a task
 	cmd = exec.Command("./time-tracker", "start", "test-project", "Test task")
-	cmd.Dir = "../../src"
+	cmd.Dir = "../../"
 	err = cmd.Run()
 	if err != nil {
 		t.Fatalf("Failed to start task: %v", err)
@@ -25,7 +27,7 @@ func TestStopCommand(t *testing.T) {
 
 	// Run stop command
 	cmd = exec.Command("./time-tracker", "stop")
-	cmd.Dir = "../../src"
+	cmd.Dir = "../../"
 	output, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("Stop command failed: %v", err)

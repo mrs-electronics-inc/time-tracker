@@ -47,12 +47,12 @@
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [X] T004 [P] Contract test for list command in tests/contract/test_list.go
-- [X] T005 [P] Contract test for start command in tests/contract/test_start.go
-- [X] T006 [P] Contract test for stop command in tests/contract/test_stop.go
-- [X] T007 [P] Integration test for start and stop scenario in tests/integration/test_start_stop.go
-- [X] T008 [P] Integration test for auto-stop scenario in tests/integration/test_auto_stop.go
-- [X] T009 [P] Integration test for stop when no active in tests/integration/test_stop_no_active.go
+- [X] T004 [P] Contract test for list command in tests/contract/list_test.go
+- [X] T005 [P] Contract test for start command in tests/contract/start_test.go
+- [X] T006 [P] Contract test for stop command in tests/contract/stop_test.go
+- [X] T007 [P] Integration test for start and stop scenario in tests/integration/start_stop_test.go
+- [X] T008 [P] Integration test for auto-stop scenario in tests/integration/auto_stop_test.go
+- [X] T009 [P] Integration test for stop when no active in tests/integration/stop_no_active_test.go
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 - [X] T010 [P] TimeEntry model in src/models/time_entry.go
@@ -66,7 +66,7 @@
 - [X] T016 Error handling and logging
 
 ## Phase 3.5: Polish
-- [X] T017 [P] Unit tests for TimeEntry model in tests/unit/test_time_entry.go
+- [X] T017 [P] Unit tests for TimeEntry model in tests/unit/time_entry_test.go
 - [X] T018 Performance tests (<100ms startup)
 - [X] T019 [P] Update README.md with usage
 
@@ -80,12 +80,12 @@
 ## Parallel Example
 ```
 # Launch T004-T009 together:
-Task: "Contract test for list command in tests/contract/test_list.go"
-Task: "Contract test for start command in tests/contract/test_start.go"
-Task: "Contract test for stop command in tests/contract/test_stop.go"
-Task: "Integration test for start and stop scenario in tests/integration/test_start_stop.go"
-Task: "Integration test for auto-stop scenario in tests/integration/test_auto_stop.go"
-Task: "Integration test for stop when no active in tests/integration/test_stop_no_active.go"
+Task: "Contract test for list command in tests/contract/list_test.go"
+Task: "Contract test for start command in tests/contract/start_test.go"
+Task: "Contract test for stop command in tests/contract/stop_test.go"
+Task: "Integration test for start and stop scenario in tests/integration/start_stop_test.go"
+Task: "Integration test for auto-stop scenario in tests/integration/auto_stop_test.go"
+Task: "Integration test for stop when no active in tests/integration/stop_no_active_test.go"
 ```
 
 ## Notes

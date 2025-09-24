@@ -1,6 +1,3 @@
-/*
-Copyright (c) 2024 Leandro Méndez <leandroa.mendez@gmail.com>
-*/
 package cmd
 
 import (
@@ -8,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LeanMendez/time-tracker/config"
-	"github.com/LeanMendez/time-tracker/models"
-	"github.com/LeanMendez/time-tracker/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"time-tracker/config"
+	"time-tracker/models"
+	"time-tracker/utils"
 )
 
 var listCmd = &cobra.Command{
@@ -82,7 +79,7 @@ func displayTasksTable(tasks []models.Task) {
 		tablewriter.Colors{tablewriter.FgHiWhiteColor},
 	)
 
-	// Añadir filas
+	// Add rows
 	for _, task := range tasks {
 		startTime := task.StartTime.Format("2006-01-02 15:04:05")
 		endTime := "-"

@@ -1,23 +1,20 @@
-/*
-Copyright (c) 2024 Leandro Méndez <leandroa.mendez@gmail.com>
-*/
 package cmd
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/LeanMendez/time-tracker/config"
-	"github.com/LeanMendez/time-tracker/models"
-	"github.com/LeanMendez/time-tracker/utils"
 	"github.com/spf13/cobra"
+	"time-tracker/config"
+	"time-tracker/models"
+	"time-tracker/utils"
 )
 
 var stopAll bool
 
 var stopCmd = &cobra.Command{
 	Use:   "stop [task name or ID]",
-	Short: "Stop a task and mark it as completed",
+	Short: "Stop a task",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		taskManager, err := utils.NewTaskManager(config.ConfigFile)
@@ -33,7 +30,9 @@ var stopCmd = &cobra.Command{
 		if stopAll {
 			return stopAllActiveTasks(taskManager, tasks)
 		}
+
 		return stopSingleTask(taskManager, tasks, args[0])
+
 	},
 }
 
@@ -53,8 +52,9 @@ func stopAllActiveTasks(taskManager *utils.TaskManager, tasks []models.Task) err
 	}
 
 	for _, task := range activeTasks {
+		stoppedTask := stopTask(task)
+
 		for i, t := range modifiedTasks {
-			stoppedTask := stoppedTask(task)
 			if t.ID == stoppedTask.ID {
 				modifiedTasks[i] = stoppedTask
 				break
@@ -76,40 +76,33 @@ func stopSingleTask(taskManager *utils.TaskManager, tasks []models.Task, taskIde
 		return fmt.Errorf("failed to find task: %w", err)
 	}
 
-	if task.Status == models.StatusCompleted {
-		return fmt.Errorf("task is already completed")
+	if task.Status != models.StatusActive {
+		return fmt.Errorf("can only stop active tasks")
 	}
 
-	if task.Status == models.StatusNotStarted {
-		return fmt.Errorf("cannot stop a task that hasn't been started")
-	}
-
-	stoppedTask := stoppedTask(*task)
+	stoppedTask := stopTask(*task)
 	tasks[index] = stoppedTask
 
 	if err := taskManager.SaveTasks(tasks); err != nil {
 		return fmt.Errorf("failed to save tasks: %w", err)
 	}
 
-	fmt.Printf("Completed task: %s (Total duration: %s)\n", task.Name, stoppedTask.Duration)
+	fmt.Printf("Stopped task: %s (Duration: %s)\n", stoppedTask.Name, stoppedTask.Duration)
 	return nil
 }
 
-func stoppedTask(task models.Task) models.Task {
+func stopTask(task models.Task) models.Task {
 	now := time.Now()
-	task.EndTime = now
+	var currentPeriodDuration time.Duration
 
-	if task.Status == models.StatusActive {
-		var currentPeriodDuration time.Duration
-		if task.LastResumeTime.IsZero() {
-			currentPeriodDuration = now.Sub(task.StartTime)
-		} else {
-			currentPeriodDuration = now.Sub(task.LastResumeTime)
-		}
-		task.AccumulatedTime += currentPeriodDuration
+	if task.LastResumeTime.IsZero() {
+		currentPeriodDuration = now.Sub(task.StartTime)
+	} else {
+		currentPeriodDuration = now.Sub(task.LastResumeTime)
 	}
 
-	task.Status = models.StatusCompleted
+	task.AccumulatedTime += currentPeriodDuration
+	task.Status = models.StatusPaused
 	task.Duration = task.AccumulatedTime.Round(time.Second).String()
 	task.LastResumeTime = time.Time{}
 

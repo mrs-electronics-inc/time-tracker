@@ -1,21 +1,19 @@
-/*
-Copyright (c) 2024 Leandro Méndez <leandroa.mendez@gmail.com>
-*/
 package cmd
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/LeanMendez/time-tracker/config"
-	"github.com/LeanMendez/time-tracker/models"
-	"github.com/LeanMendez/time-tracker/utils"
 	"github.com/spf13/cobra"
+	"time-tracker/config"
+	"time-tracker/models"
+	"time-tracker/utils"
 )
 
 var startCmd = &cobra.Command{
 	Use:   "start [task name or ID]",
-	Short: "Start a task",
+	Short: "Start a task (creates it if it doesn't exist)",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		taskManager, err := utils.NewTaskManager(config.ConfigFile)
@@ -25,12 +23,39 @@ var startCmd = &cobra.Command{
 
 		tasks, err := taskManager.LoadTasks()
 		if err != nil {
-			return err
+			// If tasks file doesn't exist, start with empty slice
+			tasks = []models.Task{}
 		}
 
-		task, index, err := taskManager.FindTask(args[0])
-		if err != nil {
-			return err
+		var task *models.Task
+		var index int
+		for i, t := range tasks {
+			if strings.ToLower(t.Name) == strings.ToLower(args[0]) || strings.HasPrefix(t.ID, args[0]) {
+				task = &tasks[i]
+				index = i
+				break
+			}
+		}
+
+		if task == nil {
+			// Task not found, create it
+			newTask, err := taskManager.CreateTask(args[0])
+			if err != nil {
+				return fmt.Errorf("failed to create task: %w", err)
+			}
+			task = newTask
+			// Reload tasks to include the new one
+			tasks, err = taskManager.LoadTasks()
+			if err != nil {
+				return err
+			}
+			// Find the index of the new task
+			for i, t := range tasks {
+				if t.ID == task.ID {
+					index = i
+					break
+				}
+			}
 		}
 
 		if task.Status == models.StatusActive {

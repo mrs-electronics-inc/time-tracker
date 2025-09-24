@@ -12,7 +12,7 @@ Time Tracker is a simple CLI tool to track the time you spend on different tasks
 
 ### Requirements
 
-To install this application, you will need **Go 1.23.2 or higher**.  
+To install this application, you will need **Go 1.25.0 or higher**.
 You can download it from the [official Golang website](https://go.dev/dl/).
 To verify your Go installation and version, run the following command in your terminal:
 
@@ -28,10 +28,10 @@ go version
 git clone https://github.com/mrs-electronics-inc/time-tracker.git
 ```
 
-2. Navigate to the repository directory:
+2. Navigate to the src directory:
 
 ```bash
-cd time-tracker
+cd time-tracker/src
 ```
 
 3. Use the go install command to compile and install the binary automatically in your _$GOPATH/bin_ directory:
@@ -53,31 +53,6 @@ go install
 
 ## Usage
 
-### Init
-
-To start using the CLI you need to initialize the application by running
-
-```bash
-time-tracker init [path]
-```
-
-This will create a `tasks.json` file in the specified path where all your tasks will be stored.
-
-### Create
-
-Then you can create tasks by running
-
-```bash
-time-tracker create [task name]
-```
-
-Creating a task does not mean it is started.
-You can also start a task by running the `start` command or when creating it by using the `--start` or `-s` flag.
-
-```bash
-time-tracker create [task name] --start
-```
-
 ### Start
 
 To start a task use
@@ -90,6 +65,28 @@ or you can use the task ID
 
 ```bash
 time-tracker start [task ID]
+```
+
+If the task doesn't exist, it will be created automatically and then started.
+
+### Stop
+
+To stop a task use
+
+```bash
+time-tracker stop [task name]
+```
+
+or you can use the task ID
+
+```bash
+time-tracker stop [task ID]
+```
+
+To stop all active tasks at once:
+
+```bash
+time-tracker stop --all
 ```
 
 ### List
@@ -112,36 +109,6 @@ or you can use the task ID
 ```bash
 time-tracker list [task ID]
 ```
-
-### Remove
-
-To remove a task use
-
-```bash
-time-tracker remove [task name]
-```
-
-or you can use the task ID
-
-```bash
-time-tracker remove [task ID]
-```
-
-### Stop
-
-To stop a task use
-
-```bash
-time-tracker stop [task name]
-```
-
-or you can use the task ID
-
-```bash
-time-tracker stop [task ID]
-```
-
-Stopping a task marks it as completed.
 
 ## Tech Stack
 

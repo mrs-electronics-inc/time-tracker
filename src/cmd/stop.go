@@ -10,11 +10,11 @@ import (
 	"time-tracker/utils"
 )
 
-var pauseAll bool
+var stopAll bool
 
-var pauseCmd = &cobra.Command{
-	Use:   "pause [task name or ID]",
-	Short: "Pause a task",
+var stopCmd = &cobra.Command{
+	Use:   "stop [task name or ID]",
+	Short: "Stop a task",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		taskManager, err := utils.NewTaskManager(config.ConfigFile)
@@ -27,16 +27,16 @@ var pauseCmd = &cobra.Command{
 			return err
 		}
 
-		if pauseAll {
-			return pauseAllActiveTasks(taskManager, tasks)
+		if stopAll {
+			return stopAllActiveTasks(taskManager, tasks)
 		}
 
-		return pauseSingleTask(taskManager, tasks, args[0])
+		return stopSingleTask(taskManager, tasks, args[0])
 
 	},
 }
 
-func pauseAllActiveTasks(taskManager *utils.TaskManager, tasks []models.Task) error {
+func stopAllActiveTasks(taskManager *utils.TaskManager, tasks []models.Task) error {
 	var activeTasks []models.Task
 	var modifiedTasks []models.Task = make([]models.Task, len(tasks))
 	copy(modifiedTasks, tasks)
@@ -52,11 +52,11 @@ func pauseAllActiveTasks(taskManager *utils.TaskManager, tasks []models.Task) er
 	}
 
 	for _, task := range activeTasks {
-		pausedTask := pauseTask(task)
+		stoppedTask := stopTask(task)
 
 		for i, t := range modifiedTasks {
-			if t.ID == pausedTask.ID {
-				modifiedTasks[i] = pausedTask
+			if t.ID == stoppedTask.ID {
+				modifiedTasks[i] = stoppedTask
 				break
 			}
 		}
@@ -66,32 +66,32 @@ func pauseAllActiveTasks(taskManager *utils.TaskManager, tasks []models.Task) er
 		return fmt.Errorf("failed to save tasks: %w", err)
 	}
 
-	fmt.Println("All active tasks have been paused")
+	fmt.Println("All active tasks have been stopped")
 	return nil
 }
 
-func pauseSingleTask(taskManager *utils.TaskManager, tasks []models.Task, taskIdentifier string) error {
+func stopSingleTask(taskManager *utils.TaskManager, tasks []models.Task, taskIdentifier string) error {
 	task, index, err := taskManager.FindTask(taskIdentifier)
 	if err != nil {
 		return fmt.Errorf("failed to find task: %w", err)
 	}
 
 	if task.Status != models.StatusActive {
-		return fmt.Errorf("can only pause active tasks")
+		return fmt.Errorf("can only stop active tasks")
 	}
 
-	pausedTask := pauseTask(*task)
-	tasks[index] = pausedTask
+	stoppedTask := stopTask(*task)
+	tasks[index] = stoppedTask
 
 	if err := taskManager.SaveTasks(tasks); err != nil {
 		return fmt.Errorf("failed to save tasks: %w", err)
 	}
 
-	fmt.Printf("Paused task: %s (Duration: %s)\n", pausedTask.Name, pausedTask.Duration)
+	fmt.Printf("Stopped task: %s (Duration: %s)\n", stoppedTask.Name, stoppedTask.Duration)
 	return nil
 }
 
-func pauseTask(task models.Task) models.Task {
+func stopTask(task models.Task) models.Task {
 	now := time.Now()
 	var currentPeriodDuration time.Duration
 
@@ -110,6 +110,6 @@ func pauseTask(task models.Task) models.Task {
 }
 
 func init() {
-	pauseCmd.Flags().BoolVarP(&pauseAll, "all", "a", false, "Pause all the active tasks")
-	rootCmd.AddCommand(pauseCmd)
+	stopCmd.Flags().BoolVarP(&stopAll, "all", "a", false, "Stop all the active tasks")
+	rootCmd.AddCommand(stopCmd)
 }

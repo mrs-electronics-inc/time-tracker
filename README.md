@@ -69,24 +69,24 @@ time-tracker start [task ID]
 
 If the task doesn't exist, it will be created automatically and then started.
 
-### Pause
+### Stop
 
-To pause a task use
+To stop a task use
 
 ```bash
-time-tracker pause [task name]
+time-tracker stop [task name]
 ```
 
 or you can use the task ID
 
 ```bash
-time-tracker pause [task ID]
+time-tracker stop [task ID]
 ```
 
-To pause all active tasks at once:
+To stop all active tasks at once:
 
 ```bash
-time-tracker pause --all
+time-tracker stop --all
 ```
 
 ### List

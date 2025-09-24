@@ -1,4 +1,4 @@
-# Time-tracker
+# Time Tracker
 
 This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez/time-tracker). The codebase is forked from that project, but we plan to implement a totally new data model and TUI.
 
@@ -45,6 +45,10 @@ go install
 - Windows: `%USERPROFILE%\go`
 
 (It is a good idea to add `GOPATH` to your `PATH`)
+
+> [!NOTE]
+> To make things easier, you can create an alias in your shell for the `time-tracker` command.
+> We like to use `t`.
 
 ## Usage
 
@@ -147,25 +151,25 @@ Stopping a task marks it as completed.
 
 ### AI-driven Workflow
 
-1. Install [spec-kit](https://github.com/github/spec-kit) - `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git`
-1. Install [opencode.ai](https://opencode.ai)
-1. Login with openrouter - `opencode auth login`
-1. Select model in `opencode` with the `/models` command (currently recommended: [Grok Code Fast 1](https://openrouter.ai/x-ai/grok-code-fast-1)).
-1. Use the `/specify` command to describe what you want to build. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
-1. Take a look at the output. Refine as needed.
-1. Commit
-1. Use the `/plan` command to describe any architecture choices. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
-1. Take a look at the output. Refine as needed.
-1. Commit
-1. Use the `/tasks` command to create the task list.
-1. Take a look at the output. Refine as needed.
-1. Commit
-1. Use the `/implement` command to execute the task list.
-1. Commit
-1. Push
-1. Create PR
-1. Review all changes yourself before requesting review from a human
-1. Refine based on code review feedback
+- Install [spec-kit](https://github.com/github/spec-kit) - `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git`
+- Install [opencode.ai](https://opencode.ai)
+- Login with openrouter - `opencode auth login`
+- Select model in `opencode` with the `/models` command (currently recommended: [Grok Code Fast 1](https://openrouter.ai/x-ai/grok-code-fast-1)).
+- Use the `/specify` command to describe what you want to build. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
+- Take a look at the output. Refine as needed.
+- Commit
+- Use the `/plan` command to describe any architecture choices. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
+- Take a look at the output. Refine as needed.
+- Commit
+- Use the `/tasks` command to create the task list.
+- Take a look at the output. Refine as needed.
+- Commit
+- Use the `/implement` command to execute the task list.
+- Commit
+- Push
+- Create PR
+- Review all changes yourself before requesting review from a human
+- Refine based on code review feedback
 
 ## License
 

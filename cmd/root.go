@@ -1,6 +1,3 @@
-/*
-Copyright (c) 2024 Leandro Méndez <leandroa.mendez@gmail.com>
-*/
 package cmd
 
 import (
@@ -11,12 +8,9 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "time-tracker",
-	Short: "A simple time tracker cli",
-	Long: `A simple time tracker cli application. 
-
-Time-tracker is a CLI library that allows you to add tasks to a list and track the time until complete them.
-This application generate a JSON file where all the data is stored.
-Also you can check the information of your tasks listing them.`,
+	Short: "A simple time tracker",
+	Long: `A simple time tracker TUI application.
+See https://github.com/mrs-electronics-inc/time-tracker for more details.`,
 }
 
 func Execute() {
@@ -27,5 +21,4 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

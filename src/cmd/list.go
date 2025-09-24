@@ -79,7 +79,7 @@ func displayTasksTable(tasks []models.Task) {
 		tablewriter.Colors{tablewriter.FgHiWhiteColor},
 	)
 
-	// Añadir filas
+	// Add rows
 	for _, task := range tasks {
 		startTime := task.StartTime.Format("2006-01-02 15:04:05")
 		endTime := "-"

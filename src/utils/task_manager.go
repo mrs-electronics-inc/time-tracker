@@ -90,7 +90,7 @@ func (tm *TaskManager) SaveTasks(tasks []models.Task) error {
 
 	tasksFile := filepath.Join(tm.StoragePath, "tasks.json")
 	if err := os.WriteFile(tasksFile, tasksData, 0644); err != nil {
-		return fmt.Errorf("failed to writing the file: %w", err)
+		return fmt.Errorf("failed to write the file: %w", err)
 	}
 	return nil
 }

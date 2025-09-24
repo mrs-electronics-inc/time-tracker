@@ -18,9 +18,22 @@ type TaskManager struct {
 }
 
 func NewTaskManager(configFile string) (*TaskManager, error) {
+	// Check if config file exists
 	configData, err := os.ReadFile(configFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file. Run 'time-tracker init' first: %w", err)
+		// Config file doesn't exist, auto-initialize
+		if os.IsNotExist(err) {
+			if err := autoInitialize(configFile); err != nil {
+				return nil, fmt.Errorf("failed to auto-initialize: %w", err)
+			}
+			// Try reading again after initialization
+			configData, err = os.ReadFile(configFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read config file after initialization: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
 	}
 
 	var config struct {
@@ -33,6 +46,37 @@ func NewTaskManager(configFile string) (*TaskManager, error) {
 	return &TaskManager{
 		StoragePath: config.StoragePath,
 	}, nil
+}
+
+func autoInitialize(configFile string) error {
+	// Get the storage path (same directory as config file)
+	storagePath := filepath.Dir(configFile)
+
+	// Create the storage path
+	if err := os.MkdirAll(storagePath, 0755); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Save the storage path to the configuration file
+	configLocal := config.Config{
+		StoragePath: storagePath,
+	}
+	configData, err := json.Marshal(configLocal)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+
+	if err := os.WriteFile(configFile, configData, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	// Create an empty tasks.json file
+	tasksFile := filepath.Join(storagePath, "tasks.json")
+	if err := os.WriteFile(tasksFile, []byte("[]"), 0644); err != nil {
+		return fmt.Errorf("failed to create tasks file: %w", err)
+	}
+
+	return nil
 }
 
 func (tm *TaskManager) LoadTasks() ([]models.Task, error) {
@@ -132,9 +176,15 @@ func CalculateTaskDurationString(task models.Task) (string, error) {
 }
 
 func RetrieveTaskFile(configFile string) (string, error) {
+	// Ensure initialization
+	_, err := NewTaskManager(configFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize task manager: %w", err)
+	}
+
 	configData, err := os.ReadFile(configFile)
 	if err != nil {
-		return "", fmt.Errorf("failed to read config file. Run 'time-tracker init' first: %w", err)
+		return "", fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var config config.Config
@@ -143,8 +193,5 @@ func RetrieveTaskFile(configFile string) (string, error) {
 	}
 
 	taskFile := filepath.Join(config.StoragePath, "tasks.json")
-	if _, err := os.Stat(taskFile); err != nil {
-		return "", fmt.Errorf("no tasks found. Create some tasks first")
-	}
 	return taskFile, nil
 }

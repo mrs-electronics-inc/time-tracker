@@ -53,16 +53,6 @@ go install
 
 ## Usage
 
-### Init
-
-To start using the CLI you need to initialize the application by running
-
-```bash
-time-tracker init
-```
-
-This will create a configuration file and `tasks.json` file in your user config directory (`~/.config/time-tracker/`) where all your tasks will be stored.
-
 ### Start
 
 To start a task use

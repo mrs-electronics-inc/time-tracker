@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    - name: Run contract tests
+      run: |
+        cd src
+        go test -race ./tests/contract
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    - name: Run integration tests
+      run: |
+        cd src
+        go test -race ./tests/integration
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    - name: Run unit tests
+      run: |
+        cd src
+        go test -race ./tests/unit

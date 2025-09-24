@@ -21,7 +21,7 @@ Task data MUST be accurately tracked and persisted without loss. The system MUST
 
 ### III. Test-First Development
 
-All features MUST be developed following Test-Driven Development principles. Tests MUST be written before implementation, ensuring red-green-refactor cycle is strictly enforced.
+All features MUST be developed following Test-Driven Development principles. Tests MUST be written before implementation, ensuring red-green-refactor cycle is strictly enforced. ALL Go test files MUST use the `_test.go` suffix (e.g., `example_test.go`) instead of a `test_` prefix, as the Go test runner only recognizes the `_test.go` suffix.
 
 ### IV. Performance Efficiency
 

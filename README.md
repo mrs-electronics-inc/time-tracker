@@ -64,6 +64,7 @@ time-tracker start <project> <title>
 This will start a new time entry. If another entry is currently running, it will be automatically stopped first.
 
 Example:
+
 ```bash
 time-tracker start "my-project" "Working on feature"
 ```
@@ -101,6 +102,16 @@ Displays all entries in chronological order (newest first) with ID, start time, 
 
 ## Development
 
+### Testing
+
+To run the automated tests from the repository root:
+
+```bash
+go test ./tests/...
+```
+
+This will run contract tests, integration tests, and unit tests.
+
 ### AI-driven Workflow
 
 - Install [spec-kit](https://github.com/github/spec-kit) - `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git`
@@ -128,4 +139,4 @@ Displays all entries in chronological order (newest first) with ID, start time, 
 
 ## License
 
-All the code is under [MIT](/LICENSE)
+All the code is under the [MIT license](/LICENSE). Contributions are welcome!

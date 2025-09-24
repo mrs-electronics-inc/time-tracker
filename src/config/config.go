@@ -22,5 +22,8 @@ var ConfigPath = func() string {
 
 // DataFilePath returns the path to the data.json file
 func DataFilePath() string {
+	if path := os.Getenv("TIME_TRACKER_DATA_FILE"); path != "" {
+		return path
+	}
 	return filepath.Join(ConfigPath, "data.json")
 }

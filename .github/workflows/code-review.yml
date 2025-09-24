@@ -1,0 +1,39 @@
+name: Code Review Bot
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  run_code_review_bot:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/mrs-electronics-inc/bots/code-review:latest
+      volumes:
+        - ${{ github.workspace }}:/repo
+
+    defaults:
+      run:
+        working-directory: /repo
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Code Review Bot
+        env:
+          OPENROUTER_KEY: ${{ secrets.API_KEY_CODE_REVIEW_BOT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+        run: github_code_review.sh
+
+      - name: Upload artifact including hidden files
+        uses: actions/upload-artifact@v4
+        with:
+          name: bots-directory
+          path: .bots/
+          include-hidden-files: true

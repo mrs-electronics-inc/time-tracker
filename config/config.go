@@ -1,6 +1,3 @@
-/*
-Copyright (c) 2024 Leandro Méndez <leandroa.mendez@gmail.com>
-*/
 package config
 
 import (
@@ -12,4 +9,4 @@ type Config struct {
 	StoragePath string `JSON:"storagePath"`
 }
 
-var ConfigFile = filepath.Join(os.Getenv("HOME"), ".time-tracker-config.json")
+var ConfigFile = filepath.Join(os.Getenv("HOME"), ".config/time-tracker/config.json")

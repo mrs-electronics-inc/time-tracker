@@ -113,20 +113,6 @@ or you can use the task ID
 time-tracker list [task ID]
 ```
 
-### Remove
-
-To remove a task use
-
-```bash
-time-tracker remove [task name]
-```
-
-or you can use the task ID
-
-```bash
-time-tracker remove [task ID]
-```
-
 ## Tech Stack
 
 - [Go](https://go.dev/)

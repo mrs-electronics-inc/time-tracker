@@ -12,7 +12,7 @@ Time Tracker is a simple CLI tool to track the time you spend on different tasks
 
 ### Requirements
 
-To install this application, you will need **Go 1.25.0 or higher**.  
+To install this application, you will need **Go 1.25.0 or higher**.
 You can download it from the [official Golang website](https://go.dev/dl/).
 To verify your Go installation and version, run the following command in your terminal:
 
@@ -68,6 +68,26 @@ time-tracker start [task ID]
 ```
 
 If the task doesn't exist, it will be created automatically and then started.
+
+### Pause
+
+To pause a task use
+
+```bash
+time-tracker pause [task name]
+```
+
+or you can use the task ID
+
+```bash
+time-tracker pause [task ID]
+```
+
+To pause all active tasks at once:
+
+```bash
+time-tracker pause --all
+```
 
 ### List
 

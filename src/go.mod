@@ -3,7 +3,6 @@ module time-tracker
 go 1.25.0
 
 require (
-	github.com/google/uuid v1.6.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/cobra v1.8.1
 )

@@ -1,9 +1,9 @@
 # Time Tracker ⏲️👣
 
-Time Tracker is a simple CLI tool to track the time you spend on different tasks throughout the day.
+Time Tracker is a simple CLI tool to track the time you spend on different projects and tasks throughout the day. It stores time entries in a JSON file and ensures only one entry can be active at a time.
 
 > [!NOTE]
-> This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez/time-tracker). The codebase is forked from that project, but we plan to implement a totally new data model and TUI.
+> This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez/time-tracker). The codebase has been reworked to use a time entry data model instead of tasks.
 
 > [!WARNING]
 > This project is a work in progress. Things may break.
@@ -55,60 +55,44 @@ go install
 
 ### Start
 
-To start a task use
+To start tracking time for a project and task:
 
 ```bash
-time-tracker start [task name]
+time-tracker start <project> <title>
 ```
 
-or you can use the task ID
+This will start a new time entry. If another entry is currently running, it will be automatically stopped first.
 
+Example:
 ```bash
-time-tracker start [task ID]
+time-tracker start "my-project" "Working on feature"
 ```
 
-If the task doesn't exist, it will be created automatically and then started.
+Output: Started tracking time for "Working on feature" in project "my-project"
 
 ### Stop
 
-To stop a task use
+To stop the currently running time entry:
 
 ```bash
-time-tracker stop [task name]
+time-tracker stop
 ```
 
-or you can use the task ID
+This stops the active entry and shows the duration.
 
-```bash
-time-tracker stop [task ID]
-```
+Example output: Stopped tracking time for "Working on feature" in project "my-project" (duration: 1h 30m)
 
-To stop all active tasks at once:
-
-```bash
-time-tracker stop --all
-```
+If no entry is running, it will show an error.
 
 ### List
 
-To list your tasks use
+To list all time entries:
 
 ```bash
 time-tracker list
 ```
 
-It will display all your tasks in a table format.
-To list a specific task use
-
-```bash
-time-tracker list [task name]
-```
-
-or you can use the task ID
-
-```bash
-time-tracker list [task ID]
-```
+Displays all entries in chronological order (newest first) with ID, start time, end time (or "running"), project, title, and duration.
 
 ## Tech Stack
 

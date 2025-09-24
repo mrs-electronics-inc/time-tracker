@@ -41,34 +41,34 @@
 - Paths shown below assume single project - adjust based on plan.md structure
 
 ## Phase 3.1: Setup
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize Go project with Cobra dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [X] T001 Create project structure per implementation plan
+- [X] T002 Initialize Go project with Cobra dependencies
+- [X] T003 [P] Configure linting and formatting tools
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test for list command in tests/contract/test_list.go
-- [ ] T005 [P] Contract test for start command in tests/contract/test_start.go
-- [ ] T006 [P] Contract test for stop command in tests/contract/test_stop.go
-- [ ] T007 [P] Integration test for start and stop scenario in tests/integration/test_start_stop.go
-- [ ] T008 [P] Integration test for auto-stop scenario in tests/integration/test_auto_stop.go
-- [ ] T009 [P] Integration test for stop when no active in tests/integration/test_stop_no_active.go
+- [X] T004 [P] Contract test for list command in tests/contract/test_list.go
+- [X] T005 [P] Contract test for start command in tests/contract/test_start.go
+- [X] T006 [P] Contract test for stop command in tests/contract/test_stop.go
+- [X] T007 [P] Integration test for start and stop scenario in tests/integration/test_start_stop.go
+- [X] T008 [P] Integration test for auto-stop scenario in tests/integration/test_auto_stop.go
+- [X] T009 [P] Integration test for stop when no active in tests/integration/test_stop_no_active.go
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T010 [P] TimeEntry model in src/models/time_entry.go
-- [ ] T011 TaskManager service in src/utils/task_manager.go
-- [ ] T012 [P] list command implementation in src/cmd/list.go
-- [ ] T013 [P] start command implementation in src/cmd/start.go
-- [ ] T014 [P] stop command implementation in src/cmd/stop.go
+- [X] T010 [P] TimeEntry model in src/models/time_entry.go
+- [X] T011 TaskManager service in src/utils/task_manager.go
+- [X] T012 [P] list command implementation in src/cmd/list.go
+- [X] T013 [P] start command implementation in src/cmd/start.go
+- [X] T014 [P] stop command implementation in src/cmd/stop.go
 
 ## Phase 3.4: Integration
-- [ ] T015 Connect TaskManager to JSON file storage
-- [ ] T016 Error handling and logging
+- [X] T015 Connect TaskManager to JSON file storage
+- [X] T016 Error handling and logging
 
 ## Phase 3.5: Polish
-- [ ] T017 [P] Unit tests for TimeEntry model in tests/unit/test_time_entry.go
-- [ ] T018 Performance tests (<100ms startup)
-- [ ] T019 [P] Update README.md with usage
+- [X] T017 [P] Unit tests for TimeEntry model in tests/unit/test_time_entry.go
+- [X] T018 Performance tests (<100ms startup)
+- [X] T019 [P] Update README.md with usage
 
 ## Dependencies
 - Tests (T004-T009) before implementation (T010-T014)

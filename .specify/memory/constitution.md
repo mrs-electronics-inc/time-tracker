@@ -1,9 +1,9 @@
 <!-- Sync Impact Report
-Version change: none → 1.0.0
-List of modified principles: N/A (new constitution)
-Added sections: All sections added
+Version change: 1.0.0 → 1.0.1
+List of modified principles: Development Workflow (added testing restrictions)
+Added sections: None
 Removed sections: None
-Templates requiring updates: None (templates align with new principles)
+Templates requiring updates: None
 Follow-up TODOs: None
 -->
 
@@ -21,7 +21,7 @@ Task data MUST be accurately tracked and persisted without loss. The system MUST
 
 ### III. Test-First Development
 
-All features MUST be developed following Test-Driven Development principles. Tests MUST be written before implementation, ensuring red-green-refactor cycle is strictly enforced.
+All features MUST be developed following Test-Driven Development principles. Tests MUST be written before implementation, ensuring red-green-refactor cycle is strictly enforced. ALL Go test files MUST use the `_test.go` suffix (e.g., `example_test.go`) instead of a `test_` prefix, as the Go test runner only recognizes the `_test.go` suffix.
 
 ### IV. Performance Efficiency
 
@@ -37,10 +37,10 @@ Primary programming language: Go. CLI framework: Cobra. Data storage: JSON file 
 
 ## Development Workflow
 
-Use AI-driven workflow with spec-kit for specifications, opencode for implementation. Follow TDD, commit after each task, and ensure constitution compliance.
+Use AI-driven workflow with spec-kit for specifications, opencode for implementation. Follow TDD, commit after each task, and ensure constitution compliance. The agent MUST NEVER run the project directly as it will interfere with the user's existing install of time-tracker. All changes MUST be tested with automated tests in the tests directory.
 
 ## Governance
 
 Constitution supersedes all other practices. Amendments require consensus among maintainers. Version updates follow semantic versioning. Compliance MUST be verified in all PRs.
 
-**Version**: 1.0.0 | **Ratified**: 2025-09-24 | **Last Amended**: 2025-09-24
+**Version**: 1.0.1 | **Ratified**: 2025-09-24 | **Last Amended**: 2025-09-24

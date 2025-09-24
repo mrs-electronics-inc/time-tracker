@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
+	"strconv"
+	"time"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -13,133 +14,69 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list [task name]",
-	Short: "List all tasks or a specific task",
-	Long: `List command displays tasks in a table format.
-If no task name is provided, it shows all tasks.
-If a task name is provided, it shows only that specific task.`,
-	Args: cobra.MaximumNArgs(1),
+	Use:   "list",
+	Short: "List all time entries",
+	Long:  `List all time entries from data.json in chronological order (newest first).`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
-		taskManager, err := utils.NewTaskManager(config.ConfigFile)
+		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
-			return fmt.Errorf("failed to initialize task manager: %w", err)
+			return fmt.Errorf("failed to initialize storage: %w", err)
+		}
+		taskManager := utils.NewTaskManager(storage)
+
+		entries, err := taskManager.ListEntries()
+		if err != nil {
+			return fmt.Errorf("failed to load time entries: %w", err)
 		}
 
-		tasks, err := taskManager.LoadTasks()
-		if err != nil {
-			return fmt.Errorf("no tasks found: %w", err)
-		}
-
-		if len(tasks) == 0 {
-			fmt.Println("no tasks")
+		if len(entries) == 0 {
+			fmt.Println("No time entries found")
 			return nil
 		}
 
-		filteredTasks := filterTasks(tasks, args)
-
-		if len(filteredTasks) == 0 {
-			fmt.Printf("no tasks found matching \"%s\"\n", args[0])
-			return nil
-		}
-
-		displayTasksTable(filteredTasks)
+		displayEntriesTable(entries)
 		return nil
 	},
 }
 
-func filterTasks(tasks []models.Task, args []string) []models.Task {
-	if len(args) == 0 {
-		return tasks
-	}
-
-	searchName := strings.ToLower(args[0])
-	var filteredTasks []models.Task
-	for _, task := range tasks {
-		if strings.Contains(strings.ToLower(task.Name), searchName) {
-			filteredTasks = append(filteredTasks, task)
-		}
-	}
-	return filteredTasks
-}
-
-func displayTasksTable(tasks []models.Task) {
+func displayEntriesTable(entries []models.TimeEntry) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Name", "Status", "Start Time", "End Time", "Duration"})
+	table.SetHeader([]string{"ID", "Start", "End", "Project", "Title", "Duration"})
 	table.SetBorder(true)
 	table.SetRowLine(true)
 	table.SetAutoWrapText(false)
 
-	table.SetHeaderColor(
-		tablewriter.Colors{tablewriter.FgHiWhiteColor},
-		tablewriter.Colors{tablewriter.FgHiWhiteColor},
-		tablewriter.Colors{tablewriter.FgHiWhiteColor},
-		tablewriter.Colors{tablewriter.FgHiWhiteColor},
-		tablewriter.Colors{tablewriter.FgHiWhiteColor},
-		tablewriter.Colors{tablewriter.FgHiWhiteColor},
-	)
-
-	// Add rows
-	for _, task := range tasks {
-		startTime := task.StartTime.Format("2006-01-02 15:04:05")
-		endTime := "-"
-		if !task.EndTime.IsZero() {
-			endTime = task.EndTime.Format("2006-01-02 15:04:05")
+	for _, entry := range entries {
+		startTime := entry.Start.Format("2006-01-02 15:04")
+		endTime := "\033[32mrunning\033[0m"
+		if entry.End != nil {
+			endTime = entry.End.Format("2006-01-02 15:04")
 		}
 
-		duration, err := utils.CalculateTaskDurationString(task)
-		if err != nil {
-			duration = "error"
-		}
-		shortID := task.ID[:8]
+		duration := formatDuration(entry.Duration())
 
 		row := []string{
-			shortID,
-			task.Name,
-			string(task.Status),
+			strconv.Itoa(entry.ID),
 			startTime,
 			endTime,
+			entry.Project,
+			entry.Title,
 			duration,
 		}
 
-		colors := getStatusColor(task.Status)
-		table.Rich(row, colors)
+		table.Append(row)
 	}
 
 	table.Render()
 }
 
-func getStatusColor(status models.TaskStatus) []tablewriter.Colors {
-	switch status {
-	case models.StatusActive:
-		return []tablewriter.Colors{
-			{tablewriter.FgGreenColor},
-			{tablewriter.FgGreenColor},
-			{tablewriter.FgGreenColor},
-			{tablewriter.FgGreenColor},
-			{tablewriter.FgGreenColor},
-			{tablewriter.FgGreenColor},
-		}
-	case models.StatusPaused:
-		return []tablewriter.Colors{
-			{tablewriter.FgYellowColor},
-			{tablewriter.FgYellowColor},
-			{tablewriter.FgYellowColor},
-			{tablewriter.FgYellowColor},
-			{tablewriter.FgYellowColor},
-			{tablewriter.FgYellowColor},
-		}
-	case models.StatusCompleted:
-		return []tablewriter.Colors{
-			{tablewriter.FgBlueColor},
-			{tablewriter.FgBlueColor},
-			{tablewriter.FgBlueColor},
-			{tablewriter.FgBlueColor},
-			{tablewriter.FgBlueColor},
-			{tablewriter.FgBlueColor},
-		}
+func formatDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm", hours, minutes)
 	}
-	return nil
+	return fmt.Sprintf("%dm", minutes)
 }
 
 func init() {

@@ -5,11 +5,7 @@ import (
 	"path/filepath"
 )
 
-type Config struct {
-	// Config is now empty since we don't need to store anything
-}
-
-var ConfigFile = func() string {
+var ConfigPath = func() string {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		// Fallback to home directory if UserConfigDir fails
@@ -21,5 +17,13 @@ var ConfigFile = func() string {
 			configDir = homeDir
 		}
 	}
-	return filepath.Join(configDir, "time-tracker", "config.json")
+	return filepath.Join(configDir, "time-tracker")
 }()
+
+// DataFilePath returns the path to the data.json file
+func DataFilePath() string {
+	if path := os.Getenv("TIME_TRACKER_DATA_FILE"); path != "" {
+		return path
+	}
+	return filepath.Join(ConfigPath, "data.json")
+}

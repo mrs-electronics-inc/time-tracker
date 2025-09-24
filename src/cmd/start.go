@@ -2,89 +2,56 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"time-tracker/config"
-	"time-tracker/models"
 	"time-tracker/utils"
 )
 
 var startCmd = &cobra.Command{
-	Use:   "start [task name or ID]",
-	Short: "Start a task (creates it if it doesn't exist)",
-	Args:  cobra.ExactArgs(1),
+	Use:   "start [project title] [--id ID]",
+	Short: "Start a new time entry",
+	Long:  `Starts a new time entry with the specified project and title, or resumes an existing entry by ID. If another time entry is currently running, it will be automatically stopped first.`,
+	Args:  cobra.RangeArgs(0, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		taskManager, err := utils.NewTaskManager(config.ConfigFile)
+		id, _ := cmd.Flags().GetInt("id")
+		var project, title string
+
+		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to initialize storage: %w", err)
+		}
+		taskManager := utils.NewTaskManager(storage)
+
+		if id != 0 {
+			if len(args) > 0 {
+				return fmt.Errorf("--id flag cannot be used with positional arguments")
+			}
+			entry, err := taskManager.GetEntry(id)
+			if err != nil {
+				return fmt.Errorf("failed to get entry: %w", err)
+			}
+			project = entry.Project
+			title = entry.Title
+		} else {
+			if len(args) != 2 {
+				return fmt.Errorf("project and title required when not using --id")
+			}
+			project = args[0]
+			title = args[1]
 		}
 
-		tasks, err := taskManager.LoadTasks()
+		entry, err := taskManager.StartEntry(project, title)
 		if err != nil {
-			// If tasks file doesn't exist, start with empty slice
-			tasks = []models.Task{}
+			return fmt.Errorf("failed to start time entry: %w", err)
 		}
 
-		var task *models.Task
-		var index int
-		for i, t := range tasks {
-			if strings.ToLower(t.Name) == strings.ToLower(args[0]) || strings.HasPrefix(t.ID, args[0]) {
-				task = &tasks[i]
-				index = i
-				break
-			}
-		}
-
-		if task == nil {
-			// Task not found, create it
-			newTask, err := taskManager.CreateTask(args[0])
-			if err != nil {
-				return fmt.Errorf("failed to create task: %w", err)
-			}
-			task = newTask
-			// Reload tasks to include the new one
-			tasks, err = taskManager.LoadTasks()
-			if err != nil {
-				return err
-			}
-			// Find the index of the new task
-			for i, t := range tasks {
-				if t.ID == task.ID {
-					index = i
-					break
-				}
-			}
-		}
-
-		if task.Status == models.StatusActive {
-			return fmt.Errorf("task is already active")
-		}
-
-		if task.Status == models.StatusCompleted {
-			return fmt.Errorf("cannot start a completed task")
-		}
-
-		now := time.Now()
-		task.Status = models.StatusActive
-		task.LastResumeTime = now
-
-		if task.StartTime.IsZero() {
-			task.StartTime = now
-			task.AccumulatedTime = 0
-		}
-
-		tasks[index] = *task
-		if err := taskManager.SaveTasks(tasks); err != nil {
-			return err
-		}
-
-		fmt.Printf("Started task: %s\n", task.Name)
+		fmt.Printf("Started tracking time for \"%s\" in project \"%s\"\n", entry.Title, entry.Project)
 		return nil
 	},
 }
 
 func init() {
+	startCmd.Flags().Int("id", 0, "ID of existing time entry to resume")
 	rootCmd.AddCommand(startCmd)
 }

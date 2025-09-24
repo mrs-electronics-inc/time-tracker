@@ -1,9 +1,8 @@
 # Time-tracker
 
-Time-tracker is a simple CLI tool to manage your tasks and track their time.
-It will create a JSON file where all the data is stored in the location you specify in the init command.
+This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez/time-tracker). The codebase is forked from that project, but we plan to implement a totally new data model and TUI.
 
-It is a project in progress. Any feedback is welcome.
+Time Tracker is a simple CLI tool to track the time you spend on different tasks throughout the day.
 
 ## Install
 

@@ -52,7 +52,7 @@ go install
 
 ## Usage
 
-### Init command
+### Init
 
 To start using the CLI you need to initialize the application by running
 
@@ -62,7 +62,7 @@ time-tracker init [path]
 
 This will create a `tasks.json` file in the specified path where all your tasks will be stored.
 
-### Create command
+### Create
 
 Then you can create tasks by running
 
@@ -77,7 +77,7 @@ You can also start a task by running the `start` command or when creating it by 
 time-tracker create [task name] --start
 ```
 
-### Start command
+### Start
 
 To start a task use
 
@@ -91,7 +91,7 @@ or you can use the task ID
 time-tracker start [task ID]
 ```
 
-### List command
+### List
 
 To list your tasks use
 
@@ -112,7 +112,7 @@ or you can use the task ID
 time-tracker list [task ID]
 ```
 
-### Remove command
+### Remove
 
 To remove a task use
 
@@ -126,7 +126,7 @@ or you can use the task ID
 time-tracker remove [task ID]
 ```
 
-### Stop command
+### Stop
 
 To stop a task use
 

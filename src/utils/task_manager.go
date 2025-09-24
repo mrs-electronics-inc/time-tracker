@@ -19,32 +19,23 @@ type TaskManager struct {
 
 func NewTaskManager(configFile string) (*TaskManager, error) {
 	// Check if config file exists
-	configData, err := os.ReadFile(configFile)
+	_, err := os.ReadFile(configFile)
 	if err != nil {
 		// Config file doesn't exist, auto-initialize
 		if os.IsNotExist(err) {
 			if err := autoInitialize(configFile); err != nil {
 				return nil, fmt.Errorf("failed to auto-initialize: %w", err)
 			}
-			// Try reading again after initialization
-			configData, err = os.ReadFile(configFile)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read config file after initialization: %w", err)
-			}
 		} else {
 			return nil, fmt.Errorf("failed to read config file: %w", err)
 		}
 	}
 
-	var config struct {
-		StoragePath string `json:"storagePath"`
-	}
-	if err := json.Unmarshal(configData, &config); err != nil {
-		return nil, fmt.Errorf("failed to parse config: %w", err)
-	}
+	// Storage path is always the directory containing the config file
+	storagePath := filepath.Dir(configFile)
 
 	return &TaskManager{
-		StoragePath: config.StoragePath,
+		StoragePath: storagePath,
 	}, nil
 }
 
@@ -57,11 +48,8 @@ func autoInitialize(configFile string) error {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	// Save the storage path to the configuration file
-	configLocal := config.Config{
-		StoragePath: storagePath,
-	}
-	configData, err := json.Marshal(configLocal)
+	// Create an empty config file (since Config struct is now empty)
+	configData, err := json.Marshal(config.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
@@ -182,16 +170,7 @@ func RetrieveTaskFile(configFile string) (string, error) {
 		return "", fmt.Errorf("failed to initialize task manager: %w", err)
 	}
 
-	configData, err := os.ReadFile(configFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to read config file: %w", err)
-	}
-
-	var config config.Config
-	if err := json.Unmarshal(configData, &config); err != nil {
-		return "", fmt.Errorf("failed to parse config: %w", err)
-	}
-
-	taskFile := filepath.Join(config.StoragePath, "tasks.json")
+	// Task file is always in the same directory as the config file
+	taskFile := filepath.Join(filepath.Dir(configFile), "tasks.json")
 	return taskFile, nil
 }

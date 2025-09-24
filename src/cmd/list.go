@@ -48,7 +48,7 @@ func displayEntriesTable(entries []models.TimeEntry) {
 
 	for _, entry := range entries {
 		startTime := entry.Start.Format("2006-01-02 15:04")
-		endTime := "running"
+		endTime := "\033[32mrunning\033[0m"
 		if entry.End != nil {
 			endTime = entry.End.Format("2006-01-02 15:04")
 		}

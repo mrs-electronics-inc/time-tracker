@@ -95,6 +95,21 @@ func (tm *TaskManager) StopEntry() (*models.TimeEntry, error) {
 	return nil, fmt.Errorf("no active time entry to stop")
 }
 
+func (tm *TaskManager) GetEntry(id int) (*models.TimeEntry, error) {
+	entries, err := tm.storage.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if entry.ID == id {
+			return &entry, nil
+		}
+	}
+
+	return nil, fmt.Errorf("entry with ID %d not found", id)
+}
+
 func (tm *TaskManager) ListEntries() ([]models.TimeEntry, error) {
 	entries, err := tm.storage.Load()
 	if err != nil {

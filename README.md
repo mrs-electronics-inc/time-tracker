@@ -126,6 +126,9 @@ time-tracker list [task ID]
 - Use the `/specify` command to describe what you want to build. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
 - Take a look at the output. Refine as needed.
 - Commit
+- Use the `/clarify` command to clarify the design.
+- Take a look at the output. Refine as needed.
+- Commit
 - Use the `/plan` command to describe any architecture choices. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
 - Take a look at the output. Refine as needed.
 - Commit

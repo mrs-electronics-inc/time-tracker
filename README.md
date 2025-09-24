@@ -4,6 +4,9 @@ This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez
 
 Time Tracker is a simple CLI tool to track the time you spend on different tasks throughout the day.
 
+> [!WARNING]
+> This project is a work in progress. Things may break.
+
 ## Install
 
 ### Requirements

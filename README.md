@@ -1,8 +1,9 @@
-# Time Tracker
-
-This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez/time-tracker). The codebase is forked from that project, but we plan to implement a totally new data model and TUI.
+# Time Tracker ⏲️👣
 
 Time Tracker is a simple CLI tool to track the time you spend on different tasks throughout the day.
+
+> [!NOTE]
+> This project is based on [LeanMendez/time-tracker](https://github.com/LeanMendez/time-tracker). The codebase is forked from that project, but we plan to implement a totally new data model and TUI.
 
 > [!WARNING]
 > This project is a work in progress. Things may break.

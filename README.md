@@ -127,22 +127,6 @@ or you can use the task ID
 time-tracker remove [task ID]
 ```
 
-### Stop
-
-To stop a task use
-
-```bash
-time-tracker stop [task name]
-```
-
-or you can use the task ID
-
-```bash
-time-tracker stop [task ID]
-```
-
-Stopping a task marks it as completed.
-
 ## Tech Stack
 
 - [Go](https://go.dev/)

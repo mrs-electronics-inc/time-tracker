@@ -21,6 +21,7 @@ tests/
 Go: Follow standard conventions
 
 ## Recent Changes
+- 003-combine-start-and-stop: Combined start and stop commands into single command with aliases
 - 002-docker-container: Added Docker support with CI automation for safe LLM agent testing
 - 001-rework-the-data: Added Go + Cobra
 

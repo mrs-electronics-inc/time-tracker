@@ -52,6 +52,11 @@ When creating this spec from a user prompt:
 
 ---
 
+## Clarifications
+
+### Session 2025-09-29
+- Q: How should the 's' alias behave? → A: With arguments: start tracking; without arguments: stop tracking
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
@@ -62,11 +67,13 @@ Users need a unified command to manage time tracking sessions, allowing them to 
 2. **Given** an active time tracking session, **When** user runs `stop`, **Then** the current session stops and time is recorded.
 3. **Given** an active time tracking session, **When** user runs `stop "any-argument"`, **Then** system errors and prompts user to use `start` instead.
 4. **Given** no active session, **When** user runs `start` without arguments, **Then** system errors due to missing required arguments.
+5. **Given** no active time tracking session, **When** user runs `s "project-name" "task-name"`, **Then** a new tracking session starts for the specified project and task.
+6. **Given** an active time tracking session, **When** user runs `s`, **Then** the current session stops and time is recorded.
 
 ### Edge Cases
-- What happens when user runs `s` with arguments? [NEEDS CLARIFICATION: behavior for 's' alias not specified - should it behave like start?]
-- What happens when user runs `s` without arguments? [NEEDS CLARIFICATION: behavior for 's' alias not specified - should it behave like stop?]
-- How does the system distinguish between 'start' and 'stop' invocations when using aliases?
+- When user runs `s` with arguments, it starts tracking with the provided project and task.
+- When user runs `s` without arguments, it stops the current tracking session.
+- The system distinguishes invocations by the alias used: 'start' and 's' with args behave as start, 'stop' and 's' without args behave as stop.
 
 ## Requirements *(mandatory)*
 
@@ -74,7 +81,7 @@ Users need a unified command to manage time tracking sessions, allowing them to 
 - **FR-001**: System MUST provide a single command accessible via aliases 's', 'start', and 'stop'.
 - **FR-002**: When the command is invoked as 'stop', system MUST reject any provided arguments and prompt user to use 'start'.
 - **FR-003**: When the command is invoked as 'start', system MUST require project and task arguments or error.
-- **FR-004**: [NEEDS CLARIFICATION: System MUST define behavior for 's' alias - determine action based on presence of arguments or explicit logic?]
+- **FR-004**: When the command is invoked as 's', system MUST start tracking if arguments are provided, or stop tracking if no arguments are provided.
 
 ---
 

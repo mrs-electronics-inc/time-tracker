@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  time-tracker:
+    build: .
+    volumes:
+      - ./data:/data

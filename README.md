@@ -51,6 +51,38 @@ go install
 > To make things easier, you can create an alias in your shell for the `time-tracker` command.
 > We like to use `t`.
 
+## Docker
+
+For safe testing without affecting your system, use Docker.
+
+### Build the Image
+
+```bash
+docker build -t time-tracker .
+```
+
+### Run Commands
+
+```bash
+docker run --rm -v $(pwd)/data:/data time-tracker [command] [args]
+```
+
+Example:
+
+```bash
+docker run --rm -v $(pwd)/data:/data time-tracker start "my-project" "Working on feature"
+docker run --rm -v $(pwd)/data:/data time-tracker stop
+docker run --rm -v $(pwd)/data:/data time-tracker list
+```
+
+### Using Docker Compose
+
+For easier usage, use docker compose:
+
+```bash
+docker compose run time-tracker [command] [args]
+```
+
 ## Usage
 
 ### Start

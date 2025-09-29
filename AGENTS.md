@@ -24,4 +24,13 @@ Go: Follow standard conventions
 - 001-rework-the-data: Added Go + Cobra
 
 <!-- MANUAL ADDITIONS START -->
+## Testing Instructions
+
+All testing must be done through Docker Compose ONLY to ensure safe execution without affecting the host system.
+
+- Build the image: `docker compose build`
+- Run commands: `docker compose run time-tracker [args]`
+- Example: `docker compose run time-tracker start "test-project" "test-task"`
+
+**IMPORTANT**: Never run the binary directly, use `go run`, or execute the project in any way that affects the host system. Always use Docker Compose for testing.
 <!-- MANUAL ADDITIONS END -->

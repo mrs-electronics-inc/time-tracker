@@ -1,3 +1,12 @@
 services:
   time-tracker:
     build: .
+    volumes:
+      - data:/data
+      - config:/root/.config
+    environment:
+      - TIME_TRACKER_DATA_FILE=/data/data.json
+
+volumes:
+  data:
+  config:

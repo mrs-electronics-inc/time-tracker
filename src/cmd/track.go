@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"time-tracker/config"
@@ -9,14 +10,13 @@ import (
 )
 
 var trackCmd = &cobra.Command{
-	Use:     "start [project title] [--id ID]",
+	Use:     "start [project title | ID]",
 	Short:   "Start or stop time tracking",
-	Long:    `Start a new time entry with the specified project and title, or stop the current tracking session. Can be called as 'start', 'stop', or 's'.`,
+	Long:    `Start a new time entry with project and title, resume by ID, or stop current tracking. Can be called as 'start', 'stop', or 's'.`,
 	Aliases: []string{"stop", "s"},
 	Args:    cobra.RangeArgs(0, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		calledAs := cmd.CalledAs()
-		id, _ := cmd.Flags().GetInt("id")
 
 		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
@@ -25,8 +25,8 @@ var trackCmd = &cobra.Command{
 		taskManager := utils.NewTaskManager(storage)
 
 		// Determine if this is a start or stop operation
-		isStop := calledAs == "stop" || (calledAs == "s" && len(args) == 0 && id == 0)
-		isStart := calledAs == "start" || (calledAs == "s" && len(args) > 0) || id != 0
+		isStop := calledAs == "stop" || (calledAs == "s" && len(args) == 0)
+		isStart := calledAs == "start" || calledAs == "s"
 
 		if isStop {
 			// Stop operation
@@ -54,9 +54,11 @@ var trackCmd = &cobra.Command{
 			// Start operation
 			var project, title string
 
-			if id != 0 {
-				if len(args) > 0 {
-					return fmt.Errorf("--id flag cannot be used with positional arguments")
+			if len(args) == 1 {
+				// Single argument: treat as ID to resume
+				id, err := strconv.Atoi(args[0])
+				if err != nil {
+					return fmt.Errorf("invalid ID: %s", args[0])
 				}
 				entry, err := taskManager.GetEntry(id)
 				if err != nil {
@@ -64,12 +66,11 @@ var trackCmd = &cobra.Command{
 				}
 				project = entry.Project
 				title = entry.Title
-			} else {
-				if len(args) != 2 {
-					return fmt.Errorf("project and title required when not using --id")
-				}
+			} else if len(args) == 2 {
 				project = args[0]
 				title = args[1]
+			} else {
+				return fmt.Errorf("provide project and title, or single ID to resume")
 			}
 
 			entry, err := taskManager.StartEntry(project, title)
@@ -87,6 +88,5 @@ var trackCmd = &cobra.Command{
 }
 
 func init() {
-	trackCmd.Flags().Int("id", 0, "ID of existing time entry to resume")
 	rootCmd.AddCommand(trackCmd)
 }

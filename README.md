@@ -134,7 +134,12 @@ This will run contract tests, integration tests, and unit tests.
 - Commit
 - Push
 - Create PR
-- Review all changes yourself before requesting review from a human
+- Review all changes yourself
+- Refine as needed
+- Use the `/compact-spec <subdirectory>` command to compact the spec files in `specs/<subdirectory>` into a single `spec.md`, removing boilerplate.
+- Commit
+- Push
+- Request human review
 - Refine based on code review feedback
 
 ## License

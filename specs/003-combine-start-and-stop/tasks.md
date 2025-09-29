@@ -45,12 +45,6 @@
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [X] T006 [P] Integration test for starting tracking in tests/integration/start_tracking_test.go
-- [X] T007 [P] Integration test for stopping tracking in tests/integration/stop_tracking_test.go
-- [X] T008 [P] Integration test for 's' starting tracking in tests/integration/s_start_tracking_test.go
-- [X] T009 [P] Integration test for 's' stopping tracking in tests/integration/s_stop_tracking_test.go
-- [X] T010 [P] Integration test for 'stop' with arguments error in tests/integration/stop_with_args_error_test.go
-- [X] T011 [P] Integration test for 'start' without arguments error in tests/integration/start_without_args_error_test.go
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 - [X] T012 Create new combined command in src/cmd/track.go
@@ -67,20 +61,13 @@
 - [X] T019 Update README.md with new command usage
 
 ## Dependencies
-- Tests (T006-T011) before implementation (T012-T014)
 - T012 blocks T013, T014
 - T013 blocks T015
 - Implementation before polish (T016-T019)
 
 ## Parallel Example
 ```
-# Launch T006-T011 together:
-Task: "Integration test for starting tracking in tests/integration/start_tracking_test.go"
-Task: "Integration test for stopping tracking in tests/integration/stop_tracking_test.go"
-Task: "Integration test for 's' starting tracking in tests/integration/s_start_tracking_test.go"
-Task: "Integration test for 's' stopping tracking in tests/integration/s_stop_tracking_test.go"
-Task: "Integration test for 'stop' with arguments error in tests/integration/stop_with_args_error_test.go"
-Task: "Integration test for 'start' without arguments error in tests/integration/start_without_args_error_test.go"
+# No parallel tests in this phase
 ```
 
 ## Notes
@@ -110,7 +97,6 @@ Task: "Integration test for 'start' without arguments error in tests/integration
 ## Validation Checklist
 *GATE: Checked by main() before returning*
 
-- [ ] All acceptance scenarios have integration tests
 - [ ] All tests come before implementation
 - [ ] Parallel tasks truly independent
 - [ ] Each task specifies exact file path

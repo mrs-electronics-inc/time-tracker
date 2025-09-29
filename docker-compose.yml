@@ -1,5 +1,3 @@
 services:
   time-tracker:
     build: .
-    volumes:
-      - ./data:/data

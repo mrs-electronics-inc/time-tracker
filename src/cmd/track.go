@@ -26,7 +26,7 @@ var trackCmd = &cobra.Command{
 
 		// Determine if this is a start or stop operation
 		isStop := calledAs == "stop" || (calledAs == "s" && len(args) == 0)
-		isStart := calledAs == "start" || calledAs == "s"
+		isStart := calledAs == "start" || (calledAs == "s" && len(args) > 0)
 
 		if isStop {
 			// Stop operation

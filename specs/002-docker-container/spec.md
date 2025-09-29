@@ -5,6 +5,14 @@
 **Status**: Draft  
 **Input**: User description: "002-docker-container Add Docker support to the time-tracker project for safe testing by the LLM agent without affecting the user's system. Include CI automation to push the latest Docker container on every push to the main branch."
 
+## Clarifications
+
+### Session 2025-09-29
+
+- Q: How should the system handle cases where Docker is not installed on the user's system? → A: the system should have no special handling for checking Docker install
+- Q: How should the system handle failures during Docker container build or run? → A: Notify the user with troubleshooting steps
+- Q: Which container registry should be used for pushing the Docker image in CI? → A: GitHub Container Registry
+
 ## Execution Flow (main)
 ```
 1. Parse user description from Input
@@ -62,15 +70,15 @@ Add Docker support to the time-tracker project to enable the LLM agent to safely
 2. **Given** a push occurs to the main branch, **When** the CI pipeline runs, **Then** the latest Docker container is automatically built and pushed to the registry.
 
 ### Edge Cases
-- What happens when Docker is not installed or available on the system?
-- How does the system handle failures during Docker container build or run?
+- When Docker is not installed, the system has no special handling and will fail naturally.
+- On Docker build or run failures, the system notifies the user with troubleshooting steps.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 - **FR-001**: System MUST provide a Dockerfile that enables building the time-tracker project into a runnable Docker container.
 - **FR-002**: System MUST allow the time-tracker application to be executed safely within the Docker container without impacting the host system.
-- **FR-003**: CI pipeline MUST automatically build and push the latest Docker container upon pushes to the main branch.
+- **FR-003**: CI pipeline MUST automatically build and push the latest Docker container to GitHub Container Registry upon pushes to the main branch.
 
 ---
 

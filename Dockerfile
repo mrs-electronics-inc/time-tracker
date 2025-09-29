@@ -9,5 +9,5 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app/time-tracker .
-RUN mkdir -p /data /root/.config
+RUN mkdir -p /root/.config
 ENTRYPOINT ["./time-tracker"]

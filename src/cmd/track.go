@@ -10,10 +10,10 @@ import (
 )
 
 var trackCmd = &cobra.Command{
-	Use:     "start [project title | ID]",
-	Short:   "Start or stop time tracking",
-	Long:    `Start a new time entry with project and title, resume by ID, or stop current tracking. Can be called as 'start', 'stop', or 's'.`,
-	Aliases: []string{"stop", "s"},
+	Use:     "s [project title | ID]",
+	Short:   "Start (or stop) time tracking",
+	Long:    `Start a new time entry with project and title, resume by ID, or stop current entry. Can be called as 'start', 'stop', or 's'.`,
+	Aliases: []string{"start", "stop"},
 	Args:    cobra.RangeArgs(0, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		calledAs := cmd.CalledAs()

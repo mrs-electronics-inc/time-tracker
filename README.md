@@ -100,7 +100,7 @@ Example output: Stopped tracking time for "Working on feature" in project "my-pr
 
 If no entry is running, it will show an error.
 
-Note: The `stop` command does not accept arguments. Use `start` to begin tracking.
+Note: The `stop` command does not accept arguments. Use `start` to begin tracking a new entry.
 
 ### List
 

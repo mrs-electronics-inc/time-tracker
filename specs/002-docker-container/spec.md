@@ -36,9 +36,8 @@ Add Docker support to the time-tracker project to enable the LLM agent to safely
 
 ### Project Impact
 - No new data entities required; infrastructure addition only.
-- Follows TDD with integration tests for Docker build/run/commands.
 - Includes docker-compose.yml for easy testing.
 - Updates README.md and AGENTS.md with Docker instructions.
 
 ### Implementation Status
-All tasks completed: Dockerfile, CI workflow, docker-compose, tests, documentation updates.
+All tasks completed: Dockerfile, CI workflow, docker-compose, documentation updates.

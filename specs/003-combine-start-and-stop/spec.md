@@ -54,6 +54,7 @@ docker compose run time-tracker s "My Project" "Task 1"
 
 # Resume by ID
 docker compose run time-tracker start 5
+docker compose run time-tracker s 5
 
 # Stop tracking
 docker compose run time-tracker stop

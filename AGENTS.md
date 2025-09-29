@@ -1,11 +1,12 @@
 # time-tracker Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-09-24
+Auto-generated from all feature plans. Last updated: 2025-09-29
 
 ## Active Technologies
 - Go + Cobra (001-rework-the-data)
-- Go + Cobra (CLI framework) (002-docker-container)
-- JSON file format (002-docker-container)
+- Docker (002-docker-container)
+- GitHub Actions (002-docker-container)
+- JSON file format (001-rework-the-data)
 
 ## Project Structure
 ```
@@ -20,7 +21,7 @@ tests/
 Go: Follow standard conventions
 
 ## Recent Changes
-- 002-docker-container: Added Go + Cobra (CLI framework)
+- 002-docker-container: Added Docker support with CI automation for safe LLM agent testing
 - 001-rework-the-data: Added Go + Cobra
 
 <!-- MANUAL ADDITIONS START -->

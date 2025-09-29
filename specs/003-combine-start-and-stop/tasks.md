@@ -45,10 +45,6 @@
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [X] T002 [P] Contract test for 'start' command in tests/contract/start_command_test.go
-- [X] T003 [P] Contract test for 'stop' command in tests/contract/stop_command_test.go
-- [X] T004 [P] Contract test for 's' with arguments in tests/contract/s_with_args_command_test.go
-- [X] T005 [P] Contract test for 's' without arguments in tests/contract/s_without_args_command_test.go
 - [X] T006 [P] Integration test for starting tracking in tests/integration/start_tracking_test.go
 - [X] T007 [P] Integration test for stopping tracking in tests/integration/stop_tracking_test.go
 - [X] T008 [P] Integration test for 's' starting tracking in tests/integration/s_start_tracking_test.go
@@ -71,19 +67,13 @@
 - [X] T019 Update README.md with new command usage
 
 ## Dependencies
-- Tests (T002-T011) before implementation (T012-T014)
+- Tests (T006-T011) before implementation (T012-T014)
 - T012 blocks T013, T014
 - T013 blocks T015
 - Implementation before polish (T016-T019)
 
 ## Parallel Example
 ```
-# Launch T002-T005 together:
-Task: "Contract test for 'start' command in tests/contract/start_command_test.go"
-Task: "Contract test for 'stop' command in tests/contract/stop_command_test.go"
-Task: "Contract test for 's' with arguments in tests/contract/s_with_args_command_test.go"
-Task: "Contract test for 's' without arguments in tests/contract/s_without_args_command_test.go"
-
 # Launch T006-T011 together:
 Task: "Integration test for starting tracking in tests/integration/start_tracking_test.go"
 Task: "Integration test for stopping tracking in tests/integration/stop_tracking_test.go"
@@ -120,7 +110,6 @@ Task: "Integration test for 'start' without arguments error in tests/integration
 ## Validation Checklist
 *GATE: Checked by main() before returning*
 
-- [ ] All contract invocations have corresponding tests
 - [ ] All acceptance scenarios have integration tests
 - [ ] All tests come before implementation
 - [ ] Parallel tasks truly independent

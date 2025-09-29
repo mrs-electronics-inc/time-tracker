@@ -1,66 +1,8 @@
 # Feature Specification: 002-docker-container
 
-**Feature Branch**: `002-docker-container`  
-**Created**: 2025-09-29  
-**Status**: Draft  
-**Input**: User description: "002-docker-container Add Docker support to the time-tracker project for safe testing by the LLM agent without affecting the user's system. Include CI automation to push the latest Docker container on every push to the main branch."
+**Feature**: Add Docker support to the time-tracker Go CLI project to enable safe testing by the LLM agent without affecting the user's system. Include CI automation using GitHub Actions to build and push the latest Docker container to GitHub Container Registry on pushes to the main branch.
 
-## Clarifications
-
-### Session 2025-09-29
-
-- Q: How should the system handle cases where Docker is not installed on the user's system? → A: the system should have no special handling for checking Docker install
-- Q: How should the system handle failures during Docker container build or run? → A: Notify the user with troubleshooting steps
-- Q: Which container registry should be used for pushing the Docker image in CI? → A: GitHub Container Registry
-
-## Execution Flow (main)
-```
-1. Parse user description from Input
-   → If empty: ERROR "No feature description provided"
-2. Extract key concepts from description
-   → Identify: actors, actions, data, constraints
-3. For each unclear aspect:
-   → Mark with [NEEDS CLARIFICATION: specific question]
-4. Fill User Scenarios & Testing section
-   → If no clear user flow: ERROR "Cannot determine user scenarios"
-5. Generate Functional Requirements
-   → Each requirement must be testable
-   → Mark ambiguous requirements
-6. Identify Key Entities (if data involved)
-7. Run Review Checklist
-   → If any [NEEDS CLARIFICATION]: WARN "Spec has uncertainties"
-   → If implementation details found: ERROR "Remove tech details"
-8. Return: SUCCESS (spec ready for planning)
-```
-
----
-
-## ⚡ Quick Guidelines
-- ✅ Focus on WHAT users need and WHY
-- ❌ Avoid HOW to implement (no tech stack, APIs, code structure)
-- 👥 Written for business stakeholders, not developers
-
-### Section Requirements
-- **Mandatory sections**: Must be completed for every feature
-- **Optional sections**: Include only when relevant to the feature
-- When a section doesn't apply, remove it entirely (don't leave as "N/A")
-
-### For AI Generation
-When creating this spec from a user prompt:
-1. **Mark all ambiguities**: Use [NEEDS CLARIFICATION: specific question] for any assumption you'd need to make
-2. **Don't guess**: If the prompt doesn't specify something (e.g., "login system" without auth method), mark it
-3. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
-4. **Common underspecified areas**:
-   - User types and permissions
-   - Data retention/deletion policies  
-   - Performance targets and scale
-   - Error handling behaviors
-   - Integration requirements
-   - Security/compliance needs
-
----
-
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing
 
 ### Primary User Story
 Add Docker support to the time-tracker project to enable the LLM agent to safely test the project without affecting the user's actual install. Include CI automation to push the latest Docker container on every push to the main branch.
@@ -73,42 +15,30 @@ Add Docker support to the time-tracker project to enable the LLM agent to safely
 - When Docker is not installed, the system has no special handling and will fail naturally.
 - On Docker build or run failures, the system notifies the user with troubleshooting steps.
 
-## Requirements *(mandatory)*
-
-### Functional Requirements
+## Functional Requirements
 - **FR-001**: System MUST provide a Dockerfile that enables building the time-tracker project into a runnable Docker container.
 - **FR-002**: System MUST allow the time-tracker application to be executed safely within the Docker container without impacting the host system.
 - **FR-003**: CI pipeline MUST automatically build and push the latest Docker container to GitHub Container Registry upon pushes to the main branch.
 
----
+## Technical Details & Decisions
 
-## Review & Acceptance Checklist
-*GATE: Automated checks run during main() execution*
+### Docker Implementation
+- **Decision**: Use multi-stage Docker build with Go base image for building and Alpine for runtime to minimize image size (~20MB vs ~500MB single-stage).
+- **Rationale**: Go CLIs are statically linked, allowing small runtime images. Multi-stage builds separate build dependencies from runtime.
+- **Alternatives Considered**: Single-stage with Ubuntu (larger), scratch base (no shell for debugging).
+- **Best Practices**: Official Go images, copy only binary, no ports exposed, set USER for security.
 
-### Content Quality
-- [ ] No implementation details (languages, frameworks, APIs)
-- [ ] Focused on user value and business needs
-- [ ] Written for non-technical stakeholders
-- [ ] All mandatory sections completed
+### CI Automation
+- **Decision**: GitHub Actions workflow triggered on push to main, building and pushing to GitHub Container Registry.
+- **Rationale**: Native integration with GitHub, supports container registry, follows project example workflows.
+- **Alternatives Considered**: Manual pushes (error-prone).
+- **Best Practices**: Use actions/checkout and actions/setup-go, Docker Buildx for multi-platform, login with secrets, tag 'latest'.
 
-### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous  
-- [ ] Success criteria are measurable
-- [ ] Scope is clearly bounded
-- [ ] Dependencies and assumptions identified
+### Project Impact
+- No new data entities required; infrastructure addition only.
+- Follows TDD with integration tests for Docker build/run/commands.
+- Includes docker-compose.yml for easy testing.
+- Updates README.md and AGENTS.md with Docker instructions.
 
----
-
-## Execution Status
-*Updated by main() during processing*
-
-- [ ] User description parsed
-- [ ] Key concepts extracted
-- [ ] Ambiguities marked
-- [ ] User scenarios defined
-- [ ] Requirements generated
-- [ ] Entities identified
-- [ ] Review checklist passed
-
----
+### Implementation Status
+All tasks completed: Dockerfile, CI workflow, docker-compose, tests, documentation updates.

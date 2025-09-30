@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	dailyFlag    bool
 	weeklyFlag   bool
 	projectsFlag bool
 )
@@ -28,6 +27,10 @@ var statsCmd = &cobra.Command{
 	Short: "Display time tracking statistics",
 	Long:  `Display various statistics about tracked time, including daily totals, weekly totals, and project breakdowns.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if weeklyFlag && projectsFlag {
+			return fmt.Errorf("cannot combine --weekly and --projects flags")
+		}
+
 		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
 			return fmt.Errorf("failed to initialize storage: %w", err)
@@ -40,48 +43,24 @@ var statsCmd = &cobra.Command{
 
 		if projectsFlag {
 			// Project-based stats
-			if weeklyFlag {
-				// Weekly project totals
-				weeklyProjectTotals := utils.CalculateWeeklyProjectTotals(entries)
-				if len(weeklyProjectTotals) == 0 {
-					fmt.Println("No data available")
-					return nil
-				}
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Project", "Week Starting", "Total Time"})
-				table.SetBorder(true)
-				table.SetRowLine(true)
-				table.SetAutoWrapText(false)
-				for _, total := range weeklyProjectTotals {
-					row := []string{
-						total.Project,
-						total.WeekStart.Format("2006-01-02"),
-						formatTimeHHMM(total.Total),
-					}
-					table.Append(row)
-				}
-				table.Render()
-			} else {
-				// Daily project totals
-				projectTotals := utils.CalculateProjectTotals(entries)
-				if len(projectTotals) == 0 {
-					fmt.Println("No data available")
-					return nil
-				}
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Project", "Total Time"})
-				table.SetBorder(true)
-				table.SetRowLine(true)
-				table.SetAutoWrapText(false)
-				for _, total := range projectTotals {
-					row := []string{
-						total.Project,
-						formatTimeHHMM(total.Total),
-					}
-					table.Append(row)
-				}
-				table.Render()
+			projectTotals := utils.CalculateProjectTotals(entries)
+			if len(projectTotals) == 0 {
+				fmt.Println("No data available")
+				return nil
 			}
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"Project", "Total Time"})
+			table.SetBorder(true)
+			table.SetRowLine(true)
+			table.SetAutoWrapText(false)
+			for _, total := range projectTotals {
+				row := []string{
+					total.Project,
+					formatTimeHHMM(total.Total),
+				}
+				table.Append(row)
+			}
+			table.Render()
 		} else {
 			// Time-based stats
 			if weeklyFlag {
@@ -130,7 +109,6 @@ var statsCmd = &cobra.Command{
 }
 
 func init() {
-	statsCmd.Flags().BoolVar(&dailyFlag, "daily", true, "Show daily totals for the past week")
 	statsCmd.Flags().BoolVar(&weeklyFlag, "weekly", false, "Show weekly totals for the past month")
 	statsCmd.Flags().BoolVar(&projectsFlag, "projects", false, "Group totals by project")
 

@@ -120,11 +120,11 @@ To view time tracking statistics:
 time-tracker stats
 ```
 
-Displays daily totals for the past week.
+Displays daily totals for the past week in table format.
 
 Options:
 - `--weekly`: Show weekly totals for the past month
-- `--projects`: Group totals by project instead of time period
+- `--projects`: Group totals by project instead of time period (sorted by time descending)
 
 Examples:
 
@@ -132,8 +132,9 @@ Examples:
 time-tracker stats  # Daily totals
 time-tracker stats --weekly  # Weekly totals
 time-tracker stats --projects  # Project totals
-time-tracker stats --weekly --projects  # Weekly project totals
 ```
+
+Note: Combining --weekly and --projects is not supported.
 
 ## Tech Stack
 

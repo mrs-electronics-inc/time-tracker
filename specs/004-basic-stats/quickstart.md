@@ -12,9 +12,13 @@ time-tracker stats
 ```
 Output:
 ```
-Date       Total Time
-2025-09-24 02:30
-2025-09-25 01:15
++------------+------------+
+|    DATE    | TOTAL TIME |
++------------+------------+
+| 2025-09-24 | 02:30      |
++------------+------------+
+| 2025-09-25 | 01:15      |
++------------+------------+
 ...
 ```
 
@@ -24,9 +28,13 @@ time-tracker stats --weekly
 ```
 Output:
 ```
-Week Starting  Total Time
-2025-09-23      15:45
-2025-09-30      12:30
++---------------+------------+
+| WEEK STARTING | TOTAL TIME |
++---------------+------------+
+| 2025-09-23    | 15:45      |
++---------------+------------+
+| 2025-09-30    | 12:30      |
++---------------+------------+
 ...
 ```
 
@@ -36,26 +44,21 @@ time-tracker stats --projects
 ```
 Output:
 ```
-Project    Total Time
-Project A  08:20
-Project B  05:15
++--------------+------------+
+|   PROJECT    | TOTAL TIME |
++--------------+------------+
+| Project A    | 08:20      |
++--------------+------------+
+| Project B    | 05:15      |
++--------------+------------+
 ...
 ```
 
-### Combined flags
-```bash
-time-tracker stats --weekly --projects
-```
-Output:
-```
-Project       Week Starting  Total Time
-Project A     2025-09-23      04:10
-Project A     2025-09-30      03:25
-...
-```
+
 
 ## Validation Steps
-1. Run `time-tracker stats` and verify daily totals for past 7 days
-2. Run `time-tracker stats --weekly` and verify weekly totals for past 4 weeks
-3. Run `time-tracker stats --projects` and verify project groupings
-4. Test with no data: should show "No data available"
+1. Run `time-tracker stats` and verify daily totals for past 7 days in table format
+2. Run `time-tracker stats --weekly` and verify weekly totals for past 4 weeks in table format
+3. Run `time-tracker stats --projects` and verify project groupings sorted by time descending in table format
+4. Test `time-tracker stats --weekly --projects` shows error
+5. Test with no data: should show "No data available"

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"strings"
+	"sort"
 	"time"
 	"time-tracker/models"
 )
@@ -22,13 +22,6 @@ type WeeklyTotal struct {
 type ProjectTotal struct {
 	Project string
 	Total   time.Duration
-}
-
-// WeeklyProjectTotal represents total time for a project in a specific week
-type WeeklyProjectTotal struct {
-	Project   string
-	WeekStart time.Time
-	Total     time.Duration
 }
 
 // CalculateDailyTotals calculates total time per day for the past 7 days
@@ -109,35 +102,10 @@ func CalculateProjectTotals(entries []models.TimeEntry) []ProjectTotal {
 		totals = append(totals, ProjectTotal{Project: project, Total: total})
 	}
 
-	return totals
-}
-
-// CalculateWeeklyProjectTotals calculates total time per project per week for the past 4 weeks
-func CalculateWeeklyProjectTotals(entries []models.TimeEntry) []WeeklyProjectTotal {
-	now := time.Now()
-	weeklyProjectMap := make(map[string]time.Duration)
-
-	for _, entry := range entries {
-		duration := entry.Duration()
-
-		// Find Monday of the week
-		weekStart := entry.Start.AddDate(0, 0, -int(entry.Start.Weekday()-time.Monday))
-		key := entry.Project + "|" + weekStart.Format("2006-01-02")
-
-		// Check if within past 28 days
-		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
-		if daysDiff >= 0 && daysDiff < 28 {
-			weeklyProjectMap[key] += duration
-		}
-	}
-
-	var totals []WeeklyProjectTotal
-	for key, total := range weeklyProjectMap {
-		parts := strings.Split(key, "|")
-		project := parts[0]
-		weekStart, _ := time.Parse("2006-01-02", parts[1])
-		totals = append(totals, WeeklyProjectTotal{Project: project, WeekStart: weekStart, Total: total})
-	}
+	// Sort by total time descending
+	sort.Slice(totals, func(i, j int) bool {
+		return totals[i].Total > totals[j].Total
+	})
 
 	return totals
 }

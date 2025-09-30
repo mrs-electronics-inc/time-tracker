@@ -11,11 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	weeklyFlag   bool
-	projectsFlag bool
-)
-
 func formatTimeHHMM(d time.Duration) string {
 	hours := int(d.Hours())
 	minutes := int(d.Minutes()) % 60
@@ -27,6 +22,15 @@ var statsCmd = &cobra.Command{
 	Short: "Display time tracking statistics",
 	Long:  `Display various statistics about tracked time, including daily totals, weekly totals, and project breakdowns.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		weeklyFlag, err := cmd.Flags().GetBool("weekly")
+		if err != nil {
+			return fmt.Errorf("failed to parse weekly flag: %w", err)
+		}
+		projectsFlag, err := cmd.Flags().GetBool("projects")
+		if err != nil {
+			return fmt.Errorf("failed to parse projects flag: %w", err)
+		}
+
 		if weeklyFlag && projectsFlag {
 			return fmt.Errorf("cannot combine --weekly and --projects flags")
 		}
@@ -109,8 +113,8 @@ var statsCmd = &cobra.Command{
 }
 
 func init() {
-	statsCmd.Flags().BoolVar(&weeklyFlag, "weekly", false, "Show weekly totals for the past month")
-	statsCmd.Flags().BoolVar(&projectsFlag, "projects", false, "Group totals by project")
+	statsCmd.Flags().BoolP("weekly", "w", false, "Show weekly totals for the past month")
+	statsCmd.Flags().BoolP("projects", "p", false, "Group totals by project")
 
 	rootCmd.AddCommand(statsCmd)
 }

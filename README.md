@@ -53,30 +53,45 @@ go install
 
 ## Usage
 
-### Start
+The time tracker uses a combined command that can be invoked as `start`, `stop`, or `s` (short alias).
+
+### Start Tracking
 
 To start tracking time for a project and task:
 
 ```bash
 time-tracker start <project> <title>
+# or
+time-tracker s <project> <title>
 ```
 
-This will start a new time entry. If another entry is currently running, it will be automatically stopped first.
+To resume tracking by entry ID:
 
-Example:
+```bash
+time-tracker start <ID>
+# or
+time-tracker s <ID>
+```
+
+This will start a new time entry or resume an existing one. If another entry is currently running, it will be automatically stopped first.
+
+Examples:
 
 ```bash
 time-tracker start "my-project" "Working on feature"
+time-tracker start 5  # Resume entry with ID 5
 ```
 
 Output: Started tracking time for "Working on feature" in project "my-project"
 
-### Stop
+### Stop Tracking
 
 To stop the currently running time entry:
 
 ```bash
 time-tracker stop
+# or
+time-tracker s
 ```
 
 This stops the active entry and shows the duration.
@@ -84,6 +99,8 @@ This stops the active entry and shows the duration.
 Example output: Stopped tracking time for "Working on feature" in project "my-project" (duration: 1h 30m)
 
 If no entry is running, it will show an error.
+
+Note: The `stop` command does not accept arguments. Use `start` to begin tracking a new entry.
 
 ### List
 

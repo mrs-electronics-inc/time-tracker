@@ -15,27 +15,46 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List all time entries",
-	Long:    `List all time entries from data.json in chronological order (newest first).`,
+	Short:   "List time entries",
+	Long:    `List time entries from data.json in chronological order (newest first).\nBy default, entries from the current day will be shown. Use --all to view all entries`,
 	Aliases: []string{"l", "ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		displayAll, err := cmd.Flags().GetBool("all")
+		if err != nil {
+			return fmt.Errorf("failed to parse all flag")
+		}
+
 		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
 			return fmt.Errorf("failed to initialize storage: %w", err)
 		}
 		taskManager := utils.NewTaskManager(storage)
 
-		entries, err := taskManager.ListEntries()
+		allEntries, err := taskManager.ListEntries()
 		if err != nil {
 			return fmt.Errorf("failed to load time entries: %w", err)
 		}
 
-		if len(entries) == 0 {
+		displayEntries := []models.TimeEntry{}
+		if displayAll {
+			displayEntries = allEntries
+		} else {
+			now := time.Now()
+			year, month, day := now.Date()
+			startOfToday := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
+			for _, entry := range allEntries {
+				if entry.IsRunning() || entry.End.After(startOfToday) {
+					displayEntries = append(displayEntries, entry)
+				}
+			}
+		}
+
+		if len(displayEntries) == 0 {
 			fmt.Println("No time entries found")
 			return nil
 		}
 
-		displayEntriesTable(entries)
+		displayEntriesTable(displayEntries)
 		return nil
 	},
 }
@@ -81,5 +100,6 @@ func formatDuration(d time.Duration) string {
 }
 
 func init() {
+	listCmd.Flags().BoolP("all", "a", false, "display all time entries")
 	rootCmd.AddCommand(listCmd)
 }

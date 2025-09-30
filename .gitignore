@@ -29,3 +29,6 @@ go.work.sum
 
 # config file
 *.json
+
+# local data
+data/

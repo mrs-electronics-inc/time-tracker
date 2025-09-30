@@ -1,5 +1,6 @@
 services:
   time-tracker:
+    image: time-tracker
     build: .
     volumes:
       - config:/root/.config

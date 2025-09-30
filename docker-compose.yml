@@ -2,4 +2,7 @@ services:
   time-tracker:
     build: .
     volumes:
-      - ./data:/data
+      - config:/root/.config
+
+volumes:
+  config:

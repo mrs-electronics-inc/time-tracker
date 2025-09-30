@@ -5,6 +5,13 @@
 **Status**: Draft  
 **Input**: User description: "Implement a basic stats command."
 
+## Clarifications
+
+### Session 2025-09-30
+- Q: What date format should be used for displaying daily totals? → A: YYYY-MM-DD
+- Q: What time format should be used for displaying durations in the stats? → A: HH:MM
+- Q: What should the system display when no data exists for a requested period? → A: Display "No data available"
+
 ## Execution Flow (main)
 ```
 1. Parse user description from Input
@@ -63,17 +70,17 @@ As a time tracker user, I want to view basic statistics about my tracked time so
 3. **Given** the user has tracked time across multiple projects, **When** they run the stats command, **Then** the system displays totals by project for the past week.
 
 ### Edge Cases
-- What happens when there are no time entries in the specified period?
+- When there are no time entries in the specified period, display "No data available"
 - How does the system handle partial weeks or months with incomplete data?
 - What if the user has no projects or tasks?
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001**: System MUST display daily time totals for the past 7 days [NEEDS CLARIFICATION: what format for dates and times?]
+- **FR-001**: System MUST display daily time totals for the past 7 days using YYYY-MM-DD format for dates and HH:MM format for times
 - **FR-002**: System MUST display weekly time totals for the past 4 weeks
 - **FR-003**: System MUST display time totals grouped by project for the past week
-- **FR-004**: System MUST handle cases where no data exists for the requested periods [NEEDS CLARIFICATION: what message or behavior when no data?]
+- **FR-004**: System MUST handle cases where no data exists for the requested periods by displaying "No data available"
 - **FR-005**: System MUST calculate totals based on tracked time entries
 
 ### Key Entities *(include if feature involves data)*

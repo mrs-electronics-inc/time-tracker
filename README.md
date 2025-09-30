@@ -82,8 +82,6 @@ time-tracker start "my-project" "Working on feature"
 time-tracker start 5  # Resume entry with ID 5
 ```
 
-Output: Started tracking time for "Working on feature" in project "my-project"
-
 ### Stop Tracking
 
 To stop the currently running time entry:
@@ -95,8 +93,6 @@ time-tracker s
 ```
 
 This stops the active entry and shows the duration.
-
-Example output: Stopped tracking time for "Working on feature" in project "my-project" (duration: 1h 30m)
 
 If no entry is running, it will show an error.
 
@@ -123,6 +119,7 @@ time-tracker stats
 Displays daily totals for the past week in table format.
 
 Options:
+
 - `--weekly`: Show weekly totals for the past month
 - `--projects`: Group totals by project instead of time period (sorted by time descending)
 
@@ -134,7 +131,7 @@ time-tracker stats --weekly  # Weekly totals
 time-tracker stats --projects  # Project totals
 ```
 
-Note: Combining --weekly and --projects is not supported.
+Note: Combining `--weekly` and `--projects` is not supported.
 
 ## Tech Stack
 

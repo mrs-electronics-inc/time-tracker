@@ -116,9 +116,9 @@ func (tm *TaskManager) ListEntries() ([]models.TimeEntry, error) {
 		return nil, err
 	}
 
-	// Sort by start time descending (newest first)
+	// Sort by start time ascending (oldest first)
 	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Start.After(entries[j].Start)
+		return entries[i].Start.Before(entries[j].Start)
 	})
 
 	return entries, nil

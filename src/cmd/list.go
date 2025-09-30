@@ -14,9 +14,10 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List time entries",
-	Long:    `List time entries from data.json in chronological order (newest first).\nBy default, entries from the current day will be shown. Use --all to view all entries`,
+	Use:   "list",
+	Short: "List time entries",
+	Long: `List time entries from data.json in chronological order (newest first).
+By default, only entries from the current day will be shown. Use --all to view all entries`,
 	Aliases: []string{"l", "ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		displayAll, err := cmd.Flags().GetBool("all")

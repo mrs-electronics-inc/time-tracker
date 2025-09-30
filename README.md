@@ -112,6 +112,29 @@ time-tracker list
 
 Displays all entries in chronological order (newest first) with ID, start time, end time (or "running"), project, title, and duration.
 
+### Stats
+
+To view time tracking statistics:
+
+```bash
+time-tracker stats
+```
+
+Displays daily totals for the past week.
+
+Options:
+- `--weekly`: Show weekly totals for the past month
+- `--projects`: Group totals by project instead of time period
+
+Examples:
+
+```bash
+time-tracker stats  # Daily totals
+time-tracker stats --weekly  # Weekly totals
+time-tracker stats --projects  # Project totals
+time-tracker stats --weekly --projects  # Weekly project totals
+```
+
 ## Tech Stack
 
 - [Go](https://go.dev/)

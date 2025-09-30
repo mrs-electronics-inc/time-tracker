@@ -43,25 +43,37 @@
 - **Single project**: `src/`, `tests/` at repository root
 - Paths assume single project structure
 
+## Phase 3.1: Setup
+- [ ] T001 Configure Go linting and formatting tools (gofmt, go vet)
+- [ ] T002 Verify existing project structure matches plan.md
+
+## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
+**CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
+- [x] T003 [P] Contract test for stats command output format in tests/contract/stats_contract_test.go
+- [ ] T004 [P] Integration test for daily totals display in tests/integration/stats_daily_test.go
+- [ ] T005 [P] Integration test for weekly totals display in tests/integration/stats_weekly_test.go
+- [ ] T006 [P] Integration test for project totals display in tests/integration/stats_projects_test.go
+- [ ] T007 [P] Integration test for no data scenario in tests/integration/stats_no_data_test.go
+
 ## Phase 3.3: Core Implementation
 
-- [ ] T008 Create stats command structure in src/cmd/stats.go
-- [ ] T009 Implement time calculation utilities in src/utils/stats_calculations.go
-- [ ] T010 Add flag parsing for --daily, --weekly, --projects in src/cmd/stats.go
-- [ ] T011 Implement data aggregation logic in src/utils/stats_calculations.go
-- [ ] T012 Add output formatting for table display in src/cmd/stats.go
+- [x] T008 Create stats command structure in src/cmd/stats.go
+- [x] T009 Implement time calculation utilities in src/utils/stats_calculations.go
+- [x] T010 Add flag parsing for --daily, --weekly, --projects in src/cmd/stats.go
+- [x] T011 Implement data aggregation logic in src/utils/stats_calculations.go
+- [x] T012 Add output formatting for table display in src/cmd/stats.go
 
 ## Phase 3.4: Integration
 
-- [ ] T013 Connect stats command to file storage in src/cmd/stats.go
-- [ ] T014 Handle time zone and date calculations in src/utils/stats_calculations.go
+- [x] T013 Connect stats command to file storage in src/cmd/stats.go
+- [x] T014 Handle time zone and date calculations in src/utils/stats_calculations.go
 
 ## Phase 3.5: Polish
 
-- [ ] T015 [P] Unit tests for calculation functions in tests/unit/stats_calculations_test.go
-- [ ] T016 [P] Update README.md with stats command documentation
-- [ ] T017 Run quickstart.md validation steps
-- [ ] T018 Performance verification (<100ms startup)
+- [x] T015 [P] Unit tests for calculation functions in tests/unit/stats_calculations_test.go
+- [x] T016 [P] Update README.md with stats command documentation
+- [x] T017 Run quickstart.md validation steps
+- [x] T018 Performance verification (<100ms startup)
 
 ## Dependencies
 

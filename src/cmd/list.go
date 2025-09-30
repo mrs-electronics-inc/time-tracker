@@ -14,9 +14,10 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all time entries",
-	Long:  `List all time entries from data.json in chronological order (newest first).`,
+	Use:     "list",
+	Short:   "List all time entries",
+	Long:    `List all time entries from data.json in chronological order (newest first).`,
+	Aliases: []string{"l", "ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {

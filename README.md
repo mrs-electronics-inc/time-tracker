@@ -116,22 +116,18 @@ To view time tracking statistics:
 time-tracker stats
 ```
 
-Displays daily totals for the past week in table format.
+Displays daily totals for the past week in table format, including breakdowns by project.
 
 Options:
 
 - `--weekly`: Show weekly totals for the past month
-- `--projects`: Group totals by project instead of time period (sorted by time descending)
 
 Examples:
 
 ```bash
 time-tracker stats  # Daily totals
 time-tracker stats --weekly  # Weekly totals
-time-tracker stats --projects  # Project totals
 ```
-
-Note: Combining `--weekly` and `--projects` is not supported.
 
 ## Tech Stack
 

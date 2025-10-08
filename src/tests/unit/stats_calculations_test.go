@@ -58,35 +58,3 @@ func TestCalculateWeeklyTotals(t *testing.T) {
 		t.Errorf("Expected 4 weekly totals, got %d", len(totals))
 	}
 }
-
-func TestCalculateProjectTotals(t *testing.T) {
-	now := time.Now()
-	entries := []models.TimeEntry{
-		{
-			Start:   now.AddDate(0, 0, -1),
-			End:     &[]time.Time{now.AddDate(0, 0, -1).Add(2 * time.Hour)}[0],
-			Project: "Project A",
-			Title:   "task",
-		},
-		{
-			Start:   now.AddDate(0, 0, -1),
-			End:     &[]time.Time{now.AddDate(0, 0, -1).Add(1 * time.Hour)}[0],
-			Project: "Project A",
-			Title:   "task2",
-		},
-	}
-
-	totals := utils.CalculateProjectTotals(entries)
-
-	if len(totals) != 1 {
-		t.Errorf("Expected 1 project total, got %d", len(totals))
-	}
-
-	if totals[0].Project != "Project A" {
-		t.Errorf("Expected Project A, got %s", totals[0].Project)
-	}
-
-	if totals[0].Total != 3*time.Hour {
-		t.Errorf("Expected 3 hours, got %v", totals[0].Total)
-	}
-}

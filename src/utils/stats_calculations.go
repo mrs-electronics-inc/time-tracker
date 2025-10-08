@@ -1,33 +1,29 @@
 package utils
 
 import (
-	"sort"
 	"time"
 	"time-tracker/models"
 )
 
 // DailyTotal represents total time for a specific date
 type DailyTotal struct {
-	Date  time.Time
-	Total time.Duration
+	Date     time.Time
+	Total    time.Duration
+	Projects map[string]time.Duration
 }
 
 // WeeklyTotal represents total time for a week starting on Monday
 type WeeklyTotal struct {
 	WeekStart time.Time
 	Total     time.Duration
-}
-
-// ProjectTotal represents total time for a project
-type ProjectTotal struct {
-	Project string
-	Total   time.Duration
+	Projects  map[string]time.Duration
 }
 
 // CalculateDailyTotals calculates total time per day for the past 7 days
 func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 	now := time.Now()
 	dailyMap := make(map[string]time.Duration)
+	dailyProjectsMap := make(map[string]map[string]time.Duration)
 
 	for _, entry := range entries {
 		duration := entry.Duration()
@@ -37,6 +33,10 @@ func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
 		if daysDiff >= 0 && daysDiff < 7 {
 			dailyMap[date] += duration
+			if dailyProjectsMap[date] == nil {
+				dailyProjectsMap[date] = make(map[string]time.Duration)
+			}
+			dailyProjectsMap[date][entry.Project] += duration
 		}
 	}
 
@@ -45,7 +45,11 @@ func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 		date := now.AddDate(0, 0, -i)
 		dateStr := date.Format("2006-01-02")
 		total := dailyMap[dateStr]
-		totals = append(totals, DailyTotal{Date: date, Total: total})
+		projects := dailyProjectsMap[dateStr]
+		if projects == nil {
+			projects = make(map[string]time.Duration)
+		}
+		totals = append(totals, DailyTotal{Date: date, Total: total, Projects: projects})
 	}
 
 	return totals
@@ -55,6 +59,7 @@ func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 func CalculateWeeklyTotals(entries []models.TimeEntry) []WeeklyTotal {
 	now := time.Now()
 	weeklyMap := make(map[string]time.Duration)
+	weeklyProjectsMap := make(map[string]map[string]time.Duration)
 
 	for _, entry := range entries {
 		duration := entry.Duration()
@@ -67,6 +72,10 @@ func CalculateWeeklyTotals(entries []models.TimeEntry) []WeeklyTotal {
 		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
 		if daysDiff >= 0 && daysDiff < 28 {
 			weeklyMap[weekStr] += duration
+			if weeklyProjectsMap[weekStr] == nil {
+				weeklyProjectsMap[weekStr] = make(map[string]time.Duration)
+			}
+			weeklyProjectsMap[weekStr][entry.Project] += duration
 		}
 	}
 
@@ -76,36 +85,12 @@ func CalculateWeeklyTotals(entries []models.TimeEntry) []WeeklyTotal {
 		weekStart := now.AddDate(0, 0, -int(now.Weekday()-time.Monday)-7*i)
 		weekStr := weekStart.Format("2006-01-02")
 		total := weeklyMap[weekStr]
-		totals = append(totals, WeeklyTotal{WeekStart: weekStart, Total: total})
-	}
-
-	return totals
-}
-
-// CalculateProjectTotals calculates total time per project for the past week
-func CalculateProjectTotals(entries []models.TimeEntry) []ProjectTotal {
-	now := time.Now()
-	projectMap := make(map[string]time.Duration)
-
-	for _, entry := range entries {
-		duration := entry.Duration()
-
-		// Check if within past 7 days
-		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
-		if daysDiff >= 0 && daysDiff < 7 {
-			projectMap[entry.Project] += duration
+		projects := weeklyProjectsMap[weekStr]
+		if projects == nil {
+			projects = make(map[string]time.Duration)
 		}
+		totals = append(totals, WeeklyTotal{WeekStart: weekStart, Total: total, Projects: projects})
 	}
-
-	var totals []ProjectTotal
-	for project, total := range projectMap {
-		totals = append(totals, ProjectTotal{Project: project, Total: total})
-	}
-
-	// Sort by total time descending
-	sort.Slice(totals, func(i, j int) bool {
-		return totals[i].Total > totals[j].Total
-	})
 
 	return totals
 }

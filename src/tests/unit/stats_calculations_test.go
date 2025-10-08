@@ -33,6 +33,9 @@ func TestCalculateDailyTotals(t *testing.T) {
 			if total.Total != 2*time.Hour {
 				t.Errorf("Expected 2 hours, got %v", total.Total)
 			}
+			if total.Projects["test"] != 2*time.Hour {
+				t.Errorf("Expected 2 hours for project 'test', got %v", total.Projects["test"])
+			}
 			found = true
 		}
 	}
@@ -56,5 +59,20 @@ func TestCalculateWeeklyTotals(t *testing.T) {
 
 	if len(totals) != 4 {
 		t.Errorf("Expected 4 weekly totals, got %d", len(totals))
+	}
+
+	// Check that the project is recorded
+	found := false
+	for _, total := range totals {
+		if total.Projects["test"] == 2*time.Hour {
+			if total.Total != 2*time.Hour {
+				t.Errorf("Expected 2 hours total, got %v", total.Total)
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Project 'test' with 2 hours not found in any week")
 	}
 }

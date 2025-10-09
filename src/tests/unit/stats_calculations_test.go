@@ -21,8 +21,8 @@ func TestCalculateDailyTotals(t *testing.T) {
 
 	totals := utils.CalculateDailyTotals(entries)
 
-	if len(totals) != 7 {
-		t.Errorf("Expected 7 daily totals, got %d", len(totals))
+	if len(totals) != 14 {
+		t.Errorf("Expected 14 daily totals, got %d", len(totals))
 	}
 
 	// Check yesterday's total

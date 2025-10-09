@@ -19,7 +19,7 @@ type WeeklyTotal struct {
 	Projects  map[string]time.Duration
 }
 
-// CalculateDailyTotals calculates total time per day for the past 7 days
+// CalculateDailyTotals calculates total time per day for the past 14 days
 func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 	now := time.Now()
 	dailyMap := make(map[string]time.Duration)
@@ -29,9 +29,8 @@ func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 		duration := entry.Duration()
 		date := entry.Start.Format("2006-01-02")
 
-		// Check if within past 7 days
 		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
-		if daysDiff >= 0 && daysDiff < 7 {
+		if daysDiff >= 0 && daysDiff < 14 {
 			dailyMap[date] += duration
 			if dailyProjectsMap[date] == nil {
 				dailyProjectsMap[date] = make(map[string]time.Duration)

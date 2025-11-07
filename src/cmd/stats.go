@@ -38,6 +38,11 @@ var statsCmd = &cobra.Command{
 			rows = 4
 		}
 
+		// Validate rows value
+		if rows <= 0 {
+			return fmt.Errorf("rows must be a positive integer")
+		}
+
 		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
 			return fmt.Errorf("failed to initialize storage: %w", err)

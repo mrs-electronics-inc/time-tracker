@@ -64,7 +64,8 @@ func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTot
 		duration := entry.Duration()
 
 		// Find Monday of the week
-		weekStart := entry.Start.AddDate(0, 0, -int(entry.Start.Weekday()-time.Monday))
+		offset := (int(entry.Start.Weekday()) + 6) % 7 // Monday -> 0, Sunday -> 6
+		weekStart := entry.Start.AddDate(0, 0, -offset)
 		weekStr := weekStart.Format("2006-01-02")
 
 		// Check if within past numWeeks weeks
@@ -79,9 +80,12 @@ func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTot
 	}
 
 	var totals []WeeklyTotal
+	// Compute the base Monday once
+	offset := (int(now.Weekday()) + 6) % 7 // Monday -> 0, Sunday -> 6
+	baseMonday := now.AddDate(0, 0, -offset)
 	for i := numWeeks - 1; i >= 0; i-- {
 		// Find Monday i weeks ago
-		weekStart := now.AddDate(0, 0, -int(now.Weekday()-time.Monday)-7*i)
+		weekStart := baseMonday.AddDate(0, 0, -7*i)
 		weekStr := weekStart.Format("2006-01-02")
 		total := weeklyMap[weekStr]
 		projects := weeklyProjectsMap[weekStr]

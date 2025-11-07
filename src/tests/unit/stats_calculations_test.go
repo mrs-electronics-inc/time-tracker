@@ -19,7 +19,7 @@ func TestCalculateDailyTotals(t *testing.T) {
 		},
 	}
 
-	totals := utils.CalculateDailyTotals(entries)
+	totals := utils.CalculateDailyTotals(entries, 14)
 
 	if len(totals) != 14 {
 		t.Errorf("Expected 14 daily totals, got %d", len(totals))
@@ -55,7 +55,7 @@ func TestCalculateWeeklyTotals(t *testing.T) {
 		},
 	}
 
-	totals := utils.CalculateWeeklyTotals(entries)
+	totals := utils.CalculateWeeklyTotals(entries, 4)
 
 	if len(totals) != 4 {
 		t.Errorf("Expected 4 weekly totals, got %d", len(totals))

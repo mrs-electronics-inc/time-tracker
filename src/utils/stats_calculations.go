@@ -21,6 +21,9 @@ type WeeklyTotal struct {
 
 // CalculateDailyTotals calculates total time per day for the specified number of days
 func CalculateDailyTotals(entries []models.TimeEntry, numDays int) []DailyTotal {
+	if numDays <= 0 {
+		return nil
+	}
 	now := time.Now()
 	dailyMap := make(map[string]time.Duration)
 	dailyProjectsMap := make(map[string]map[string]time.Duration)
@@ -56,6 +59,9 @@ func CalculateDailyTotals(entries []models.TimeEntry, numDays int) []DailyTotal 
 
 // CalculateWeeklyTotals calculates total time per week for the specified number of weeks
 func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTotal {
+	if numWeeks <= 0 {
+		return nil
+	}
 	now := time.Now()
 	weeklyMap := make(map[string]time.Duration)
 	weeklyProjectsMap := make(map[string]map[string]time.Duration)

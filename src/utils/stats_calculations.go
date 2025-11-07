@@ -19,9 +19,8 @@ type WeeklyTotal struct {
 	Projects  map[string]time.Duration
 }
 
-// CalculateDailyTotals calculates total time per day for the past 14 days
-func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
-	numDays := 14
+// CalculateDailyTotals calculates total time per day for the specified number of days
+func CalculateDailyTotals(entries []models.TimeEntry, numDays int) []DailyTotal {
 	now := time.Now()
 	dailyMap := make(map[string]time.Duration)
 	dailyProjectsMap := make(map[string]map[string]time.Duration)
@@ -55,8 +54,8 @@ func CalculateDailyTotals(entries []models.TimeEntry) []DailyTotal {
 	return totals
 }
 
-// CalculateWeeklyTotals calculates total time per week for the past 4 weeks
-func CalculateWeeklyTotals(entries []models.TimeEntry) []WeeklyTotal {
+// CalculateWeeklyTotals calculates total time per week for the specified number of weeks
+func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTotal {
 	now := time.Now()
 	weeklyMap := make(map[string]time.Duration)
 	weeklyProjectsMap := make(map[string]map[string]time.Duration)
@@ -68,9 +67,9 @@ func CalculateWeeklyTotals(entries []models.TimeEntry) []WeeklyTotal {
 		weekStart := entry.Start.AddDate(0, 0, -int(entry.Start.Weekday()-time.Monday))
 		weekStr := weekStart.Format("2006-01-02")
 
-		// Check if within past 28 days
+		// Check if within past numWeeks weeks
 		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
-		if daysDiff >= 0 && daysDiff < 28 {
+		if daysDiff >= 0 && daysDiff < numWeeks*7 {
 			weeklyMap[weekStr] += duration
 			if weeklyProjectsMap[weekStr] == nil {
 				weeklyProjectsMap[weekStr] = make(map[string]time.Duration)
@@ -80,7 +79,7 @@ func CalculateWeeklyTotals(entries []models.TimeEntry) []WeeklyTotal {
 	}
 
 	var totals []WeeklyTotal
-	for i := 3; i >= 0; i-- {
+	for i := numWeeks - 1; i >= 0; i-- {
 		// Find Monday i weeks ago
 		weekStart := now.AddDate(0, 0, -int(now.Weekday()-time.Monday)-7*i)
 		weekStr := weekStart.Format("2006-01-02")

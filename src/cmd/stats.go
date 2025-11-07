@@ -28,6 +28,16 @@ var statsCmd = &cobra.Command{
 			return fmt.Errorf("failed to parse weekly flag: %w", err)
 		}
 
+		rows, err := cmd.Flags().GetInt("rows")
+		if err != nil {
+			return fmt.Errorf("failed to parse rows flag: %w", err)
+		}
+
+		// Set default to 4 weeks for weekly view if user didn't specify rows
+		if weeklyFlag && !cmd.Flags().Changed("rows") {
+			rows = 4
+		}
+
 		storage, err := utils.NewFileStorage(config.DataFilePath())
 		if err != nil {
 			return fmt.Errorf("failed to initialize storage: %w", err)
@@ -40,7 +50,7 @@ var statsCmd = &cobra.Command{
 
 		// Time-based stats
 		if weeklyFlag {
-			weeklyTotals := utils.CalculateWeeklyTotals(entries)
+			weeklyTotals := utils.CalculateWeeklyTotals(entries, rows)
 			if len(weeklyTotals) == 0 {
 				fmt.Println("No data available")
 				return nil
@@ -83,7 +93,7 @@ var statsCmd = &cobra.Command{
 			}
 			table.Render()
 		} else {
-			dailyTotals := utils.CalculateDailyTotals(entries)
+			dailyTotals := utils.CalculateDailyTotals(entries, rows)
 			if len(dailyTotals) == 0 {
 				fmt.Println("No data available")
 				return nil
@@ -132,7 +142,8 @@ var statsCmd = &cobra.Command{
 }
 
 func init() {
-	statsCmd.Flags().BoolP("weekly", "w", false, "Show weekly totals for the past month")
+	statsCmd.Flags().BoolP("weekly", "w", false, "Show weekly totals")
+	statsCmd.Flags().IntP("rows", "r", 14, "Number of rows to display (days for daily, weeks for weekly)")
 
 	rootCmd.AddCommand(statsCmd)
 }

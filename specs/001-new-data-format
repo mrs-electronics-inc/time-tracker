@@ -6,7 +6,7 @@ The overall goal is to remove the `end` field and only have a `start` field on e
 
 We will have `null` for `project and `title` for empty entries between other entries.
 
-## Proposal
+## Task List
 
 ### Basic Migration Logic
 - [ ] Add `version` field to the `data.json` files.

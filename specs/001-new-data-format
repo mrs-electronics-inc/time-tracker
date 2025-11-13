@@ -9,8 +9,8 @@ We will have `null` for `project and `title` for empty entries between other ent
 ## Task List
 
 ### Basic Migration Logic
-- [ ] Add `version` field to the `data.json` files.
-- [ ] If the `version` field is missing, assume a version of `0`.
+- [x] Add `version` field to the `data.json` files.
+- [x] If the `version` field is missing, assume a version of `0`.
 
 ### Add Migrations for Version 1
 - [ ] Add migration logic for version `0` to `1` when loading data.

@@ -11,6 +11,7 @@ import (
 
 // DataStore represents the JSON structure for time entries
 type DataStore struct {
+	Version     int                `json:"version"`
 	TimeEntries []models.TimeEntry `json:"time-entries"`
 }
 
@@ -28,7 +29,10 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 
 	// Ensure data file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		initialData := DataStore{TimeEntries: []models.TimeEntry{}}
+		initialData := DataStore{
+			Version:     0,
+			TimeEntries: []models.TimeEntry{},
+		}
 		data, err := json.MarshalIndent(initialData, "", "  ")
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal initial data: %w", err)
@@ -52,12 +56,34 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 
+	// If version is missing, assume version 0
+	if store.Version == 0 && len(store.TimeEntries) > 0 {
+		// This is likely an old format without version field
+		store.Version = 0
+	}
+
 	return store.TimeEntries, nil
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
-	store := DataStore{TimeEntries: entries}
-	data, err := json.MarshalIndent(store, "", "  ")
+	data, err := os.ReadFile(fs.FilePath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to read existing data file: %w", err)
+	}
+
+	var currentVersion int
+	if err == nil {
+		var existingStore DataStore
+		if err := json.Unmarshal(data, &existingStore); err == nil {
+			currentVersion = existingStore.Version
+		}
+	}
+
+	store := DataStore{
+		Version:     currentVersion,
+		TimeEntries: entries,
+	}
+	data, err = json.MarshalIndent(store, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}

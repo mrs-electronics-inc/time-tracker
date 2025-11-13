@@ -12,6 +12,8 @@ import (
 // FileStorage implements Storage using JSON files
 type FileStorage struct {
 	FilePath string
+	Version     int                `json:"version"`
+	TimeEntries []models.TimeEntry `json:"time-entries"`
 }
 
 // NewFileStorage creates a new file-based storage, initializing the file if needed
@@ -23,11 +25,11 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 
 	// Ensure data file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		initialData := DataStore{
-			Version:     0,
-			TimeEntries: []models.TimeEntry{},
+		data, err := json.MarshalIndent(map[string]any{
+			"version":     0,
+			"time-entries": []models.TimeEntry{},
 		}
-		data, err := json.MarshalIndent(initialData, "", "  ")
+		, "", "  ")
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal initial data: %w", err)
 		}

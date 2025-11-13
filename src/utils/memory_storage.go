@@ -7,13 +7,11 @@ import (
 // MemoryStorage implements Storage using in-memory storage for testing
 type MemoryStorage struct {
 	data    []models.TimeEntry
-	version int
 }
 
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
 		data:    []models.TimeEntry{},
-		version: 0,
 	}
 }
 
@@ -29,12 +27,4 @@ func (ms *MemoryStorage) Save(entries []models.TimeEntry) error {
 	ms.data = make([]models.TimeEntry, len(entries))
 	copy(ms.data, entries)
 	return nil
-}
-
-func (ms *MemoryStorage) Version() int {
-	return ms.version
-}
-
-func (ms *MemoryStorage) SetVersion(version int) {
-	ms.version = version
 }

@@ -9,12 +9,6 @@ import (
 	"time-tracker/models"
 )
 
-// DataStore represents the JSON structure for time entries
-type DataStore struct {
-	Version     int                `json:"version"`
-	TimeEntries []models.TimeEntry `json:"time-entries"`
-}
-
 // FileStorage implements Storage using JSON files
 type FileStorage struct {
 	FilePath string
@@ -56,31 +50,12 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 
-	// If version is missing, assume version 0
-	if store.Version == 0 && len(store.TimeEntries) > 0 {
-		// This is likely an old format without version field
-		store.Version = 0
-	}
-
 	return store.TimeEntries, nil
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
-	data, err := os.ReadFile(fs.FilePath)
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("failed to read existing data file: %w", err)
-	}
-
-	var currentVersion int
-	if err == nil {
-		var existingStore DataStore
-		if err := json.Unmarshal(data, &existingStore); err == nil {
-			currentVersion = existingStore.Version
-		}
-	}
-
 	store := DataStore{
-		Version:     currentVersion,
+		Version:     models.CurrentVersion,
 		TimeEntries: entries,
 	}
 	data, err = json.MarshalIndent(store, "", "  ")

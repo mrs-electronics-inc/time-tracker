@@ -146,36 +146,6 @@ go test ./src/tests/...
 
 This will run contract tests, integration tests, and unit tests.
 
-### AI-driven Workflow
-
-- Install [spec-kit](https://github.com/github/spec-kit) - `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git`
-- Install [opencode.ai](https://opencode.ai)
-- Login with openrouter - `opencode auth login`
-- Select model in `opencode` with the `/models` command (currently recommended: [Grok Code Fast 1](https://openrouter.ai/x-ai/grok-code-fast-1)).
-- Use the `/specify` command to describe what you want to build. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
-- Take a look at the output. Refine as needed.
-- Commit
-- Use the `/clarify` command to clarify the design.
-- Take a look at the output. Refine as needed.
-- Commit
-- Use the `/plan` command to describe any architecture choices. ([docs](https://github.com/github/spec-kit?tab=readme-ov-file#3-create-the-spec))
-- Take a look at the output. Refine as needed.
-- Commit
-- Use the `/tasks` command to create the task list.
-- Take a look at the output. Refine as needed.
-- Commit
-- Use the `/implement` command to execute the task list.
-- Commit
-- Push
-- Create PR
-- Review all changes yourself
-- Refine as needed
-- Use the `/compact-spec <subdirectory>` command to compact the spec files in `specs/<subdirectory>` into a single `spec.md`, removing boilerplate.
-- Commit
-- Push
-- Request human review
-- Refine based on code review feedback
-
 ## License
 
 All the code is under the [MIT license](/LICENSE). Contributions are welcome!

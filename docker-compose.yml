@@ -5,5 +5,11 @@ services:
     volumes:
       - config:/root/.config
 
+  test:
+    image: time-tracker-test
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+
 volumes:
   config:

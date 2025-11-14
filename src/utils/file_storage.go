@@ -2,15 +2,17 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
 	"path/filepath"
 	"time-tracker/models"
 )
 
-// DataStore represents the JSON structure for time entries
-type DataStore struct {
+type fileData struct {
+	Version     int                `json:"version"`
 	TimeEntries []models.TimeEntry `json:"time-entries"`
 }
 
@@ -27,42 +29,53 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 	}
 
 	// Ensure data file exists
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		initialData := DataStore{TimeEntries: []models.TimeEntry{}}
-		data, err := json.MarshalIndent(initialData, "", "  ")
+	info, err := os.Stat(filePath)
+	if errors.Is(err, fs.ErrNotExist) {
+		initialData := fileData{
+			Version:     0,
+			TimeEntries: []models.TimeEntry{},
+		}
+		jsonData, err := json.MarshalIndent(initialData, "", "  ")
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal initial data: %w", err)
 		}
-		if err := os.WriteFile(filePath, data, 0644); err != nil {
+		if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
 			return nil, fmt.Errorf("failed to create data file: %w", err)
 		}
+	} else if info.IsDir() {
+		return nil, errors.New("provided path must be a file")
 	}
 
 	return &FileStorage{FilePath: filePath}, nil
 }
 
 func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
-	data, err := os.ReadFile(fs.FilePath)
+	jsonData, err := os.ReadFile(fs.FilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read data file: %w", err)
 	}
 
-	var store DataStore
-	if err := json.Unmarshal(data, &store); err != nil {
+	var data fileData
+	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 
-	return store.TimeEntries, nil
+	// TODO: apply migrations based on data.Version
+
+	return data.TimeEntries, nil
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
-	store := DataStore{TimeEntries: entries}
-	data, err := json.MarshalIndent(store, "", "  ")
+	data := fileData{
+		Version:     models.CurrentVersion,
+		TimeEntries: entries,
+	}
+	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	if err := os.WriteFile(fs.FilePath, data, 0644); err != nil {
+	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
 		return fmt.Errorf("failed to write data file: %w", err)
 	}
 	return nil

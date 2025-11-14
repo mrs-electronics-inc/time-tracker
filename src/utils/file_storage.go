@@ -2,7 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
 	"path/filepath"
@@ -27,7 +29,8 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 	}
 
 	// Ensure data file exists
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+	info, err := os.Stat(filePath)
+	if errors.Is(err, fs.ErrNotExist) {
 		initialData := fileData{
 			Version:     0,
 			TimeEntries: []models.TimeEntry{},
@@ -39,6 +42,10 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
 			return nil, fmt.Errorf("failed to create data file: %w", err)
 		}
+	}
+
+	if info.IsDir() {
+		return nil, fmt.Errorf("provided path must be a file")
 	}
 
 	return &FileStorage{FilePath: filePath}, nil

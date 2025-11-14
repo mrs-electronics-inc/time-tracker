@@ -42,10 +42,8 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
 			return nil, fmt.Errorf("failed to create data file: %w", err)
 		}
-	}
-
-	if info.IsDir() {
-		return nil, fmt.Errorf("provided path must be a file")
+	} else if info.IsDir() {
+		return nil, errors.New("provided path must be a file")
 	}
 
 	return &FileStorage{FilePath: filePath}, nil

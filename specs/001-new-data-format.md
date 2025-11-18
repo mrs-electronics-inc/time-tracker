@@ -15,7 +15,7 @@ We will have `null` for `project and `title` for empty entries between other ent
 
 ### Add Blank Time Entries
 
-- [ ] Add migration logic for version 0 to 1 when loading data.
+- [x] Add migration logic for version 0 to 1 when loading data.
 - [ ] Version 1 has the following differences from version 0:
   - [ ] Add blank time entries between entries that have a space between the `end` of one entry and the `start` of the next entry.
   - [ ] Blank entries representation choice: serialize `project` and `title` as empty strings (`""`)

@@ -61,10 +61,11 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 
-	// Apply migrations based on data.Version
+	// Apply migrations in-memory for older data versions to ensure compatibility.
+	// Note: This may add blank entries or other changes that will be persisted if Save() is called.
 	if data.Version < models.CurrentVersion {
 		if data.Version == 0 {
-			data.TimeEntries = migrateToV1(data.TimeEntries)
+			data.TimeEntries = MigrateToV1(data.TimeEntries)
 			data.Version = 1
 		}
 	}
@@ -72,32 +73,36 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	return data.TimeEntries, nil
 }
 
-func migrateToV1(entries []models.TimeEntry) []models.TimeEntry {
+func MigrateToV1(entries []models.TimeEntry) []models.TimeEntry {
 	if len(entries) == 0 {
 		return entries
 	}
 
+	// Make a shallow copy to avoid mutating the input
+	copied := append([]models.TimeEntry(nil), entries...)
+
 	// Sort by start time
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Start.Before(entries[j].Start)
+	sort.Slice(copied, func(i, j int) bool {
+		return copied[i].Start.Before(copied[j].Start)
 	})
 
 	// Find max ID
 	maxID := 0
-	for _, e := range entries {
+	for _, e := range copied {
 		if e.ID > maxID {
 			maxID = e.ID
 		}
 	}
 
 	var newEntries []models.TimeEntry
-	for i, entry := range entries {
+	for i, entry := range copied {
 		newEntries = append(newEntries, entry)
-		if i < len(entries)-1 && entry.End != nil && entry.End.Before(entries[i+1].Start) {
+		if i < len(copied)-1 && entry.End != nil && entry.End.Before(copied[i+1].Start) {
+			end := copied[i+1].Start
 			blank := models.TimeEntry{
 				ID:      maxID + 1,
 				Start:   *entry.End,
-				End:     &entries[i+1].Start,
+				End:     &end,
 				Project: "",
 				Title:   "",
 			}
@@ -109,6 +114,8 @@ func migrateToV1(entries []models.TimeEntry) []models.TimeEntry {
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
+	// Saves entries with the current version. If entries were loaded from an older version and migrated,
+	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
 	data := fileData{
 		Version:     models.CurrentVersion,
 		TimeEntries: entries,

@@ -33,7 +33,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 	info, err := os.Stat(filePath)
 	if errors.Is(err, fs.ErrNotExist) {
 		initialData := fileData{
-			Version:     0,
+			Version:     models.CurrentVersion,
 			TimeEntries: []models.TimeEntry{},
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")

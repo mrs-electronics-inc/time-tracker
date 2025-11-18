@@ -6,14 +6,24 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"sort"
 
 	"path/filepath"
 	"time-tracker/models"
 )
 
+var migrations = map[int]func([]byte) []byte{
+	0: MigrateToV1,
+}
+
 type fileData struct {
 	Version     int                `json:"version"`
 	TimeEntries []models.TimeEntry `json:"time-entries"`
+}
+
+type loadData struct {
+	Version     int             `json:"version"`
+	TimeEntries json.RawMessage `json:"time-entries"`
 }
 
 // FileStorage implements Storage using JSON files
@@ -32,7 +42,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 	info, err := os.Stat(filePath)
 	if errors.Is(err, fs.ErrNotExist) {
 		initialData := fileData{
-			Version:     0,
+			Version:     models.CurrentVersion,
 			TimeEntries: []models.TimeEntry{},
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")
@@ -55,17 +65,76 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		return nil, fmt.Errorf("failed to read data file: %w", err)
 	}
 
-	var data fileData
-	if err := json.Unmarshal(jsonData, &data); err != nil {
+	var loadData loadData
+	if err := json.Unmarshal(jsonData, &loadData); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 
-	// TODO: apply migrations based on data.Version
+	// Apply migrations in-memory for older data versions to ensure compatibility.
+	// Note: This may add blank entries or other changes that will be persisted if Save() is called.
+	entriesJson := loadData.TimeEntries
+	for v := loadData.Version; v < models.CurrentVersion; v++ {
+		if mig, ok := migrations[v]; ok {
+			entriesJson = mig(entriesJson)
+		}
+		loadData.Version++
+	}
 
-	return data.TimeEntries, nil
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(entriesJson, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
+	}
+	return entries, nil
+}
+
+func MigrateToV1(data []byte) []byte {
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return data // or handle error
+	}
+	if len(entries) == 0 {
+		return data
+	}
+
+	// Make a shallow copy to avoid mutating the input
+	copied := append([]models.TimeEntry(nil), entries...)
+
+	// Sort by start time
+	sort.Slice(copied, func(i, j int) bool {
+		return copied[i].Start.Before(copied[j].Start)
+	})
+
+	// Find max ID
+	maxID := 0
+	for _, e := range copied {
+		if e.ID > maxID {
+			maxID = e.ID
+		}
+	}
+
+	var newEntries []models.TimeEntry
+	for i, entry := range copied {
+		newEntries = append(newEntries, entry)
+		if i < len(copied)-1 && entry.End != nil && entry.End.Before(copied[i+1].Start) {
+			end := copied[i+1].Start
+			blank := models.TimeEntry{
+				ID:      maxID + 1,
+				Start:   *entry.End,
+				End:     &end,
+				Project: "",
+				Title:   "",
+			}
+			newEntries = append(newEntries, blank)
+			maxID++
+		}
+	}
+	result, _ := json.Marshal(newEntries)
+	return result
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
+	// Saves entries with the current version. If entries were loaded from an older version and migrated,
+	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
 	data := fileData{
 		Version:     models.CurrentVersion,
 		TimeEntries: entries,

@@ -12,13 +12,13 @@ import (
 	"time-tracker/models"
 )
 
-var migrations = map[int]func([]models.TimeEntry) []models.TimeEntry{
+var migrations = map[int]func([]byte) []byte{
 	0: MigrateToV1,
 }
 
 type fileData struct {
-	Version     int                `json:"version"`
-	TimeEntries []models.TimeEntry `json:"time-entries"`
+	Version     int             `json:"version"`
+	TimeEntries json.RawMessage `json:"time-entries"`
 }
 
 // FileStorage implements Storage using JSON files
@@ -38,7 +38,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 	if errors.Is(err, fs.ErrNotExist) {
 		initialData := fileData{
 			Version:     models.CurrentVersion,
-			TimeEntries: []models.TimeEntry{},
+			TimeEntries: json.RawMessage(`[]`),
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")
 		if err != nil {
@@ -74,12 +74,20 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		data.Version++
 	}
 
-	return data.TimeEntries, nil
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data.TimeEntries, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
+	}
+	return entries, nil
 }
 
-func MigrateToV1(entries []models.TimeEntry) []models.TimeEntry {
+func MigrateToV1(data []byte) []byte {
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return data // or handle error
+	}
 	if len(entries) == 0 {
-		return entries
+		return data
 	}
 
 	// Make a shallow copy to avoid mutating the input
@@ -114,15 +122,20 @@ func MigrateToV1(entries []models.TimeEntry) []models.TimeEntry {
 			maxID++
 		}
 	}
-	return newEntries
+	result, _ := json.Marshal(newEntries)
+	return result
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
+	entriesJson, err := json.Marshal(entries)
+	if err != nil {
+		return fmt.Errorf("failed to marshal entries: %w", err)
+	}
 	data := fileData{
 		Version:     models.CurrentVersion,
-		TimeEntries: entries,
+		TimeEntries: entriesJson,
 	}
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

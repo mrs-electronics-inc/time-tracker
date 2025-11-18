@@ -1,7 +1,6 @@
 package unit
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -84,10 +83,7 @@ func TestMigrateToV1(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			inputJson, _ := json.Marshal(tt.input)
-			resultJson := utils.MigrateToV1(inputJson)
-			var result []models.TimeEntry
-			json.Unmarshal(resultJson, &result)
+			result := utils.MigrateToV1(tt.input)
 			if len(result) != len(tt.expected) {
 				t.Fatalf("expected %d entries, got %d", len(tt.expected), len(result))
 			}

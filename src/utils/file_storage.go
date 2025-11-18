@@ -12,7 +12,7 @@ import (
 	"time-tracker/models"
 )
 
-var migrations = map[int]func([]models.TimeEntry) []models.TimeEntry{
+var migrations = map[int]func([]byte) []byte{
 	0: MigrateToV1,
 }
 
@@ -67,19 +67,31 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 
 	// Apply migrations in-memory for older data versions to ensure compatibility.
 	// Note: This may add blank entries or other changes that will be persisted if Save() is called.
+	entriesJson, err := json.Marshal(data.TimeEntries)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal entries for migration: %w", err)
+	}
 	for v := data.Version; v < models.CurrentVersion; v++ {
 		if mig, ok := migrations[v]; ok {
-			data.TimeEntries = mig(data.TimeEntries)
+			entriesJson = mig(entriesJson)
 		}
 		data.Version++
 	}
 
-	return data.TimeEntries, nil
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(entriesJson, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
+	}
+	return entries, nil
 }
 
-func MigrateToV1(entries []models.TimeEntry) []models.TimeEntry {
+func MigrateToV1(data []byte) []byte {
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return data // or handle error
+	}
 	if len(entries) == 0 {
-		return entries
+		return data
 	}
 
 	// Make a shallow copy to avoid mutating the input
@@ -114,7 +126,8 @@ func MigrateToV1(entries []models.TimeEntry) []models.TimeEntry {
 			maxID++
 		}
 	}
-	return newEntries
+	result, _ := json.Marshal(newEntries)
+	return result
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {

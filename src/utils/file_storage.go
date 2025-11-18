@@ -12,6 +12,10 @@ import (
 	"time-tracker/models"
 )
 
+var migrations = map[int]func([]models.TimeEntry) []models.TimeEntry{
+	0: MigrateToV1,
+}
+
 type fileData struct {
 	Version     int                `json:"version"`
 	TimeEntries []models.TimeEntry `json:"time-entries"`
@@ -63,11 +67,11 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 
 	// Apply migrations in-memory for older data versions to ensure compatibility.
 	// Note: This may add blank entries or other changes that will be persisted if Save() is called.
-	if data.Version < models.CurrentVersion {
-		if data.Version == 0 {
-			data.TimeEntries = MigrateToV1(data.TimeEntries)
-			data.Version = 1
+	for v := data.Version; v < models.CurrentVersion; v++ {
+		if mig, ok := migrations[v]; ok {
+			data.TimeEntries = mig(data.TimeEntries)
 		}
+		data.Version++
 	}
 
 	return data.TimeEntries, nil

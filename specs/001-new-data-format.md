@@ -20,7 +20,7 @@ We will have `null` for `project and `title` for empty entries between other ent
   - [x] Add blank time entries between entries that have a space between the `end` of one entry and the `start` of the next entry.
   - [x] Blank entries representation choice: serialize `project` and `title` as empty strings (`""`)
   - [x] Assign IDs to inserted blank entries using sequential IDs continuing from the current max ID
-  - [ ] Migration behavior: insert blank entries in-memory only when loading; do not rewrite the on-disk file automatically
+  - [x] Migration behavior: insert blank entries in-memory only when loading; do not rewrite the on-disk file automatically
 
 ### Remove End Field
 

@@ -9,7 +9,9 @@ import (
 )
 
 func TestMigrateToV1(t *testing.T) {
-	now := time.Now()
+	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name     string
@@ -24,57 +26,57 @@ func TestMigrateToV1(t *testing.T) {
 		{
 			name: "already sorted with gap",
 			input: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-2 * time.Hour), End: &[]time.Time{now.Add(-1 * time.Hour)}[0], Project: "p1", Title: "t1"},
-				{ID: 2, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-2 * time.Hour), End: &[]time.Time{now.Add(-1 * time.Hour)}[0], Project: "p1", Title: "t1"},
-				{ID: 3, Start: now.Add(-1 * time.Hour), End: &[]time.Time{now}[0], Project: "", Title: ""},
-				{ID: 2, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 3, Start: t2, End: &t3, Project: "", Title: ""},
+				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 		},
 		{
 			name: "out of order",
 			input: []models.TimeEntry{
-				{ID: 2, Start: now, End: nil, Project: "p2", Title: "t2"},
-				{ID: 1, Start: now.Add(-2 * time.Hour), End: &[]time.Time{now.Add(-1 * time.Hour)}[0], Project: "p1", Title: "t1"},
+				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-2 * time.Hour), End: &[]time.Time{now.Add(-1 * time.Hour)}[0], Project: "p1", Title: "t1"},
-				{ID: 3, Start: now.Add(-1 * time.Hour), End: &[]time.Time{now}[0], Project: "", Title: ""},
-				{ID: 2, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 3, Start: t2, End: &t3, Project: "", Title: ""},
+				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 		},
 		{
 			name: "no gap",
 			input: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-1 * time.Hour), End: &[]time.Time{now}[0], Project: "p1", Title: "t1"},
-				{ID: 2, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
+				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-1 * time.Hour), End: &[]time.Time{now}[0], Project: "p1", Title: "t1"},
-				{ID: 2, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
+				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 		},
 		{
 			name: "nil end",
 			input: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-1 * time.Hour), End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-1 * time.Hour), End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
 			},
 		},
 		{
 			name: "duplicate ids",
 			input: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-2 * time.Hour), End: &[]time.Time{now.Add(-1 * time.Hour)}[0], Project: "p1", Title: "t1"},
-				{ID: 1, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: now.Add(-2 * time.Hour), End: &[]time.Time{now.Add(-1 * time.Hour)}[0], Project: "p1", Title: "t1"},
-				{ID: 2, Start: now.Add(-1 * time.Hour), End: &[]time.Time{now}[0], Project: "", Title: ""},
-				{ID: 1, Start: now, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 2, Start: t2, End: &t3, Project: "", Title: ""},
+				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
 			},
 		},
 	}

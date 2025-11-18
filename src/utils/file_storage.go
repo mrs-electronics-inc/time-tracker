@@ -21,6 +21,11 @@ type fileData struct {
 	TimeEntries []models.TimeEntry `json:"time-entries"`
 }
 
+type loadData struct {
+	Version     int             `json:"version"`
+	TimeEntries json.RawMessage `json:"time-entries"`
+}
+
 // FileStorage implements Storage using JSON files
 type FileStorage struct {
 	FilePath string
@@ -60,22 +65,19 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		return nil, fmt.Errorf("failed to read data file: %w", err)
 	}
 
-	var data fileData
-	if err := json.Unmarshal(jsonData, &data); err != nil {
+	var loadData loadData
+	if err := json.Unmarshal(jsonData, &loadData); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 
 	// Apply migrations in-memory for older data versions to ensure compatibility.
 	// Note: This may add blank entries or other changes that will be persisted if Save() is called.
-	entriesJson, err := json.Marshal(data.TimeEntries)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal entries for migration: %w", err)
-	}
-	for v := data.Version; v < models.CurrentVersion; v++ {
+	entriesJson := loadData.TimeEntries
+	for v := loadData.Version; v < models.CurrentVersion; v++ {
 		if mig, ok := migrations[v]; ok {
 			entriesJson = mig(entriesJson)
 		}
-		data.Version++
+		loadData.Version++
 	}
 
 	var entries []models.TimeEntry

@@ -18,7 +18,7 @@ func TestMigrateToV1(t *testing.T) {
 	tests := []struct {
 		name      string
 		input     []models.V0Entry
-		expected  []models.V1Entry // Changed to V1Entry
+		expected  []models.V1Entry
 		expectErr bool
 	}{
 		{
@@ -137,7 +137,7 @@ func TestMigrateToV1(t *testing.T) {
 			if tt.expectErr {
 				return
 			}
-			
+
 			if len(result) != len(tt.expected) {
 				t.Fatalf("expected %d entries, got %d", len(tt.expected), len(result))
 			}
@@ -261,7 +261,7 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 			if tt.expectErr {
 				return
 			}
-			
+
 			if len(result) != tt.wantCount {
 				t.Fatalf("expected %d entries, got %d", tt.wantCount, len(result))
 			}
@@ -329,8 +329,8 @@ func TestMigrateToV3(t *testing.T) {
 			}
 
 			for i, entry := range result {
-                // Check that essential fields are preserved
-                // (We cannot check for ID absence explicitly because V3Entry does not have it)
+				// Check that essential fields are preserved
+				// (We cannot check for ID absence explicitly because V3Entry does not have it)
 				if !entry.Start.Equal(tt.input[i].Start) {
 					t.Errorf("entry %d: start time changed", i)
 				}

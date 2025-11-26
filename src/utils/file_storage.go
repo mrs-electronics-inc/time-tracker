@@ -162,11 +162,11 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to unmarshal data during migration to v2: %w", err)
 	}
 
-	// Filter out blank entries (empty project and title) that are less than 5 seconds long
+	// Filter out blank entries that are less than 5 seconds long
 	var filtered []models.TimeEntry
 	for _, entry := range entries {
 		// Skip if it's a blank entry with duration < 5 seconds
-		if entry.Project == "" && entry.Title == "" && entry.End != nil {
+		if entry.IsBlank() && entry.End != nil {
 			duration := entry.End.Sub(entry.Start)
 			if duration < 5*time.Second {
 				continue

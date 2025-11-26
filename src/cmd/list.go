@@ -38,9 +38,9 @@ By default, only the entries from the current day will be shown. Use --all to vi
 
 		displayEntries := []models.TimeEntry{}
 		if displayAll {
-			// Filter out blank entries (empty project and title)
+			// Filter out blank entries
 			for _, entry := range allEntries {
-				if entry.Project != "" || entry.Title != "" {
+				if !entry.IsBlank() {
 					displayEntries = append(displayEntries, entry)
 				}
 			}
@@ -49,8 +49,8 @@ By default, only the entries from the current day will be shown. Use --all to vi
 			year, month, day := now.Date()
 			startOfToday := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
 			for _, entry := range allEntries {
-				// Filter out blank entries (empty project and title)
-				if entry.Project == "" && entry.Title == "" {
+				// Filter out blank entries
+				if entry.IsBlank() {
 					continue
 				}
 				if entry.IsRunning() || entry.End.After(startOfToday) {

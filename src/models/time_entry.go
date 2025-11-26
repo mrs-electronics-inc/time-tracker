@@ -25,3 +25,8 @@ func (te *TimeEntry) Duration() time.Duration {
 	}
 	return te.End.Sub(te.Start)
 }
+
+// IsBlank returns true if the entry is a blank entry (empty project and title)
+func (te *TimeEntry) IsBlank() bool {
+	return te.Project == "" && te.Title == ""
+}

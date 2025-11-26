@@ -29,6 +29,11 @@ func CalculateDailyTotals(entries []models.TimeEntry, numDays int) []DailyTotal 
 	dailyProjectsMap := make(map[string]map[string]time.Duration)
 
 	for _, entry := range entries {
+		// Skip blank entries in stats
+		if entry.IsBlank() {
+			continue
+		}
+
 		duration := entry.Duration()
 		date := entry.Start.Format("2006-01-02")
 
@@ -67,6 +72,11 @@ func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTot
 	weeklyProjectsMap := make(map[string]map[string]time.Duration)
 
 	for _, entry := range entries {
+		// Skip blank entries in stats
+		if entry.IsBlank() {
+			continue
+		}
+
 		duration := entry.Duration()
 
 		// Find Monday of the week

@@ -31,9 +31,10 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
 
 ### Clean Up Output
 
-- [ ] Correctly load end times for all entries based on the start time of the next entry (currently the output is showing that every entry is still running without an end time)
-- [ ] Don't display empty project in `stats` output
-- [ ] Don't display empty entries in `list` output
+- [x] Correctly load end times for all entries based on the start time of the next entry (currently the output is showing that every entry is still running without an end time)
+- [x] Don't display empty entries in `list` output
+- [x] Don't display empty project in `stats` output
+- [x] Don't include empty entries in stats totals
 
 ### Remove ID Field
 

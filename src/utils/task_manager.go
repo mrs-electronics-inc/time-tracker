@@ -85,6 +85,24 @@ func (tm *TaskManager) StopEntry() (*models.TimeEntry, error) {
 		if entry.IsRunning() {
 			now := time.Now()
 			entries[i].End = &now
+			
+			// Add a blank entry to represent the gap after the stopped entry
+			// Find max ID
+			maxID := 0
+			for _, e := range entries {
+				if e.ID > maxID {
+					maxID = e.ID
+				}
+			}
+			blankEntry := models.TimeEntry{
+				ID:      maxID + 1,
+				Start:   now,
+				End:     nil,
+				Project: "",
+				Title:   "",
+			}
+			entries = append(entries, blankEntry)
+			
 			if err := tm.storage.Save(entries); err != nil {
 				return nil, err
 			}

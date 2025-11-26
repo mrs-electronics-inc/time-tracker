@@ -8,26 +8,14 @@ Use the `just` tool for all local development tasks:
 # Run all Go tests
 just test
 
-# Build the Docker image
-just build
-
-# Start a new time entry
-just start "project-name" "task-name"
-
-# Stop the current time entry
-just stop
-
-# List time entries
-just list          # today's entries
-just list-all      # all entries
-
-# Show statistics
-just stats         # daily stats
-just stats-weekly  # weekly stats
-just stats-rows N  # N rows of daily stats
-
-# Complete demo workflow
-just demo
+# Run time-tracker with any subcommand and flags
+just run start "project-name" "task-name"
+just run stop
+just run list
+just run list --all
+just run stats
+just run stats --weekly
+just run stats --rows 7
 ```
 
 See `justfile` in the repo root for all available tasks.

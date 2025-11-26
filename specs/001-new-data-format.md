@@ -24,10 +24,10 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
 
 ### Remove End Field
 
-- [ ] Add migration logic for version 1 to 2 when loading data.
-- [ ] Version 2 has the following differences from version 1:
-  - [ ] No `end` field when saving time entries (the end of each entry is the start of the next entry).
-- [ ] Filter out any empty time entries that are less than 5 seconds long.
+- [x] Add migration logic for version 1 to 2 when loading data.
+- [x] Version 2 has the following differences from version 1:
+  - [x] No `end` field when saving time entries (the end of each entry is the start of the next entry).
+- [x] Filter out any empty time entries that are less than 5 seconds long.
 
 ### Remove ID Field
 

@@ -187,19 +187,17 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return fmt.Errorf("failed to marshal entries: %w", err)
 	}
 
-	// For version 2+, remove the End field from the JSON
-	if models.CurrentVersion >= 2 {
-		var processedEntries []map[string]any
-		if err := json.Unmarshal(entriesJson, &processedEntries); err != nil {
-			return fmt.Errorf("failed to unmarshal entries for processing: %w", err)
-		}
-		for _, entry := range processedEntries {
-			delete(entry, "end")
-		}
-		entriesJson, err = json.Marshal(processedEntries)
-		if err != nil {
-			return fmt.Errorf("failed to marshal processed entries: %w", err)
-		}
+	// Remove End field from the JSON (version 2+ doesn't store end field)
+	var processedEntries []map[string]any
+	if err := json.Unmarshal(entriesJson, &processedEntries); err != nil {
+		return fmt.Errorf("failed to unmarshal entries for processing: %w", err)
+	}
+	for _, entry := range processedEntries {
+		delete(entry, "end")
+	}
+	entriesJson, err = json.Marshal(processedEntries)
+	if err != nil {
+		return fmt.Errorf("failed to marshal processed entries: %w", err)
 	}
 
 	// Manually reconstruct the fileData with the processed entries JSON

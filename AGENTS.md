@@ -32,6 +32,7 @@ See `justfile` in the repo root for all available recipes.
 
 - **Getting issue descriptions**: Use the GitHub CLI: `gh issue view <number>`
 - **Creating PRs**: Use the GitHub CLI: `gh pr create --title "..." --body "..."`
+- **PR titles MUST follow conventional commit format** (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, etc.). Since PRs are squashed on merge to main, the PR title becomes the commit message.
 
 ## Spec Editing Safety
 
@@ -39,6 +40,8 @@ See `justfile` in the repo root for all available recipes.
 
 - Rule: Before editing any `specs/` file the agent MUST ask for confirmation. The prompt should state the exact file path and the change summary. Example prompt:
   - I plan to update `specs/001-new-data-format` to change the 'Blank entries representation' line to 'decision pending'. Reply 'yes' to apply.
+
+- Rule: After receiving approval to edit a `specs/` file, the agent MUST present the staged files and a one-line commit message for explicit confirmation BEFORE committing. Do not proceed to commit without this second confirmation.
 
 - Rule: The agent MUST NOT commit changes to `specs/` files without explicit user approval. If a commit is requested, the agent should present the staged files and a one-line commit message for confirmation.
 

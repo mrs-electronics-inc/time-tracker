@@ -8,6 +8,9 @@ Use the `just` tool for all local development tasks:
 # Run all Go tests
 just test
 
+# Build the Docker image
+just build
+
 # Run time-tracker with any subcommand and flags
 just run start "project-name" "task-name"
 just run stop
@@ -16,11 +19,14 @@ just run list --all
 just run stats
 just run stats --weekly
 just run stats --rows 7
+
+# View the data file from the volume (for debugging)
+just inspect-data
 ```
 
-See `justfile` in the repo root for all available tasks.
+See `justfile` in the repo root for all available recipes.
 
-**IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing through docker compose (that way we don't corrupt the host system's data file).
+**IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing.
 
 ## GitHub
 

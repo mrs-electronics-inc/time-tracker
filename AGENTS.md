@@ -7,9 +7,12 @@
   - Build the image: `docker compose build`
   - Run commands: `docker compose run --remove-orphans time-tracker [args]`
   - Example: `docker compose run --remove-orphans time-tracker start "test-project" "test-task"`
-- **Creating PRs**: Use the GitHub CLI: `gh pr create --title "..." --body "..."`
 
 **IMPORTANT**: Never run the binary directly on the host system. Always use Docker Compose for CLI testing.
+
+## GitHub
+
+- **Creating PRs**: Use the GitHub CLI: `gh pr create --title "..." --body "..."`
 
 ## Spec Editing Safety
 

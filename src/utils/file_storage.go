@@ -164,15 +164,7 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		filtered = append(filtered, entry)
 	}
 
-	// Remove End field from filtered entries (in v2, End is calculated from the next entry's Start)
-	var newEntries []models.TimeEntry
-	for _, entry := range filtered {
-		newEntry := entry
-		newEntry.End = nil
-		newEntries = append(newEntries, newEntry)
-	}
-
-	result, err := json.Marshal(newEntries)
+	result, err := json.Marshal(filtered)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
 	}

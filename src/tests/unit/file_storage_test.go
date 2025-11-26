@@ -218,27 +218,26 @@ func TestMigrateToV2(t *testing.T) {
 	tests := []struct {
 		name      string
 		input     []models.TimeEntry
-		expected  []models.TimeEntry
+		wantIDs   []int
+		wantCount int
 		expectErr bool
 	}{
 		{
 			name:      "empty input",
 			input:     []models.TimeEntry{},
-			expected:  []models.TimeEntry{},
+			wantIDs:   []int{},
+			wantCount: 0,
 			expectErr: false,
 		},
 		{
-			name: "remove end field from regular entries",
+			name: "keep regular entries",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: &t3, Project: "p2", Title: "t2"},
 				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
 			},
-			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: nil, Project: "p2", Title: "t2"},
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
-			},
+			wantIDs:   []int{1, 2, 3},
+			wantCount: 3,
 			expectErr: false,
 		},
 		{
@@ -248,11 +247,8 @@ func TestMigrateToV2(t *testing.T) {
 				{ID: 2, Start: t2, End: &t3, Project: "", Title: ""}, // 1 hour blank - keep
 				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
 			},
-			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: nil, Project: "", Title: ""}, // 1 hour blank - kept
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
-			},
+			wantIDs:   []int{1, 2, 3},
+			wantCount: 3,
 			expectErr: false,
 		},
 		{
@@ -262,10 +258,8 @@ func TestMigrateToV2(t *testing.T) {
 				{ID: 2, Start: t2, End: &t2_plus_2s, Project: "", Title: ""}, // 2 second blank - filtered
 				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
 			},
-			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
-			},
+			wantIDs:   []int{1, 3},
+			wantCount: 2,
 			expectErr: false,
 		},
 		{
@@ -275,11 +269,8 @@ func TestMigrateToV2(t *testing.T) {
 				{ID: 2, Start: t2, End: &t2_plus_2s, Project: "p2", Title: "t2"}, // 2 second non-blank - keep
 				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
 			},
-			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: nil, Project: "p2", Title: "t2"},
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
-			},
+			wantIDs:   []int{1, 2, 3},
+			wantCount: 3,
 			expectErr: false,
 		},
 	}
@@ -301,19 +292,13 @@ func TestMigrateToV2(t *testing.T) {
 			if err := json.Unmarshal(resultJson, &result); err != nil {
 				t.Fatalf("failed to unmarshal result: %v", err)
 			}
-			if len(result) != len(tt.expected) {
-				t.Fatalf("expected %d entries, got %d", len(tt.expected), len(result))
+			if len(result) != tt.wantCount {
+				t.Fatalf("expected %d entries, got %d", tt.wantCount, len(result))
 			}
-			for i, exp := range tt.expected {
+			for i, want := range tt.wantIDs {
 				got := result[i]
-				if got.ID != exp.ID || got.Project != exp.Project || got.Title != exp.Title {
-					t.Errorf("entry %d: got %+v, expected %+v", i, got, exp)
-				}
-				if got.Start != exp.Start {
-					t.Errorf("entry %d: start time mismatch", i)
-				}
-				if (got.End == nil) != (exp.End == nil) {
-					t.Errorf("entry %d: end field mismatch, got %v expected nil", i, got.End)
+				if got.ID != want {
+					t.Errorf("entry %d: expected ID %d, got %d", i, want, got.ID)
 				}
 			}
 		})

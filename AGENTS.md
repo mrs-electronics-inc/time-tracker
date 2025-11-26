@@ -2,13 +2,31 @@
 
 ## Local Development
 
-- **Go tests**: Run directly with `go test ./...`
-- **Binary testing**: Use Docker Compose to test the CLI binary to avoid affecting the host system.
-  - Build the image: `docker compose build`
-  - Run commands: `docker compose run --remove-orphans time-tracker [args]`
-  - Example: `docker compose run --remove-orphans time-tracker start "test-project" "test-task"`
+Use the `just` tool for all local development tasks:
 
-**IMPORTANT**: Never run the binary directly on the host system. Always use Docker Compose for CLI testing.
+```bash
+# Run all Go tests
+just test
+
+# Build the Docker image
+just build
+
+# Run time-tracker with any subcommand and flags
+just run start "project-name" "task-name"
+just run stop
+just run list
+just run list --all
+just run stats
+just run stats --weekly
+just run stats --rows 7
+
+# View the data file from the volume (for debugging)
+just inspect-data
+```
+
+See `justfile` in the repo root for all available recipes.
+
+**IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing.
 
 ## GitHub
 

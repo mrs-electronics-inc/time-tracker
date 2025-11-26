@@ -94,6 +94,17 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	if err := json.Unmarshal(entriesJson, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
 	}
+	
+	// Reconstruct End times from next entry's Start time for all entries
+	for i := 0; i < len(entries)-1; i++ {
+		next := entries[i+1].Start
+		entries[i].End = &next
+	}
+	// Last entry has no End time
+	if len(entries) > 0 {
+		entries[len(entries)-1].End = nil
+	}
+	
 	return entries, nil
 }
 
@@ -164,12 +175,7 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		filtered = append(filtered, entry)
 	}
 
-	// Reconstruct End times from the next entry's Start (for version 2, End is derived from next entry's Start)
-	for i := 0; i < len(filtered)-1; i++ {
-		next := filtered[i+1].Start
-		filtered[i].End = &next
-	}
-
+	// Note: End times will be reconstructed in Load() for v2+ data
 	result, err := json.Marshal(filtered)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)

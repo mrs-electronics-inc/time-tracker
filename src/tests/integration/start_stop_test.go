@@ -44,11 +44,16 @@ func TestStartStopScenario(t *testing.T) {
 		t.Fatalf("List entries failed: %v", err)
 	}
 
-	if len(entries) != 1 {
-		t.Errorf("Expected 1 entry, got %d", len(entries))
+	// Should have 2 entries: 1 real entry and 1 blank entry after it
+	if len(entries) != 2 {
+		t.Errorf("Expected 2 entries (real + blank), got %d", len(entries))
 	}
 	if entries[0].Project != "test-project" {
 		t.Errorf("Expected project 'test-project', got %s", entries[0].Project)
+	}
+	// Second entry should be blank
+	if entries[1].Project != "" || entries[1].Title != "" {
+		t.Errorf("Expected second entry to be blank, got project=%s title=%s", entries[1].Project, entries[1].Title)
 	}
 }
 
@@ -98,8 +103,9 @@ func TestStartWithIDScenario(t *testing.T) {
 		t.Fatalf("List entries failed: %v", err)
 	}
 
-	if len(entries) != 2 {
-		t.Errorf("Expected 2 entries, got %d", len(entries))
+	// Should have 3 entries: 1 initial (stopped) + 1 blank (stopped by start) + 1 resumed (running)
+	if len(entries) != 3 {
+		t.Errorf("Expected 3 entries, got %d", len(entries))
 	}
 
 	// The initial should be stopped, new running

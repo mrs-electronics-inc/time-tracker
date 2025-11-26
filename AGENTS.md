@@ -12,6 +12,7 @@
 
 ## GitHub
 
+- **Getting issue descriptions**: Use the GitHub CLI: `gh issue view <number>`
 - **Creating PRs**: Use the GitHub CLI: `gh pr create --title "..." --body "..."`
 
 ## Spec Editing Safety

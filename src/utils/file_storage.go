@@ -28,19 +28,6 @@ type loadData struct {
 	TimeEntries json.RawMessage `json:"time-entries"`
 }
 
-// V2TimeEntry is a TimeEntry without the End field for JSON serialization in version 2+
-type V2TimeEntry struct {
-	ID      int       `json:"id"`
-	Start   time.Time `json:"start"`
-	Project string    `json:"project"`
-	Title   string    `json:"title"`
-}
-
-type fileDataV2 struct {
-	Version     int           `json:"version"`
-	TimeEntries []V2TimeEntry `json:"time-entries"`
-}
-
 // FileStorage implements Storage using JSON files
 type FileStorage struct {
 	FilePath string
@@ -204,35 +191,36 @@ func MigrateToV2(data []byte) ([]byte, error) {
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
-	
-	var jsonData []byte
-	var err error
-	
-	if models.CurrentVersion >= 2 {
-		// For version 2+, convert to V2TimeEntry format (without End field)
-		v2Entries := make([]V2TimeEntry, len(entries))
-		for i, entry := range entries {
-			v2Entries[i] = V2TimeEntry{
-				ID:      entry.ID,
-				Start:   entry.Start,
-				Project: entry.Project,
-				Title:   entry.Title,
-			}
-		}
-		data := fileDataV2{
-			Version:     models.CurrentVersion,
-			TimeEntries: v2Entries,
-		}
-		jsonData, err = json.MarshalIndent(data, "", "  ")
-	} else {
-		// For version 0 and 1, use the original format with End field
-		data := fileData{
-			Version:     models.CurrentVersion,
-			TimeEntries: entries,
-		}
-		jsonData, err = json.MarshalIndent(data, "", "  ")
+	data := fileData{
+		Version:     models.CurrentVersion,
+		TimeEntries: entries,
 	}
-	
+	entriesJson, err := json.Marshal(entries)
+	if err != nil {
+		return fmt.Errorf("failed to marshal entries: %w", err)
+	}
+
+	// For version 2+, remove the End field from the JSON
+	if models.CurrentVersion >= 2 {
+		var processedEntries []map[string]interface{}
+		if err := json.Unmarshal(entriesJson, &processedEntries); err != nil {
+			return fmt.Errorf("failed to unmarshal entries for processing: %w", err)
+		}
+		for _, entry := range processedEntries {
+			delete(entry, "end")
+		}
+		entriesJson, err = json.Marshal(processedEntries)
+		if err != nil {
+			return fmt.Errorf("failed to marshal processed entries: %w", err)
+		}
+	}
+
+	// Manually reconstruct the fileData with the processed entries JSON
+	fileDataJson := map[string]interface{}{
+		"version":       data.Version,
+		"time-entries":  json.RawMessage(entriesJson),
+	}
+	jsonData, err := json.MarshalIndent(fileDataJson, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}

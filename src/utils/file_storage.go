@@ -72,21 +72,58 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	}
 
 	// Apply migrations in-memory for older data versions to ensure compatibility.
-	entriesJson := loadData.TimeEntries
-	for v := loadData.Version; v < models.CurrentVersion; v++ {
-		if transform, ok := Transformations[v]; ok {
-			var err error
-			entriesJson, err = callTransformWithMarshal(entriesJson, transform)
-			if err != nil {
-				return nil, fmt.Errorf("migration from version %d failed: %w", v, err)
-			}
+	var v0Entries []models.V0Entry
+	var v1Entries []models.V1Entry
+	var v2Entries []models.V2Entry
+	var v3Entries []models.V3Entry
+
+	// Step 1: Unmarshal based on version
+	switch loadData.Version {
+	case 0:
+		if err := json.Unmarshal(loadData.TimeEntries, &v0Entries); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal v0 data: %w", err)
 		}
-		loadData.Version++
+	case 1:
+		if err := json.Unmarshal(loadData.TimeEntries, &v1Entries); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal v1 data: %w", err)
+		}
+	case 2:
+		if err := json.Unmarshal(loadData.TimeEntries, &v2Entries); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal v2 data: %w", err)
+		}
+	case 3:
+		if err := json.Unmarshal(loadData.TimeEntries, &v3Entries); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal v3 data: %w", err)
+		}
+	default:
+		if loadData.Version > 3 {
+			return nil, fmt.Errorf("unknown version: %d", loadData.Version)
+		}
+	}
+
+	// Step 2: Migrate sequentially to reach CurrentVersion
+	for v := loadData.Version; v < models.CurrentVersion; v++ {
+		var err error
+		switch v {
+		case 0:
+			v1Entries, err = TransformV0ToV1(v0Entries)
+		case 1:
+			v2Entries, err = TransformV1ToV2(v1Entries)
+		case 2:
+			v3Entries, err = TransformV2ToV3(v2Entries)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("migration from version %d failed: %w", v, err)
+		}
 	}
 
 	var entries []models.TimeEntry
-	if err := json.Unmarshal(entriesJson, &entries); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
+	for _, v3 := range v3Entries {
+		entries = append(entries, models.TimeEntry{
+			Start:   v3.Start,
+			Project: v3.Project,
+			Title:   v3.Title,
+		})
 	}
 
 	// Reconstruct End times from next entry's Start time for all entries

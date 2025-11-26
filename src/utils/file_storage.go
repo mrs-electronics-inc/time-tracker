@@ -251,15 +251,9 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	})
 
 	// Build entries without End field and without ID field for storage (version 3+)
-	type SavedTimeEntry struct {
-		Start   time.Time `json:"start"`
-		Project string    `json:"project"`
-		Title   string    `json:"title"`
-	}
-
-	saved := make([]SavedTimeEntry, len(sorted))
+	saved := make([]models.SavedTimeEntry, len(sorted))
 	for i, entry := range sorted {
-		saved[i] = SavedTimeEntry{
+		saved[i] = models.SavedTimeEntry{
 			Start:   entry.Start,
 			Project: entry.Project,
 			Title:   entry.Title,

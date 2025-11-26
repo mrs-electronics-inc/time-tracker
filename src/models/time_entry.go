@@ -12,6 +12,14 @@ type TimeEntry struct {
 	Title   string     `json:"title"`
 }
 
+// SavedTimeEntry represents the format used to persist TimeEntry to disk (v3+)
+// It excludes the ID field (auto-generated on load) and End field (reconstructed on load)
+type SavedTimeEntry struct {
+	Start   time.Time `json:"start"`
+	Project string    `json:"project"`
+	Title   string    `json:"title"`
+}
+
 // IsRunning returns true if the entry is currently active
 func (te *TimeEntry) IsRunning() bool {
 	return te.End == nil

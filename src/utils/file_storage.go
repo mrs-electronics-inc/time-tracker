@@ -72,54 +72,49 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	}
 
 	// Apply migrations in-memory for older data versions to ensure compatibility.
+	var v0Entries []models.V0Entry
+	var v1Entries []models.V1Entry
+	var v2Entries []models.V2Entry
 	var v3Entries []models.V3Entry
 
+	// Step 1: Unmarshal based on version
 	switch loadData.Version {
 	case 0:
-		var v0Entries []models.V0Entry
 		if err := json.Unmarshal(loadData.TimeEntries, &v0Entries); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal v0 data: %w", err)
 		}
-		v1Entries, err := TransformV0ToV1(v0Entries)
-		if err != nil {
-			return nil, fmt.Errorf("migration from version 0 failed: %w", err)
-		}
-		v2Entries, err := TransformV1ToV2(v1Entries)
-		if err != nil {
-			return nil, fmt.Errorf("migration from version 1 failed: %w", err)
-		}
-		v3Entries, err = TransformV2ToV3(v2Entries)
-		if err != nil {
-			return nil, fmt.Errorf("migration from version 2 failed: %w", err)
-		}
 	case 1:
-		var v1Entries []models.V1Entry
 		if err := json.Unmarshal(loadData.TimeEntries, &v1Entries); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal v1 data: %w", err)
 		}
-		v2Entries, err := TransformV1ToV2(v1Entries)
-		if err != nil {
-			return nil, fmt.Errorf("migration from version 1 failed: %w", err)
-		}
-		v3Entries, err = TransformV2ToV3(v2Entries)
-		if err != nil {
-			return nil, fmt.Errorf("migration from version 2 failed: %w", err)
-		}
 	case 2:
-		var v2Entries []models.V2Entry
 		if err := json.Unmarshal(loadData.TimeEntries, &v2Entries); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal v2 data: %w", err)
-		}
-		v3Entries, err = TransformV2ToV3(v2Entries)
-		if err != nil {
-			return nil, fmt.Errorf("migration from version 2 failed: %w", err)
 		}
 	case 3:
 		if err := json.Unmarshal(loadData.TimeEntries, &v3Entries); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal v3 data: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown version: %d", loadData.Version)
+		if loadData.Version > 3 {
+			return nil, fmt.Errorf("unknown version: %d", loadData.Version)
+		}
+	}
+
+	// Step 2: Migrate sequentially to reach CurrentVersion
+	for v := loadData.Version; v < models.CurrentVersion; v++ {
+		var err error
+		switch v {
+		case 0:
+			v1Entries, err = TransformV0ToV1(v0Entries)
+		case 1:
+			v2Entries, err = TransformV1ToV2(v1Entries)
+		case 2:
+			v3Entries, err = TransformV2ToV3(v2Entries)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("migration from version %d failed: %w", v, err)
+		}
 	}
 
 	var entries []models.TimeEntry

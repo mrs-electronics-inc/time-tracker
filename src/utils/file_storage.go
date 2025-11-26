@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"sort"
+	"time"
 
 	"path/filepath"
 	"time-tracker/models"
@@ -14,6 +15,7 @@ import (
 
 var migrations = map[int]func([]byte) ([]byte, error){
 	0: MigrateToV1,
+	1: MigrateToV2,
 }
 
 type fileData struct {
@@ -136,6 +138,49 @@ func MigrateToV1(data []byte) ([]byte, error) {
 			newEntries = append(newEntries, blank)
 		}
 	}
+	result, err := json.Marshal(newEntries)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
+	}
+	return result, nil
+}
+
+func MigrateToV2(data []byte) ([]byte, error) {
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal data during migration to v2: %w", err)
+	}
+
+	// Filter out blank entries (empty project and title) that are less than 5 seconds long
+	var filtered []models.TimeEntry
+	for _, entry := range entries {
+		// Skip if it's a blank entry with duration < 5 seconds
+		if entry.Project == "" && entry.Title == "" && entry.End != nil {
+			duration := entry.End.Sub(entry.Start)
+			if duration < 5*time.Second {
+				continue
+			}
+		}
+		filtered = append(filtered, entry)
+	}
+
+	// Remove End field from filtered entries
+	var newEntries []models.TimeEntry
+	for i, entry := range filtered {
+		newEntry := entry
+		// Only keep the End field if it's the last entry or if it's a currently running entry
+		if i < len(filtered)-1 {
+			// Not the last entry, clear the End field
+			newEntry.End = nil
+		} else if i == len(filtered)-1 && entry.End != nil {
+			// Check if this is the running entry (the one with no explicit end time in v1)
+			// Keep the End field only for the last entry if it has one
+			// Actually, in v2, we don't store End at all - it's calculated from the next entry's Start
+			newEntry.End = nil
+		}
+		newEntries = append(newEntries, newEntry)
+	}
+
 	result, err := json.Marshal(newEntries)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)

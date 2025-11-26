@@ -382,3 +382,86 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 		})
 	}
 }
+
+func TestMigrateToV3(t *testing.T) {
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name        string
+		input       []models.TimeEntry
+		expectCount int
+		expectErr   bool
+	}{
+		{
+			name:        "empty entries",
+			input:       []models.TimeEntry{},
+			expectCount: 0,
+			expectErr:   false,
+		},
+		{
+			name: "removes ID field from entries",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			expectCount: 3,
+			expectErr:   false,
+		},
+		{
+			name: "removes ID field from blank entries",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			expectCount: 3,
+			expectErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputJson, err := json.Marshal(tt.input)
+			if err != nil {
+				t.Fatalf("failed to marshal input: %v", err)
+			}
+			resultJson, err := utils.MigrateToV3(inputJson)
+			if (err != nil) != tt.expectErr {
+				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
+			}
+			if tt.expectErr {
+				return
+			}
+
+			// Parse the result to ensure IDs are not present
+			var result []map[string]interface{}
+			if err := json.Unmarshal(resultJson, &result); err != nil {
+				t.Fatalf("failed to unmarshal result: %v", err)
+			}
+
+			if len(result) != tt.expectCount {
+				t.Fatalf("expected %d entries, got %d", tt.expectCount, len(result))
+			}
+
+			// Verify no ID field in any entry
+			for i, entry := range result {
+				if _, hasID := entry["id"]; hasID {
+					t.Errorf("entry %d: should not have 'id' field, but got one", i)
+				}
+				// Verify essential fields are still present
+				if _, hasStart := entry["start"]; !hasStart {
+					t.Errorf("entry %d: missing 'start' field", i)
+				}
+				if _, hasProject := entry["project"]; !hasProject {
+					t.Errorf("entry %d: missing 'project' field", i)
+				}
+				if _, hasTitle := entry["title"]; !hasTitle {
+					t.Errorf("entry %d: missing 'title' field", i)
+				}
+			}
+		})
+	}
+}

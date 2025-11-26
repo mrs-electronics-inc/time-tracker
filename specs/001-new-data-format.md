@@ -38,8 +38,8 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
 
 ### Remove ID Field
 
-- [ ] Be sure to sort by start time in Save logic before writing to file
-- [ ] Add migration logic for version 2 to 3 when loading data.
-- [ ] Version 3 has the following differences from version 2:
-  - [ ] No `id` field for the time entries.
-- [ ] The ID column in the output of the list command should be automatically generated
+- [x] Be sure to sort by start time in Save logic before writing to file
+- [x] Add migration logic for version 2 to 3 when loading data.
+- [x] Version 3 has the following differences from version 2:
+  - [x] No `id` field for the time entries.
+- [x] The ID column in the output of the list command should be automatically generated

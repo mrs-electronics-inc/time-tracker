@@ -76,7 +76,7 @@ func displayEntriesTable(entries []models.TimeEntry) {
 	table.SetRowLine(true)
 	table.SetAutoWrapText(false)
 
-	for _, entry := range entries {
+	for id, entry := range entries {
 		startTime := entry.Start.Format("2006-01-02 15:04")
 		endTime := "\033[32mrunning\033[0m"
 		if entry.End != nil {
@@ -86,7 +86,7 @@ func displayEntriesTable(entries []models.TimeEntry) {
 		duration := formatDuration(entry.Duration())
 
 		row := []string{
-			strconv.Itoa(entry.ID),
+			strconv.Itoa(id + 1), // Auto-generated ID starting from 1
 			startTime,
 			endTime,
 			entry.Project,

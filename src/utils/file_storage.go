@@ -16,6 +16,7 @@ import (
 var migrations = map[int]func([]byte) ([]byte, error){
 	0: MigrateToV1,
 	1: MigrateToV2,
+	2: MigrateToV3,
 }
 
 type fileData struct {
@@ -93,6 +94,13 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	var entries []models.TimeEntry
 	if err := json.Unmarshal(entriesJson, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
+	}
+
+	// For v3+, generate IDs if they're missing (all IDs will be 0)
+	if loadData.Version >= 3 && len(entries) > 0 {
+		for i := range entries {
+			entries[i].ID = i + 1
+		}
 	}
 
 	// Reconstruct End times from next entry's Start time for all entries
@@ -183,22 +191,56 @@ func MigrateToV2(data []byte) ([]byte, error) {
 	return result, nil
 }
 
-func (fs *FileStorage) Save(entries []models.TimeEntry) error {
-	// Saves entries with the current version. If entries were loaded from an older version and migrated,
-	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
+func MigrateToV3(data []byte) ([]byte, error) {
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal data during migration to v3: %w", err)
+	}
 
-	// Build entries without End field for storage (version 2+)
-	type SavedTimeEntry struct {
-		ID      int       `json:"id"`
+	// In version 3, we remove the ID field; IDs will be auto-generated in the UI
+	// For now, just marshal without the ID field by using a struct without ID
+	type V3Entry struct {
 		Start   time.Time `json:"start"`
 		Project string    `json:"project"`
 		Title   string    `json:"title"`
 	}
 
-	saved := make([]SavedTimeEntry, len(entries))
-	for i, entry := range entries {
+	var v3Entries []V3Entry
+	for _, entry := range entries {
+		v3Entries = append(v3Entries, V3Entry{
+			Start:   entry.Start,
+			Project: entry.Project,
+			Title:   entry.Title,
+		})
+	}
+
+	result, err := json.Marshal(v3Entries)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
+	}
+	return result, nil
+}
+
+func (fs *FileStorage) Save(entries []models.TimeEntry) error {
+	// Saves entries with the current version. If entries were loaded from an older version and migrated,
+	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
+
+	// Sort entries by start time before saving
+	sorted := append([]models.TimeEntry(nil), entries...)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Start.Before(sorted[j].Start)
+	})
+
+	// Build entries without End field and without ID field for storage (version 3+)
+	type SavedTimeEntry struct {
+		Start   time.Time `json:"start"`
+		Project string    `json:"project"`
+		Title   string    `json:"title"`
+	}
+
+	saved := make([]SavedTimeEntry, len(sorted))
+	for i, entry := range sorted {
 		saved[i] = SavedTimeEntry{
-			ID:      entry.ID,
 			Start:   entry.Start,
 			Project: entry.Project,
 			Title:   entry.Title,

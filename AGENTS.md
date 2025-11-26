@@ -2,7 +2,7 @@
 
 ## Local Development
 
-Use the `just` tool for all local development tasks:
+You MUST use the `just` tool for all local development tasks:
 
 ```bash
 # Run all Go tests

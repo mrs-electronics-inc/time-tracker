@@ -12,8 +12,8 @@ type TimeEntry struct {
 	Title   string     `json:"title"`
 }
 
-// SavedTimeEntry represents the format used to persist TimeEntry to disk (v3+)
-// It excludes the ID field (auto-generated on load) and End field (reconstructed on load)
+// SavedTimeEntry represents the format used to persist TimeEntry to disk
+// It excludes the End field (reconstructed on load based on next entry's Start)
 type SavedTimeEntry struct {
 	Start   time.Time `json:"start"`
 	Project string    `json:"project"`

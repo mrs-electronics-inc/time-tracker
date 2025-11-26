@@ -110,11 +110,11 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 }
 
 func MigrateToV1(data []byte) ([]byte, error) {
-	// For v0, entries have IDs that we need to preserve during migration
+	// Original format
 	type V0Entry struct {
 		ID      int        `json:"id"`
 		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
+		End     *time.Time `json:"end"`
 		Project string     `json:"project"`
 		Title   string     `json:"title"`
 	}
@@ -167,11 +167,11 @@ func MigrateToV1(data []byte) ([]byte, error) {
 }
 
 func MigrateToV2(data []byte) ([]byte, error) {
-	// For v1, entries still have IDs
+	// For v1, entries still have end field
 	type V1Entry struct {
 		ID      int        `json:"id"`
 		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
+		End     *time.Time `json:"end"`
 		Project string     `json:"project"`
 		Title   string     `json:"title"`
 	}
@@ -205,11 +205,10 @@ func MigrateToV2(data []byte) ([]byte, error) {
 func MigrateToV3(data []byte) ([]byte, error) {
 	// For v2, entries still have IDs
 	type V2Entry struct {
-		ID      int        `json:"id"`
-		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
-		Project string     `json:"project"`
-		Title   string     `json:"title"`
+		ID      int       `json:"id"`
+		Start   time.Time `json:"start"`
+		Project string    `json:"project"`
+		Title   string    `json:"title"`
 	}
 
 	var entries []V2Entry
@@ -234,8 +233,9 @@ func MigrateToV3(data []byte) ([]byte, error) {
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
-	// Saves entries with the current version. If entries were loaded from an older version and migrated,
-	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
+	// Saves entries with the current version. If entries were loaded from an
+	// older version and migrated, this will upgrade the on-disk format to
+	// include migrated changes (e.g., blank entries).
 
 	// Sort entries by start time before saving
 	sorted := append([]models.TimeEntry(nil), entries...)
@@ -243,7 +243,6 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return sorted[i].Start.Before(sorted[j].Start)
 	})
 
-	// Build entries without End field and without ID field for storage (version 3+)
 	saved := make([]models.SavedTimeEntry, len(sorted))
 	for i, entry := range sorted {
 		saved[i] = models.SavedTimeEntry{

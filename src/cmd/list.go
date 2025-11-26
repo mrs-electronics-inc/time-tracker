@@ -38,12 +38,21 @@ By default, only the entries from the current day will be shown. Use --all to vi
 
 		displayEntries := []models.TimeEntry{}
 		if displayAll {
-			displayEntries = allEntries
+			// Filter out blank entries (empty project and title)
+			for _, entry := range allEntries {
+				if entry.Project != "" || entry.Title != "" {
+					displayEntries = append(displayEntries, entry)
+				}
+			}
 		} else {
 			now := time.Now()
 			year, month, day := now.Date()
 			startOfToday := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
 			for _, entry := range allEntries {
+				// Filter out blank entries (empty project and title)
+				if entry.Project == "" && entry.Title == "" {
+					continue
+				}
 				if entry.IsRunning() || entry.End.After(startOfToday) {
 					displayEntries = append(displayEntries, entry)
 				}

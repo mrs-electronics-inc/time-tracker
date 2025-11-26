@@ -169,6 +169,10 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		next := filtered[i+1].Start
 		filtered[i].End = &next
 	}
+	// Set last entry's End to nil (it has no end time)
+	if len(filtered) > 0 {
+		filtered[len(filtered)-1].End = nil
+	}
 
 	result, err := json.Marshal(filtered)
 	if err != nil {

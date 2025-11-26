@@ -60,11 +60,13 @@ var statsCmd = &cobra.Command{
 				fmt.Println("No data available")
 				return nil
 			}
-			// Collect all projects
+			// Collect all projects (excluding empty project name)
 			projectSet := make(map[string]bool)
 			for _, total := range weeklyTotals {
 				for project := range total.Projects {
-					projectSet[project] = true
+					if project != "" {
+						projectSet[project] = true
+					}
 				}
 			}
 			var projects []string
@@ -103,11 +105,13 @@ var statsCmd = &cobra.Command{
 				fmt.Println("No data available")
 				return nil
 			}
-			// Collect all projects
+			// Collect all projects (excluding empty project name)
 			projectSet := make(map[string]bool)
 			for _, total := range dailyTotals {
 				for project := range total.Projects {
-					projectSet[project] = true
+					if project != "" {
+						projectSet[project] = true
+					}
 				}
 			}
 			var projects []string

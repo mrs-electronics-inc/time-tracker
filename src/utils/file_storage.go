@@ -94,7 +94,7 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	if err := json.Unmarshal(entriesJson, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
 	}
-	
+
 	// Reconstruct End times from next entry's Start time for all entries
 	for i := 0; i < len(entries)-1; i++ {
 		next := entries[i+1].Start
@@ -104,7 +104,7 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	if len(entries) > 0 {
 		entries[len(entries)-1].End = nil
 	}
-	
+
 	return entries, nil
 }
 
@@ -186,7 +186,7 @@ func MigrateToV2(data []byte) ([]byte, error) {
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
-	
+
 	// Build entries without End field for storage (version 2+)
 	type SavedTimeEntry struct {
 		ID      int       `json:"id"`
@@ -194,7 +194,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		Project string    `json:"project"`
 		Title   string    `json:"title"`
 	}
-	
+
 	saved := make([]SavedTimeEntry, len(entries))
 	for i, entry := range entries {
 		saved[i] = SavedTimeEntry{
@@ -204,7 +204,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 			Title:   entry.Title,
 		}
 	}
-	
+
 	data := map[string]any{
 		"version":      models.CurrentVersion,
 		"time-entries": saved,

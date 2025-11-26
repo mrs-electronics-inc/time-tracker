@@ -18,6 +18,24 @@ func formatTimeHHMM(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d", hours, minutes)
 }
 
+// collectProjects gathers all non-empty project names from stats totals and returns them sorted
+func collectProjects(projectMaps []map[string]time.Duration) []string {
+	projectSet := make(map[string]bool)
+	for _, projects := range projectMaps {
+		for project := range projects {
+			if project != "" {
+				projectSet[project] = true
+			}
+		}
+	}
+	var result []string
+	for p := range projectSet {
+		result = append(result, p)
+	}
+	sort.Strings(result)
+	return result
+}
+
 var statsCmd = &cobra.Command{
 	Use:   "stats",
 	Short: "Display time tracking statistics",
@@ -61,19 +79,11 @@ var statsCmd = &cobra.Command{
 				return nil
 			}
 			// Collect all projects (excluding empty project name)
-			projectSet := make(map[string]bool)
-			for _, total := range weeklyTotals {
-				for project := range total.Projects {
-					if project != "" {
-						projectSet[project] = true
-					}
-				}
+			projectMaps := make([]map[string]time.Duration, len(weeklyTotals))
+			for i, total := range weeklyTotals {
+				projectMaps[i] = total.Projects
 			}
-			var projects []string
-			for p := range projectSet {
-				projects = append(projects, p)
-			}
-			sort.Strings(projects)
+			projects := collectProjects(projectMaps)
 
 			headers := []string{"Week Starting", "Total"}
 			headers = append(headers, projects...)
@@ -106,19 +116,11 @@ var statsCmd = &cobra.Command{
 				return nil
 			}
 			// Collect all projects (excluding empty project name)
-			projectSet := make(map[string]bool)
-			for _, total := range dailyTotals {
-				for project := range total.Projects {
-					if project != "" {
-						projectSet[project] = true
-					}
-				}
+			projectMaps := make([]map[string]time.Duration, len(dailyTotals))
+			for i, total := range dailyTotals {
+				projectMaps[i] = total.Projects
 			}
-			var projects []string
-			for p := range projectSet {
-				projects = append(projects, p)
-			}
-			sort.Strings(projects)
+			projects := collectProjects(projectMaps)
 
 			headers := []string{"Date", "Total"}
 			headers = append(headers, projects...)

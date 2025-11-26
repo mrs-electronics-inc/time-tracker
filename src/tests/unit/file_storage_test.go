@@ -22,13 +22,13 @@ func TestMigrateToV1(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "empty input",
+			name:      "empty entries",
 			input:     []models.TimeEntry{},
 			expected:  []models.TimeEntry{},
 			expectErr: false,
 		},
 		{
-			name: "already sorted with gap",
+			name: "inserts blank entry for gap",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
@@ -41,7 +41,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "out of order",
+			name: "sorts entries by start time",
 			input: []models.TimeEntry{
 				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
@@ -54,7 +54,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "no gap",
+			name: "no blank entry when adjacent",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
@@ -66,7 +66,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "nil end",
+			name: "handles nil end time",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
 			},
@@ -76,7 +76,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "duplicate ids",
+			name: "handles duplicate IDs",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
@@ -89,7 +89,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "equal start times",
+			name: "handles equal start times",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t1, End: &t3, Project: "p2", Title: "t2"},
@@ -101,7 +101,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "large id values",
+			name: "handles large ID values",
 			input: []models.TimeEntry{
 				{ID: 999999, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 999998, Start: t3, End: nil, Project: "p2", Title: "t2"},
@@ -114,7 +114,7 @@ func TestMigrateToV1(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "zero and negative ids",
+			name: "handles zero and negative IDs",
 			input: []models.TimeEntry{
 				{ID: 0, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
@@ -223,14 +223,14 @@ func TestMigrateToV2(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "empty input",
+			name:      "empty entries",
 			input:     []models.TimeEntry{},
 			wantIDs:   []int{},
 			wantCount: 0,
 			expectErr: false,
 		},
 		{
-			name: "keep regular entries",
+			name: "preserves all regular entries",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: &t3, Project: "p2", Title: "t2"},
@@ -241,7 +241,7 @@ func TestMigrateToV2(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "keep long blank entries",
+			name: "preserves long blank entries",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: &t3, Project: "", Title: ""}, // 1 hour blank - keep
@@ -252,7 +252,7 @@ func TestMigrateToV2(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "filter out short blank entries",
+			name: "filters out short blank entries",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: &t2_plus_2s, Project: "", Title: ""}, // 2 second blank - filtered
@@ -263,7 +263,7 @@ func TestMigrateToV2(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "keep non-blank entries with short duration",
+			name: "preserves non-blank entries with short duration",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: &t2_plus_2s, Project: "p2", Title: "t2"}, // 2 second non-blank - keep
@@ -317,7 +317,7 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name: "end times set to next entry's start",
+			name: "sets end times from next entry's start",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: &t3, Project: "p2", Title: "t2"},
@@ -327,7 +327,7 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "single entry has no end",
+			name: "single entry has no end time",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
 			},
@@ -335,7 +335,7 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "two entries",
+			name: "two entries set first end from second start",
 			input: []models.TimeEntry{
 				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 				{ID: 2, Start: t2, End: nil, Project: "p2", Title: "t2"},

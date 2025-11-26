@@ -41,6 +41,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 	// Ensure data file exists
 	info, err := os.Stat(filePath)
 	if errors.Is(err, fs.ErrNotExist) {
+		// File does not exist, create it with initial data
 		initialData := fileData{
 			Version:     models.CurrentVersion,
 			TimeEntries: []models.TimeEntry{},
@@ -52,8 +53,12 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
 			return nil, fmt.Errorf("failed to create data file: %w", err)
 		}
+	} else if err != nil {
+		// Stat failed for reasons other than file not existing (e.g., permission error)
+		return nil, fmt.Errorf("failed to stat data file: %w", err)
 	} else if info.IsDir() {
-		return nil, errors.New("provided path must be a file")
+		// File exists but is a directory, not a file
+		return nil, errors.New("provided path must be a file, not a directory")
 	}
 
 	return &FileStorage{FilePath: filePath}, nil

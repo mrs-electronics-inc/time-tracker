@@ -164,20 +164,11 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		filtered = append(filtered, entry)
 	}
 
-	// Remove End field from filtered entries
+	// Remove End field from filtered entries (in v2, End is calculated from the next entry's Start)
 	var newEntries []models.TimeEntry
-	for i, entry := range filtered {
+	for _, entry := range filtered {
 		newEntry := entry
-		// Only keep the End field if it's the last entry or if it's a currently running entry
-		if i < len(filtered)-1 {
-			// Not the last entry, clear the End field
-			newEntry.End = nil
-		} else if i == len(filtered)-1 && entry.End != nil {
-			// Check if this is the running entry (the one with no explicit end time in v1)
-			// Keep the End field only for the last entry if it has one
-			// Actually, in v2, we don't store End at all - it's calculated from the next entry's Start
-			newEntry.End = nil
-		}
+		newEntry.End = nil
 		newEntries = append(newEntries, newEntry)
 	}
 
@@ -191,10 +182,6 @@ func MigrateToV2(data []byte) ([]byte, error) {
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
-	data := fileData{
-		Version:     models.CurrentVersion,
-		TimeEntries: entries,
-	}
 	entriesJson, err := json.Marshal(entries)
 	if err != nil {
 		return fmt.Errorf("failed to marshal entries: %w", err)
@@ -217,7 +204,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 
 	// Manually reconstruct the fileData with the processed entries JSON
 	fileDataJson := map[string]interface{}{
-		"version":       data.Version,
+		"version":       models.CurrentVersion,
 		"time-entries":  json.RawMessage(entriesJson),
 	}
 	jsonData, err := json.MarshalIndent(fileDataJson, "", "  ")

@@ -17,7 +17,7 @@ inspect-data:
     docker run --rm -v time-tracker_config:/mnt alpine cat /mnt/time-tracker/data.json | jq .
 
 # Edit the dev data file from the volume with your EDITOR
-edit-config:
+edit-data:
     #!/usr/bin/env bash
     tmpfile=$(mktemp)
     docker run --rm -v time-tracker_config:/mnt alpine cat /mnt/time-tracker/data.json > "$tmpfile"
@@ -25,4 +25,8 @@ edit-config:
     $editor "$tmpfile"
     docker run --rm -v time-tracker_config:/mnt -i alpine tee /mnt/time-tracker/data.json < "$tmpfile" > /dev/null
     rm "$tmpfile"
+
+# Import JSON data from stdin into the volume (OVERWRITES existing data)
+import-data:
+    docker run --rm -v time-tracker_config:/mnt -i alpine tee /mnt/time-tracker/data.json > /dev/null
 

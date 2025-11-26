@@ -11,7 +11,7 @@ just test
 # Build the Docker image
 just build
 
-# Run time-tracker with any subcommand and flags
+# Run dev time-tracker with any subcommand and flags
 just run start "project-name" "task-name"
 just run stop
 just run list
@@ -20,8 +20,14 @@ just run stats
 just run stats --weekly
 just run stats --rows 7
 
-# View the data file from the volume (for debugging)
+# View the dev data file from the volume (for debugging)
 just inspect-data
+
+# Edit the dev data file from the volume with your EDITOR
+just edit-data
+
+# Import JSON data from stdin into the volume (OVERWRITES existing data)
+just import-data < data.json
 ```
 
 See `justfile` in the repo root for all available recipes.

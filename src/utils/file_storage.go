@@ -109,13 +109,28 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	return entries, nil
 }
 
-func MigrateToV1(data []byte) ([]byte, error) {
-	var entries []models.V0Entry
+// migrateWithTransform handles the common pattern of unmarshal -> transform -> marshal
+func migrateWithTransform[In, Out any](data []byte, transform func([]In) ([]Out, error)) ([]byte, error) {
+	var entries []In
 	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data during migration to v1: %w", err)
+		return nil, err
 	}
+
+	transformed, err := transform(entries)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := json.Marshal(transformed)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func transformV0ToV1(entries []models.V0Entry) ([]models.V1Entry, error) {
 	if len(entries) == 0 {
-		return data, nil
+		return nil, nil
 	}
 
 	// Make a shallow copy to avoid mutating the input
@@ -134,13 +149,19 @@ func MigrateToV1(data []byte) ([]byte, error) {
 		}
 	}
 
-	var newEntries []models.V0Entry
+	var newEntries []models.V1Entry
 	for i, entry := range copied {
-		newEntries = append(newEntries, entry)
+		newEntries = append(newEntries, models.V1Entry{
+			ID:      entry.ID,
+			Start:   entry.Start,
+			End:     entry.End,
+			Project: entry.Project,
+			Title:   entry.Title,
+		})
 		if i < len(copied)-1 && entry.End != nil && entry.End.Before(copied[i+1].Start) {
 			end := copied[i+1].Start
 			maxID++
-			blank := models.V0Entry{
+			blank := models.V1Entry{
 				ID:      maxID,
 				Start:   *entry.End,
 				End:     &end,
@@ -150,19 +171,14 @@ func MigrateToV1(data []byte) ([]byte, error) {
 			newEntries = append(newEntries, blank)
 		}
 	}
-	result, err := json.Marshal(newEntries)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
-	}
-	return result, nil
+	return newEntries, nil
 }
 
-func MigrateToV2(data []byte) ([]byte, error) {
-	var entries []models.V1Entry
-	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data during migration to v2: %w", err)
-	}
+func MigrateToV1(data []byte) ([]byte, error) {
+	return migrateWithTransform(data, transformV0ToV1)
+}
 
+func transformV1ToV2(entries []models.V1Entry) ([]models.V1Entry, error) {
 	// Filter out blank entries that are less than 5 seconds long
 	var filtered []models.V1Entry
 	for _, entry := range entries {
@@ -175,21 +191,14 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		}
 		filtered = append(filtered, entry)
 	}
-
-	// Note: End times will be reconstructed in Load() for v2+ data
-	result, err := json.Marshal(filtered)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
-	}
-	return result, nil
+	return filtered, nil
 }
 
-func MigrateToV3(data []byte) ([]byte, error) {
-	var entries []models.V2Entry
-	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data during migration to v3: %w", err)
-	}
+func MigrateToV2(data []byte) ([]byte, error) {
+	return migrateWithTransform(data, transformV1ToV2)
+}
 
+func transformV2ToV3(entries []models.V2Entry) ([]models.V3Entry, error) {
 	v3Entries := make([]models.V3Entry, len(entries))
 	for i, entry := range entries {
 		v3Entries[i] = models.V3Entry{
@@ -198,12 +207,11 @@ func MigrateToV3(data []byte) ([]byte, error) {
 			Title:   entry.Title,
 		}
 	}
+	return v3Entries, nil
+}
 
-	result, err := json.Marshal(v3Entries)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
-	}
-	return result, nil
+func MigrateToV3(data []byte) ([]byte, error) {
+	return migrateWithTransform(data, transformV2ToV3)
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {

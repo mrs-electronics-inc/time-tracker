@@ -10,10 +10,10 @@ import (
 )
 
 func TestMigrateToV1(t *testing.T) {
-	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
-	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
-	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	t4 := time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC)
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	onePM := time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name      string
@@ -30,99 +30,99 @@ func TestMigrateToV1(t *testing.T) {
 		{
 			name: "inserts blank entry for gap",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 3, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 3, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "sorts entries by start time",
 			input: []models.TimeEntry{
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 3, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 3, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "no blank entry when adjacent",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &noonPM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &noonPM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "handles nil end time",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "handles duplicate IDs",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 1, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 1, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "handles equal start times",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t1, End: &t3, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: tenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t1, End: &t3, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: tenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "handles large ID values",
 			input: []models.TimeEntry{
-				{ID: 999999, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 999998, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 999999, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 999998, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 999999, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 1000000, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 999998, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 999999, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 1000000, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 999998, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "handles zero and negative IDs",
 			input: []models.TimeEntry{
-				{ID: 0, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
+				{ID: 0, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: -1, Start: noonPM, End: &onePM, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 0, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 1, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
+				{ID: 0, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 1, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: -1, Start: noonPM, End: &onePM, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
@@ -209,11 +209,11 @@ func TestMigrateToV1InvalidJSON(t *testing.T) {
 	}
 }
 
-func TestMigrateToV2(t *testing.T) {
-	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
-	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
-	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	t2_plus_2s := time.Date(2023, 1, 1, 11, 0, 2, 0, time.UTC)
+func TestMigrateToV2FilterBlankEntries(t *testing.T) {
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	elevenAMPlus2s := time.Date(2023, 1, 1, 11, 0, 2, 0, time.UTC)
 
 	tests := []struct {
 		name      string
@@ -232,9 +232,9 @@ func TestMigrateToV2(t *testing.T) {
 		{
 			name: "preserves all regular entries",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t3, Project: "p2", Title: "t2"},
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
 			},
 			wantIDs:   []int{1, 2, 3},
 			wantCount: 3,
@@ -243,9 +243,9 @@ func TestMigrateToV2(t *testing.T) {
 		{
 			name: "preserves long blank entries",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t3, Project: "", Title: ""}, // 1 hour blank - keep
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""}, // 1 hour blank - keep
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
 			},
 			wantIDs:   []int{1, 2, 3},
 			wantCount: 3,
@@ -254,9 +254,9 @@ func TestMigrateToV2(t *testing.T) {
 		{
 			name: "filters out short blank entries",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t2_plus_2s, Project: "", Title: ""}, // 2 second blank - filtered
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &elevenAMPlus2s, Project: "", Title: ""}, // 2 second blank - filtered
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
 			},
 			wantIDs:   []int{1, 3},
 			wantCount: 2,
@@ -265,9 +265,9 @@ func TestMigrateToV2(t *testing.T) {
 		{
 			name: "preserves non-blank entries with short duration",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t2_plus_2s, Project: "p2", Title: "t2"}, // 2 second non-blank - keep
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &elevenAMPlus2s, Project: "p2", Title: "elevenAM"}, // 2 second non-blank - keep
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
 			},
 			wantIDs:   []int{1, 2, 3},
 			wantCount: 3,
@@ -306,9 +306,9 @@ func TestMigrateToV2(t *testing.T) {
 }
 
 func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
-	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
-	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
-	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name      string
@@ -319,17 +319,17 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 		{
 			name: "sets end times from next entry's start",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t3, Project: "p2", Title: "t2"},
-				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
 			},
-			expectEnd: []time.Time{t2, t3}, // last entry doesn't need End
+			expectEnd: []time.Time{elevenAM, noonPM}, // last entry doesn't need End
 			expectErr: false,
 		},
 		{
 			name: "single entry has no end time",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expectEnd: []time.Time{}, // single entry, no End
 			expectErr: false,
@@ -337,10 +337,10 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 		{
 			name: "two entries set first end from second start",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
-			expectEnd: []time.Time{t2}, // first entry's End = second entry's Start
+			expectEnd: []time.Time{elevenAM}, // first entry's End = second entry's Start
 			expectErr: false,
 		},
 	}

@@ -304,3 +304,81 @@ func TestMigrateToV2(t *testing.T) {
 		})
 	}
 }
+
+func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
+	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name      string
+		input     []models.TimeEntry
+		expectEnd []time.Time // expected End times for each entry (last entry should be zero time)
+		expectErr bool
+	}{
+		{
+			name: "end times set to next entry's start",
+			input: []models.TimeEntry{
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 2, Start: t2, End: &t3, Project: "p2", Title: "t2"},
+				{ID: 3, Start: t3, End: nil, Project: "p3", Title: "t3"},
+			},
+			expectEnd: []time.Time{t2, t3}, // last entry doesn't need End
+			expectErr: false,
+		},
+		{
+			name: "single entry has no end",
+			input: []models.TimeEntry{
+				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
+			},
+			expectEnd: []time.Time{}, // single entry, no End
+			expectErr: false,
+		},
+		{
+			name: "two entries",
+			input: []models.TimeEntry{
+				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 2, Start: t2, End: nil, Project: "p2", Title: "t2"},
+			},
+			expectEnd: []time.Time{t2}, // first entry's End = second entry's Start
+			expectErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputJson, err := json.Marshal(tt.input)
+			if err != nil {
+				t.Fatalf("failed to marshal input: %v", err)
+			}
+			resultJson, err := utils.MigrateToV2(inputJson)
+			if (err != nil) != tt.expectErr {
+				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
+			}
+			if tt.expectErr {
+				return
+			}
+			var result []models.TimeEntry
+			if err := json.Unmarshal(resultJson, &result); err != nil {
+				t.Fatalf("failed to unmarshal result: %v", err)
+			}
+
+			// Check end times for all entries except the last
+			for i := 0; i < len(tt.expectEnd); i++ {
+				if result[i].End == nil {
+					t.Errorf("entry %d: expected End to be set, got nil", i)
+				} else if *result[i].End != tt.expectEnd[i] {
+					t.Errorf("entry %d: expected End=%v, got %v", i, tt.expectEnd[i], *result[i].End)
+				}
+			}
+
+			// Check that last entry has no End
+			if len(result) > 0 {
+				lastIdx := len(result) - 1
+				if result[lastIdx].End != nil {
+					t.Errorf("last entry: expected End to be nil, got %v", *result[lastIdx].End)
+				}
+			}
+		})
+	}
+}

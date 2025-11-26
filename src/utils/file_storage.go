@@ -200,8 +200,8 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 
 	// Manually reconstruct the fileData with the processed entries JSON
 	fileDataJson := map[string]any{
-		"version":       models.CurrentVersion,
-		"time-entries":  json.RawMessage(entriesJson),
+		"version":      models.CurrentVersion,
+		"time-entries": json.RawMessage(entriesJson),
 	}
 	jsonData, err := json.MarshalIndent(fileDataJson, "", "  ")
 	if err != nil {

@@ -189,7 +189,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 
 	// For version 2+, remove the End field from the JSON
 	if models.CurrentVersion >= 2 {
-		var processedEntries []map[string]interface{}
+		var processedEntries []map[string]any
 		if err := json.Unmarshal(entriesJson, &processedEntries); err != nil {
 			return fmt.Errorf("failed to unmarshal entries for processing: %w", err)
 		}
@@ -203,7 +203,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	}
 
 	// Manually reconstruct the fileData with the processed entries JSON
-	fileDataJson := map[string]interface{}{
+	fileDataJson := map[string]any{
 		"version":       models.CurrentVersion,
 		"time-entries":  json.RawMessage(entriesJson),
 	}

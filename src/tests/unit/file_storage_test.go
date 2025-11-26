@@ -135,7 +135,7 @@ func TestMigrateToV1(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV1(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV0ToV1)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
@@ -179,9 +179,9 @@ func TestMigrateToV1InputIsolation(t *testing.T) {
 	}
 
 	inputJson, _ := json.Marshal(input)
-	resultJson, err := utils.MigrateToV1(inputJson)
+	resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV0ToV1)
 	if err != nil {
-		t.Fatalf("MigrateToV1 failed: %v", err)
+		t.Fatalf("MigrateWithTransform failed: %v", err)
 	}
 
 	// Mutate the input slice after migration
@@ -204,7 +204,7 @@ func TestMigrateToV1InputIsolation(t *testing.T) {
 // TestMigrateToV1InvalidJSON verifies that MigrateToV1 returns an error when given invalid JSON
 func TestMigrateToV1InvalidJSON(t *testing.T) {
 	invalidJson := []byte("not valid json {")
-	_, err := utils.MigrateToV1(invalidJson)
+	_, err := utils.MigrateWithTransform(invalidJson, utils.TransformV0ToV1)
 	if err == nil {
 		t.Error("expected error for invalid JSON, got nil")
 	}
@@ -282,7 +282,7 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV2(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV1ToV2)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
@@ -352,7 +352,7 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV2(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV1ToV2)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
@@ -429,7 +429,7 @@ func TestMigrateToV3(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV3(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV2ToV3)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}

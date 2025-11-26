@@ -180,30 +180,30 @@ func MigrateToV2(data []byte) ([]byte, error) {
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
-	entriesJson, err := json.Marshal(entries)
-	if err != nil {
-		return fmt.Errorf("failed to marshal entries: %w", err)
+	
+	// Build entries without End field for version 2+
+	type v2Entry struct {
+		ID      int       `json:"id"`
+		Start   time.Time `json:"start"`
+		Project string    `json:"project"`
+		Title   string    `json:"title"`
 	}
-
-	// Remove End field from the JSON (version 2+ doesn't store end field)
-	var processedEntries []map[string]any
-	if err := json.Unmarshal(entriesJson, &processedEntries); err != nil {
-		return fmt.Errorf("failed to unmarshal entries for processing: %w", err)
+	
+	v2Entries := make([]v2Entry, len(entries))
+	for i, entry := range entries {
+		v2Entries[i] = v2Entry{
+			ID:      entry.ID,
+			Start:   entry.Start,
+			Project: entry.Project,
+			Title:   entry.Title,
+		}
 	}
-	for _, entry := range processedEntries {
-		delete(entry, "end")
-	}
-	entriesJson, err = json.Marshal(processedEntries)
-	if err != nil {
-		return fmt.Errorf("failed to marshal processed entries: %w", err)
-	}
-
-	// Manually reconstruct the fileData with the processed entries JSON
-	fileDataJson := map[string]any{
+	
+	data := map[string]any{
 		"version":      models.CurrentVersion,
-		"time-entries": json.RawMessage(entriesJson),
+		"time-entries": v2Entries,
 	}
-	jsonData, err := json.MarshalIndent(fileDataJson, "", "  ")
+	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}

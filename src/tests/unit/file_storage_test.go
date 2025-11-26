@@ -8,15 +8,34 @@ import (
 	"time-tracker/utils"
 )
 
+// V0Entry represents the old data format with ID field
+type V0Entry struct {
+	ID      int        `json:"id"`
+	Start   time.Time  `json:"start"`
+	End     *time.Time `json:"end,omitempty"`
+	Project string     `json:"project"`
+	Title   string     `json:"title"`
+}
+
+// V1Entry represents the V1 data format with ID field
+type V1Entry struct {
+	ID      int        `json:"id"`
+	Start   time.Time  `json:"start"`
+	End     *time.Time `json:"end,omitempty"`
+	Project string     `json:"project"`
+	Title   string     `json:"title"`
+}
+
+// V2Entry represents the V2 data format with ID field
+type V2Entry struct {
+	ID      int        `json:"id"`
+	Start   time.Time  `json:"start"`
+	End     *time.Time `json:"end,omitempty"`
+	Project string     `json:"project"`
+	Title   string     `json:"title"`
+}
+
 func TestMigrateToV1(t *testing.T) {
-	// V0Entry represents the old data format with ID field
-	type V0Entry struct {
-		ID      int        `json:"id"`
-		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
-		Project string     `json:"project"`
-		Title   string     `json:"title"`
-	}
 
 	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
@@ -176,14 +195,6 @@ func TestMigrateToV1(t *testing.T) {
 // and returns an independent allocation. This prevents bugs where input modifications
 // accidentally affect migrated results.
 func TestMigrateToV1InputIsolation(t *testing.T) {
-	type V0Entry struct {
-		ID      int        `json:"id"`
-		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
-		Project string     `json:"project"`
-		Title   string     `json:"title"`
-	}
-
 	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
 	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -226,14 +237,6 @@ func TestMigrateToV1InvalidJSON(t *testing.T) {
 }
 
 func TestMigrateToV2FilterBlankEntries(t *testing.T) {
-	type V1Entry struct {
-		ID      int        `json:"id"`
-		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
-		Project string     `json:"project"`
-		Title   string     `json:"title"`
-	}
-
 	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
 	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -330,14 +333,6 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 }
 
 func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
-	type V1Entry struct {
-		ID      int        `json:"id"`
-		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
-		Project string     `json:"project"`
-		Title   string     `json:"title"`
-	}
-
 	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
 	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -416,15 +411,6 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 }
 
 func TestMigrateToV3(t *testing.T) {
-	// V2Entry represents the V2 data format with ID field
-	type V2Entry struct {
-		ID      int        `json:"id"`
-		Start   time.Time  `json:"start"`
-		End     *time.Time `json:"end,omitempty"`
-		Project string     `json:"project"`
-		Title   string     `json:"title"`
-	}
-
 	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
 	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)

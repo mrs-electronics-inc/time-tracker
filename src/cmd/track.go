@@ -13,7 +13,12 @@ var trackCmd = &cobra.Command{
 	Short:   "Start (or stop) time tracking",
 	Long:    `Start a new time entry with project and title, or stop current entry. Can be called as 'start', 'stop', or 's'.`,
 	Aliases: []string{"start", "stop"},
-	Args:    cobra.RangeArgs(0, 2),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 0 && len(args) != 2 {
+			return fmt.Errorf("accepts 0 arguments (stop) or exactly 2 arguments (project title), received %d", len(args))
+		}
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		calledAs := cmd.CalledAs()
 

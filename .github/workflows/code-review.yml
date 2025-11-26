@@ -4,18 +4,13 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
+concurrency:
+  group: code-review
+  cancel-in-progress: true
+
 jobs:
   run_code_review_bot:
     runs-on: ubuntu-latest
-
-    container:
-      image: ghcr.io/mrs-electronics-inc/bots/code-review:latest
-      volumes:
-        - ${{ github.workspace }}:/repo
-
-    defaults:
-      run:
-        working-directory: /repo
 
     permissions:
       pull-requests: write
@@ -23,17 +18,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Run Code Review Bot
-        env:
-          OPENROUTER_KEY: ${{ secrets.API_KEY_CODE_REVIEW_BOT }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
-        run: github_code_review.sh
-
-      - name: Upload artifact including hidden files
-        uses: actions/upload-artifact@v4
         with:
-          name: bots-directory
-          path: .bots/
-          include-hidden-files: true
+          fetch-depth: 0
+
+      - name: Run AI Code Review
+        uses: Nikita-Filonov/ai-review@v0.43.0
+        with:
+          review-command: run
+        env:
+          # LLM configuration (using OpenRouter)
+          LLM__PROVIDER: OPENROUTER
+          LLM__META__MODEL: openai/gpt-5.1-codex-mini
+          LLM__META__MAX_TOKENS: 4000
+          LLM__META__TEMPERATURE: "0.3"
+          LLM__HTTP_CLIENT__API_URL: https://openrouter.ai/api/v1
+          LLM__HTTP_CLIENT__API_TOKEN: ${{ secrets.API_KEY_CODE_REVIEW_BOT }}
+
+          # GitHub integration
+          VCS__PROVIDER: GITHUB
+          VCS__PIPELINE__OWNER: ${{ github.repository_owner }}
+          VCS__PIPELINE__REPO: ${{ github.event.repository.name }}
+          VCS__PIPELINE__PULL_NUMBER: ${{ github.event.pull_request.number }}
+          VCS__HTTP_CLIENT__API_URL: https://api.github.com
+          VCS__HTTP_CLIENT__API_TOKEN: ${{ secrets.GITHUB_TOKEN }}

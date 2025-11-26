@@ -28,12 +28,12 @@ func (tm *TaskManager) StartEntry(project, title string) (*models.TimeEntry, err
 		return nil, err
 	}
 
-	// Stop any running entry
-	for i, entry := range entries {
-		if entry.IsRunning() {
+	// Stop last entry
+	if len(entries) > 0 {
+		lastEntry := &entries[len(entries)-1]
+		if lastEntry.IsRunning() {
 			now := time.Now()
-			entries[i].End = &now
-			break
+			entries[len(entries)-1].End = &now
 		}
 	}
 
@@ -71,7 +71,7 @@ func (tm *TaskManager) StopEntry() (*models.TimeEntry, error) {
 
 	now := time.Now()
 	entries[len(entries)-1].End = &now
-	
+
 	// Add a blank entry to represent the gap after the stopped entry
 	blankEntry := models.TimeEntry{
 		Start:   now,
@@ -80,7 +80,7 @@ func (tm *TaskManager) StopEntry() (*models.TimeEntry, error) {
 		Title:   "",
 	}
 	entries = append(entries, blankEntry)
-	
+
 	if err := tm.storage.Save(entries); err != nil {
 		return nil, err
 	}

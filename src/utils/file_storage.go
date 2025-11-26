@@ -94,6 +94,19 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	if err := json.Unmarshal(entriesJson, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
 	}
+	
+	// For v2+ data, reconstruct End times from next entry's Start (since we don't store End in v2+)
+	if loadData.Version >= 2 {
+		for i := 0; i < len(entries)-1; i++ {
+			next := entries[i+1].Start
+			entries[i].End = &next
+		}
+		// Last entry has no End time
+		if len(entries) > 0 {
+			entries[len(entries)-1].End = nil
+		}
+	}
+	
 	return entries, nil
 }
 

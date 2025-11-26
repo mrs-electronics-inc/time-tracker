@@ -10,10 +10,10 @@ import (
 )
 
 func TestMigrateToV1(t *testing.T) {
-	t1 := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
-	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
-	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
-	t4 := time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC)
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	onePM := time.Date(2023, 1, 1, 13, 0, 0, 0, time.UTC)
 
 	tests := []struct {
 		name      string
@@ -22,107 +22,107 @@ func TestMigrateToV1(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "empty input",
+			name:      "empty entries",
 			input:     []models.TimeEntry{},
 			expected:  []models.TimeEntry{},
 			expectErr: false,
 		},
 		{
-			name: "already sorted with gap",
+			name: "inserts blank entry for gap",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 3, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 3, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "out of order",
+			name: "sorts entries by start time",
 			input: []models.TimeEntry{
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 3, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 3, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "no gap",
+			name: "no blank entry when adjacent",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &noonPM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t3, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &noonPM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "nil end",
+			name: "handles nil end time",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: nil, Project: "p1", Title: "t1"},
+				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "duplicate ids",
+			name: "handles duplicate IDs",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 1, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 1, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 1, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "equal start times",
+			name: "handles equal start times",
 			input: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t1, End: &t3, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: tenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 2, Start: t1, End: &t3, Project: "p2", Title: "t2"},
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: tenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "large id values",
+			name: "handles large ID values",
 			input: []models.TimeEntry{
-				{ID: 999999, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 999998, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 999999, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 999998, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 999999, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 1000000, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: 999998, Start: t3, End: nil, Project: "p2", Title: "t2"},
+				{ID: 999999, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 1000000, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: 999998, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
 		{
-			name: "zero and negative ids",
+			name: "handles zero and negative IDs",
 			input: []models.TimeEntry{
-				{ID: 0, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
+				{ID: 0, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: -1, Start: noonPM, End: &onePM, Project: "p2", Title: "elevenAM"},
 			},
 			expected: []models.TimeEntry{
-				{ID: 0, Start: t1, End: &t2, Project: "p1", Title: "t1"},
-				{ID: 1, Start: t2, End: &t3, Project: "", Title: ""},
-				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
+				{ID: 0, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 1, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
+				{ID: -1, Start: noonPM, End: &onePM, Project: "p2", Title: "elevenAM"},
 			},
 			expectErr: false,
 		},
@@ -206,5 +206,179 @@ func TestMigrateToV1InvalidJSON(t *testing.T) {
 	_, err := utils.MigrateToV1(invalidJson)
 	if err == nil {
 		t.Error("expected error for invalid JSON, got nil")
+	}
+}
+
+func TestMigrateToV2FilterBlankEntries(t *testing.T) {
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	elevenAMPlus2s := time.Date(2023, 1, 1, 11, 0, 2, 0, time.UTC)
+
+	tests := []struct {
+		name      string
+		input     []models.TimeEntry
+		wantIDs   []int
+		wantCount int
+		expectErr bool
+	}{
+		{
+			name:      "empty entries",
+			input:     []models.TimeEntry{},
+			wantIDs:   []int{},
+			wantCount: 0,
+			expectErr: false,
+		},
+		{
+			name: "preserves all regular entries",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			wantIDs:   []int{1, 2, 3},
+			wantCount: 3,
+			expectErr: false,
+		},
+		{
+			name: "preserves long blank entries",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""}, // 1 hour blank - keep
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			wantIDs:   []int{1, 2, 3},
+			wantCount: 3,
+			expectErr: false,
+		},
+		{
+			name: "filters out short blank entries",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &elevenAMPlus2s, Project: "", Title: ""}, // 2 second blank - filtered
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			wantIDs:   []int{1, 3},
+			wantCount: 2,
+			expectErr: false,
+		},
+		{
+			name: "preserves non-blank entries with short duration",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &elevenAMPlus2s, Project: "p2", Title: "elevenAM"}, // 2 second non-blank - keep
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			wantIDs:   []int{1, 2, 3},
+			wantCount: 3,
+			expectErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputJson, err := json.Marshal(tt.input)
+			if err != nil {
+				t.Fatalf("failed to marshal input: %v", err)
+			}
+			resultJson, err := utils.MigrateToV2(inputJson)
+			if (err != nil) != tt.expectErr {
+				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
+			}
+			if tt.expectErr {
+				return
+			}
+			var result []models.TimeEntry
+			if err := json.Unmarshal(resultJson, &result); err != nil {
+				t.Fatalf("failed to unmarshal result: %v", err)
+			}
+			if len(result) != tt.wantCount {
+				t.Fatalf("expected %d entries, got %d", tt.wantCount, len(result))
+			}
+			for i, want := range tt.wantIDs {
+				got := result[i]
+				if got.ID != want {
+					t.Errorf("entry %d: expected ID %d, got %d", i, want, got.ID)
+				}
+			}
+		})
+	}
+}
+
+func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name      string
+		input     []models.TimeEntry
+		expectEnd []time.Time // expected End times for each entry (last entry should be zero time)
+		expectErr bool
+	}{
+		{
+			name: "sets end times from next entry's start",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
+				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
+			},
+			expectEnd: []time.Time{elevenAM, noonPM}, // last entry doesn't need End
+			expectErr: false,
+		},
+		{
+			name: "single entry has no end time",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
+			},
+			expectEnd: []time.Time{}, // single entry, no End
+			expectErr: false,
+		},
+		{
+			name: "two entries set first end from second start",
+			input: []models.TimeEntry{
+				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, End: nil, Project: "p2", Title: "elevenAM"},
+			},
+			expectEnd: []time.Time{elevenAM}, // first entry's End = second entry's Start
+			expectErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputJson, err := json.Marshal(tt.input)
+			if err != nil {
+				t.Fatalf("failed to marshal input: %v", err)
+			}
+			resultJson, err := utils.MigrateToV2(inputJson)
+			if (err != nil) != tt.expectErr {
+				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
+			}
+			if tt.expectErr {
+				return
+			}
+			var result []models.TimeEntry
+			if err := json.Unmarshal(resultJson, &result); err != nil {
+				t.Fatalf("failed to unmarshal result: %v", err)
+			}
+
+			// Check end times for all entries except the last
+			for i := 0; i < len(tt.expectEnd); i++ {
+				if result[i].End == nil {
+					t.Errorf("entry %d: expected End to be set, got nil", i)
+				} else if *result[i].End != tt.expectEnd[i] {
+					t.Errorf("entry %d: expected End=%v, got %v", i, tt.expectEnd[i], *result[i].End)
+				}
+			}
+
+			// Check that last entry has no End
+			if len(result) > 0 {
+				lastIdx := len(result) - 1
+				if result[lastIdx].End != nil {
+					t.Errorf("last entry: expected End to be nil, got %v", *result[lastIdx].End)
+				}
+			}
+		})
 	}
 }

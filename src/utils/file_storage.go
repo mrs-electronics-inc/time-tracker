@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"sort"
+	"time"
 
 	"path/filepath"
 	"time-tracker/models"
@@ -14,6 +15,7 @@ import (
 
 var migrations = map[int]func([]byte) ([]byte, error){
 	0: MigrateToV1,
+	1: MigrateToV2,
 }
 
 type fileData struct {
@@ -143,12 +145,63 @@ func MigrateToV1(data []byte) ([]byte, error) {
 	return result, nil
 }
 
+func MigrateToV2(data []byte) ([]byte, error) {
+	var entries []models.TimeEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal data during migration to v2: %w", err)
+	}
+
+	// Filter out blank entries (empty project and title) that are less than 5 seconds long
+	var filtered []models.TimeEntry
+	for _, entry := range entries {
+		// Skip if it's a blank entry with duration < 5 seconds
+		if entry.Project == "" && entry.Title == "" && entry.End != nil {
+			duration := entry.End.Sub(entry.Start)
+			if duration < 5*time.Second {
+				continue
+			}
+		}
+		filtered = append(filtered, entry)
+	}
+
+	// Reconstruct End times from the next entry's Start (for version 2, End is derived from next entry's Start)
+	for i := 0; i < len(filtered)-1; i++ {
+		next := filtered[i+1].Start
+		filtered[i].End = &next
+	}
+
+	result, err := json.Marshal(filtered)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
+	}
+	return result, nil
+}
+
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
-	data := fileData{
-		Version:     models.CurrentVersion,
-		TimeEntries: entries,
+	
+	// Build entries without End field for storage (version 2+)
+	type SavedTimeEntry struct {
+		ID      int       `json:"id"`
+		Start   time.Time `json:"start"`
+		Project string    `json:"project"`
+		Title   string    `json:"title"`
+	}
+	
+	saved := make([]SavedTimeEntry, len(entries))
+	for i, entry := range entries {
+		saved[i] = SavedTimeEntry{
+			ID:      entry.ID,
+			Start:   entry.Start,
+			Project: entry.Project,
+			Title:   entry.Title,
+		}
+	}
+	
+	data := map[string]any{
+		"version":      models.CurrentVersion,
+		"time-entries": saved,
 	}
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

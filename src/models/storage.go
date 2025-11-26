@@ -1,7 +1,7 @@
 package models
 
 // This needs incremented when we change the data format
-const CurrentVersion = 1
+const CurrentVersion = 2
 
 type Storage interface {
 	Load() ([]TimeEntry, error)

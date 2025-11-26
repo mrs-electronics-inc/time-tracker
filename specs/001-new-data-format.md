@@ -4,7 +4,7 @@ We need to improve the format of our data files to make it easier to implement f
 
 The overall goal is to remove the `end` field and only have a `start` field on each time entry.
 
-We will have `null` for `project and `title` for empty entries between other entries.
+We will have empty strings (`""`) for `project` and `title` for empty entries between other entries.
 
 ## Task List
 
@@ -18,7 +18,7 @@ We will have `null` for `project and `title` for empty entries between other ent
 - [x] Add migration logic for version 0 to 1 when loading data.
 - [x] Version 1 has the following differences from version 0:
   - [x] Add blank time entries between entries that have a space between the `end` of one entry and the `start` of the next entry.
-  - [x] Blank entries representation choice: serialize `project` and `title` as empty strings (`""`)
+  - [x] Blank entries are serialized with empty strings (`""`) for `project` and `title`
   - [x] Assign IDs to inserted blank entries using sequential IDs continuing from the current max ID
   - [x] Migration behavior: insert blank entries in-memory only when loading; do not rewrite the on-disk file automatically
 

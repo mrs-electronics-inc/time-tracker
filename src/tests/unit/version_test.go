@@ -1,9 +1,9 @@
 package unit
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time-tracker/utils"
 )
@@ -25,8 +25,14 @@ func TestFileStorage_VersionField(t *testing.T) {
 		t.Fatalf("Failed to read data file: %v", err)
 	}
 
-	// Check that the version field exists in the JSON - just check it contains version
-	if !strings.Contains(string(data), `"version": 1`) {
-		t.Errorf("Expected data file to contain version field. Got: %s", string(data))
+	// Parse the JSON and verify the version field exists and is positive
+	var payload struct {
+		Version int `json:"version"`
+	}
+	if err := json.Unmarshal(data, &payload); err != nil {
+		t.Fatalf("Failed to unmarshal data file: %v", err)
+	}
+	if payload.Version < 1 {
+		t.Errorf("Expected data file to contain a positive version field, got %d", payload.Version)
 	}
 }

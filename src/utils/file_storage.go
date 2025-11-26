@@ -126,15 +126,15 @@ func MigrateToV1(data []byte) ([]byte, error) {
 		newEntries = append(newEntries, entry)
 		if i < len(copied)-1 && entry.End != nil && entry.End.Before(copied[i+1].Start) {
 			end := copied[i+1].Start
+			maxID++
 			blank := models.TimeEntry{
-				ID:      maxID + 1,
+				ID:      maxID,
 				Start:   *entry.End,
 				End:     &end,
 				Project: "",
 				Title:   "",
 			}
 			newEntries = append(newEntries, blank)
-			maxID++
 		}
 	}
 	result, err := json.Marshal(newEntries)

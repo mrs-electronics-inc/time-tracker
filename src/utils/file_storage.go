@@ -177,16 +177,7 @@ func MigrateToV2(data []byte) ([]byte, error) {
 		filtered = append(filtered, entry)
 	}
 
-	// Reconstruct End times from the next entry's Start (for version 2, End is derived from next entry's Start)
-	for i := 0; i < len(filtered)-1; i++ {
-		next := filtered[i+1].Start
-		filtered[i].End = &next
-	}
-	// Set last entry's End to nil (it has no end time)
-	if len(filtered) > 0 {
-		filtered[len(filtered)-1].End = nil
-	}
-
+	// Note: End times will be reconstructed in Load() for v2+ data
 	result, err := json.Marshal(filtered)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)

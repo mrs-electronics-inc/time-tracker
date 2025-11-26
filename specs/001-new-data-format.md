@@ -29,14 +29,15 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
   - [x] No `end` field when saving time entries (the end of each entry is the start of the next entry).
 - [x] Filter out any empty time entries that are less than 5 seconds long.
 
+### Clean Up Output
+
+- [ ] Correctly load end times for all entries based on the start time of the next entry (currently the output is showing that every entry is still running without an end time)
+- [ ] Don't display empty project in `stats` output
+- [ ] Don't display empty entries in `list` output
+
 ### Remove ID Field
 
 - [ ] Add migration logic for version 2 to 3 when loading data.
 - [ ] Version 3 has the following differences from version 2:
   - [ ] No `id` field for the time entries.
 - [ ] The ID column in the output of the list command should be automatically generated
-
-### Clean Up Output
-
-- [ ] Don't display empty project in `stats` output
-- [ ] Don't display empty entries in `list` output

@@ -120,8 +120,9 @@ func TestMigrateToV1(t *testing.T) {
 				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
 			},
 			expected: []models.TimeEntry{
-				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
 				{ID: 0, Start: t1, End: &t2, Project: "p1", Title: "t1"},
+				{ID: 1, Start: t2, End: &t3, Project: "", Title: ""},
+				{ID: -1, Start: t3, End: &t4, Project: "p2", Title: "t2"},
 			},
 			expectErr: false,
 		},

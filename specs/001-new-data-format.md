@@ -28,7 +28,7 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
 - [ ] Version 2 has the following differences from version 1:
   - [ ] No `end` field when saving time entries (the end of each entry is the start of the next entry).
 
-### Remove Id Field
+### Remove ID Field
 
 - [ ] Add migration logic for version 2 to 3 when loading data.
 - [ ] Version 3 has the following differences from version 2:

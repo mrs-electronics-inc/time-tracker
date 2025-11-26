@@ -20,7 +20,7 @@ just run stats --rows 7
 
 See `justfile` in the repo root for all available tasks.
 
-**IMPORTANT**: Never run the binary directly on the host system. Always use Docker Compose for CLI testing.
+**IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing.
 
 ## GitHub
 

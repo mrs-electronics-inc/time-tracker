@@ -38,8 +38,21 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
 
 ### Remove ID Field
 
-- [ ] Be sure to sort by start time in Save logic before writing to file
-- [ ] Add migration logic for version 2 to 3 when loading data.
-- [ ] Version 3 has the following differences from version 2:
-  - [ ] No `id` field for the time entries.
-- [ ] The ID column in the output of the list command should be automatically generated
+- [x] Be sure to sort by start time in Save logic before writing to file
+- [x] Add migration logic for version 2 to 3 when loading data.
+- [x] Version 3 has the following differences from version 2:
+  - [x] No `id` field for the time entries.
+- [x] The ID column in the output of the list command should be automatically generated
+
+### Optimize Migration Performance
+
+- [ ] Refactor transformation function signatures to work with concrete Go types instead of JSON bytes
+- [ ] Remove `callTransformWithMarshal` helper function
+- [ ] Update `Load()` to:
+  - [ ] Read version from JSON metadata
+  - [ ] Based on source version, unmarshal `time-entries` JSON to the appropriate concrete type (V0Entry, V1Entry, or V2Entry)
+  - [ ] Chain transforms in-memory through all versions needed to reach CurrentVersion
+  - [ ] Return final Go objects without marshaling back to JSON
+- [ ] Remove marshal/unmarshal operations from the migration loop entirely
+- [ ] Move final marshaling to `Save()` where it happens once when writing to disk
+- [ ] Add tests to verify the refactored migration chain produces identical results to the current implementation

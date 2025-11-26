@@ -10,6 +10,7 @@ import (
 )
 
 func TestMigrateToV1(t *testing.T) {
+
 	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
 	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
 	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
@@ -17,23 +18,23 @@ func TestMigrateToV1(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     []models.TimeEntry
-		expected  []models.TimeEntry
+		input     []models.V0Entry
+		expected  []models.V0Entry
 		expectErr bool
 	}{
 		{
 			name:      "empty entries",
-			input:     []models.TimeEntry{},
-			expected:  []models.TimeEntry{},
+			input:     []models.V0Entry{},
+			expected:  []models.V0Entry{},
 			expectErr: false,
 		},
 		{
 			name: "inserts blank entry for gap",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 3, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
 				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
@@ -42,11 +43,11 @@ func TestMigrateToV1(t *testing.T) {
 		},
 		{
 			name: "sorts entries by start time",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 3, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
 				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
@@ -55,11 +56,11 @@ func TestMigrateToV1(t *testing.T) {
 		},
 		{
 			name: "no blank entry when adjacent",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &noonPM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &noonPM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
@@ -67,21 +68,21 @@ func TestMigrateToV1(t *testing.T) {
 		},
 		{
 			name: "handles nil end time",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expectErr: false,
 		},
 		{
 			name: "handles duplicate IDs",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 1, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
 				{ID: 1, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
@@ -90,11 +91,11 @@ func TestMigrateToV1(t *testing.T) {
 		},
 		{
 			name: "handles equal start times",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: tenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: tenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 			},
@@ -102,11 +103,11 @@ func TestMigrateToV1(t *testing.T) {
 		},
 		{
 			name: "handles large ID values",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 999999, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 999998, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 999999, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 1000000, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
 				{ID: 999998, Start: noonPM, End: nil, Project: "p2", Title: "elevenAM"},
@@ -115,11 +116,11 @@ func TestMigrateToV1(t *testing.T) {
 		},
 		{
 			name: "handles zero and negative IDs",
-			input: []models.TimeEntry{
+			input: []models.V0Entry{
 				{ID: 0, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: -1, Start: noonPM, End: &onePM, Project: "p2", Title: "elevenAM"},
 			},
-			expected: []models.TimeEntry{
+			expected: []models.V0Entry{
 				{ID: 0, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 1, Start: elevenAM, End: &noonPM, Project: "", Title: ""},
 				{ID: -1, Start: noonPM, End: &onePM, Project: "p2", Title: "elevenAM"},
@@ -134,14 +135,14 @@ func TestMigrateToV1(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV1(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV0ToV1)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
 			if tt.expectErr {
 				return
 			}
-			var result []models.TimeEntry
+			var result []models.V0Entry
 			if err := json.Unmarshal(resultJson, &result); err != nil {
 				t.Fatalf("failed to unmarshal result: %v", err)
 			}
@@ -172,15 +173,15 @@ func TestMigrateToV1InputIsolation(t *testing.T) {
 	t2 := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
 	t3 := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 
-	input := []models.TimeEntry{
+	input := []models.V0Entry{
 		{ID: 1, Start: t1, End: &t2, Project: "p1", Title: "t1"},
 		{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 	}
 
 	inputJson, _ := json.Marshal(input)
-	resultJson, err := utils.MigrateToV1(inputJson)
+	resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV0ToV1)
 	if err != nil {
-		t.Fatalf("MigrateToV1 failed: %v", err)
+		t.Fatalf("MigrateWithTransform failed: %v", err)
 	}
 
 	// Mutate the input slice after migration
@@ -188,7 +189,7 @@ func TestMigrateToV1InputIsolation(t *testing.T) {
 	input[0].Title = "mutated"
 
 	// Verify the migrated result is unaffected
-	var result []models.TimeEntry
+	var result []models.V0Entry
 	json.Unmarshal(resultJson, &result)
 
 	// The first entry should still have the original values (blank entry will be at index 1)
@@ -203,7 +204,7 @@ func TestMigrateToV1InputIsolation(t *testing.T) {
 // TestMigrateToV1InvalidJSON verifies that MigrateToV1 returns an error when given invalid JSON
 func TestMigrateToV1InvalidJSON(t *testing.T) {
 	invalidJson := []byte("not valid json {")
-	_, err := utils.MigrateToV1(invalidJson)
+	_, err := utils.MigrateWithTransform(invalidJson, utils.TransformV0ToV1)
 	if err == nil {
 		t.Error("expected error for invalid JSON, got nil")
 	}
@@ -217,21 +218,21 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     []models.TimeEntry
+		input     []models.V1Entry
 		wantIDs   []int
 		wantCount int
 		expectErr bool
 	}{
 		{
 			name:      "empty entries",
-			input:     []models.TimeEntry{},
+			input:     []models.V1Entry{},
 			wantIDs:   []int{},
 			wantCount: 0,
 			expectErr: false,
 		},
 		{
 			name: "preserves all regular entries",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
@@ -242,7 +243,7 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 		},
 		{
 			name: "preserves long blank entries",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: &noonPM, Project: "", Title: ""}, // 1 hour blank - keep
 				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
@@ -253,7 +254,7 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 		},
 		{
 			name: "filters out short blank entries",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: &elevenAMPlus2s, Project: "", Title: ""}, // 2 second blank - filtered
 				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
@@ -264,7 +265,7 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 		},
 		{
 			name: "preserves non-blank entries with short duration",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: &elevenAMPlus2s, Project: "p2", Title: "elevenAM"}, // 2 second non-blank - keep
 				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
@@ -281,14 +282,14 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV2(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV1ToV2)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
 			if tt.expectErr {
 				return
 			}
-			var result []models.TimeEntry
+			var result []models.V1Entry
 			if err := json.Unmarshal(resultJson, &result); err != nil {
 				t.Fatalf("failed to unmarshal result: %v", err)
 			}
@@ -312,13 +313,13 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     []models.TimeEntry
+		input     []models.V1Entry
 		expectEnd []time.Time // expected End times for each entry (last entry should be zero time)
 		expectErr bool
 	}{
 		{
 			name: "sets end times from next entry's start",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: &noonPM, Project: "p2", Title: "elevenAM"},
 				{ID: 3, Start: noonPM, End: nil, Project: "p3", Title: "noonPM"},
@@ -328,7 +329,7 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 		},
 		{
 			name: "single entry has no end time",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: nil, Project: "p1", Title: "tenAM"},
 			},
 			expectEnd: []time.Time{}, // single entry, no End
@@ -336,7 +337,7 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 		},
 		{
 			name: "two entries set first end from second start",
-			input: []models.TimeEntry{
+			input: []models.V1Entry{
 				{ID: 1, Start: tenAM, End: &elevenAM, Project: "p1", Title: "tenAM"},
 				{ID: 2, Start: elevenAM, End: nil, Project: "p2", Title: "elevenAM"},
 			},
@@ -351,14 +352,14 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to marshal input: %v", err)
 			}
-			resultJson, err := utils.MigrateToV2(inputJson)
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV1ToV2)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
 			if tt.expectErr {
 				return
 			}
-			var result []models.TimeEntry
+			var result []models.V1Entry
 			if err := json.Unmarshal(resultJson, &result); err != nil {
 				t.Fatalf("failed to unmarshal result: %v", err)
 			}
@@ -377,6 +378,89 @@ func TestMigrateToV2EndTimeReconstruction(t *testing.T) {
 				lastIdx := len(result) - 1
 				if result[lastIdx].End != nil {
 					t.Errorf("last entry: expected End to be nil, got %v", *result[lastIdx].End)
+				}
+			}
+		})
+	}
+}
+
+func TestMigrateToV3(t *testing.T) {
+	tenAM := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
+	elevenAM := time.Date(2023, 1, 1, 11, 0, 0, 0, time.UTC)
+	noonPM := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name        string
+		input       []models.V2Entry
+		expectCount int
+		expectErr   bool
+	}{
+		{
+			name:        "empty entries",
+			input:       []models.V2Entry{},
+			expectCount: 0,
+			expectErr:   false,
+		},
+		{
+			name: "removes ID field from entries",
+			input: []models.V2Entry{
+				{ID: 1, Start: tenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, Project: "p2", Title: "elevenAM"},
+				{ID: 3, Start: noonPM, Project: "p3", Title: "noonPM"},
+			},
+			expectCount: 3,
+			expectErr:   false,
+		},
+		{
+			name: "removes ID field from blank entries",
+			input: []models.V2Entry{
+				{ID: 1, Start: tenAM, Project: "p1", Title: "tenAM"},
+				{ID: 2, Start: elevenAM, Project: "", Title: ""},
+				{ID: 3, Start: noonPM, Project: "p3", Title: "noonPM"},
+			},
+			expectCount: 3,
+			expectErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputJson, err := json.Marshal(tt.input)
+			if err != nil {
+				t.Fatalf("failed to marshal input: %v", err)
+			}
+			resultJson, err := utils.MigrateWithTransform(inputJson, utils.TransformV2ToV3)
+			if (err != nil) != tt.expectErr {
+				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
+			}
+			if tt.expectErr {
+				return
+			}
+
+			// Parse the result to ensure IDs are not present
+			var result []map[string]interface{}
+			if err := json.Unmarshal(resultJson, &result); err != nil {
+				t.Fatalf("failed to unmarshal result: %v", err)
+			}
+
+			if len(result) != tt.expectCount {
+				t.Fatalf("expected %d entries, got %d", tt.expectCount, len(result))
+			}
+
+			// Verify no ID field in any entry
+			for i, entry := range result {
+				if _, hasID := entry["id"]; hasID {
+					t.Errorf("entry %d: should not have 'id' field, but got one", i)
+				}
+				// Verify essential fields are still present
+				if _, hasStart := entry["start"]; !hasStart {
+					t.Errorf("entry %d: missing 'start' field", i)
+				}
+				if _, hasProject := entry["project"]; !hasProject {
+					t.Errorf("entry %d: missing 'project' field", i)
+				}
+				if _, hasTitle := entry["title"]; !hasTitle {
+					t.Errorf("entry %d: missing 'title' field", i)
 				}
 			}
 		})

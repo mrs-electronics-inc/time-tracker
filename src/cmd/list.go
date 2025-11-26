@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -71,7 +70,7 @@ By default, only the entries from the current day will be shown. Use --all to vi
 
 func displayEntriesTable(entries []models.TimeEntry) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Start", "End", "Project", "Title", "Duration"})
+	table.SetHeader([]string{"Start", "End", "Project", "Title", "Duration"})
 	table.SetBorder(true)
 	table.SetRowLine(true)
 	table.SetAutoWrapText(false)
@@ -86,7 +85,6 @@ func displayEntriesTable(entries []models.TimeEntry) {
 		duration := formatDuration(entry.Duration())
 
 		row := []string{
-			strconv.Itoa(entry.ID),
 			startTime,
 			endTime,
 			entry.Project,

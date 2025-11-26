@@ -6,7 +6,6 @@ import (
 
 // TimeEntry represents a period of tracked time
 type TimeEntry struct {
-	ID      int        `json:"id"`
 	Start   time.Time  `json:"start"`
 	End     *time.Time `json:"end,omitempty"`
 	Project string     `json:"project"`

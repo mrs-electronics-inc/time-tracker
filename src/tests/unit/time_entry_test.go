@@ -10,7 +10,6 @@ import (
 func TestTimeEntry_IsRunning(t *testing.T) {
 	// Running entry
 	entry := models.TimeEntry{
-		ID:      1,
 		Start:   time.Now(),
 		End:     nil,
 		Project: "test",

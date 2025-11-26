@@ -13,7 +13,7 @@ func TestStartStopScenario(t *testing.T) {
 	tm := utils.NewTaskManager(storage)
 
 	// Start tracking
-	entry, err := tm.StartEntry("test-project", "Test task")
+	_, err := tm.StartEntry("test-project", "Test task")
 	if err != nil {
 		t.Fatalf("Start entry failed: %v", err)
 	}
@@ -28,9 +28,6 @@ func TestStartStopScenario(t *testing.T) {
 	}
 
 	// Check the stopped entry
-	if stoppedEntry.ID != entry.ID {
-		t.Errorf("Expected stopped entry ID %d, got %d", entry.ID, stoppedEntry.ID)
-	}
 	if stoppedEntry.End == nil {
 		t.Errorf("Expected end time to be set")
 	}
@@ -57,13 +54,13 @@ func TestStartStopScenario(t *testing.T) {
 	}
 }
 
-func TestStartWithIDScenario(t *testing.T) {
+func TestMultipleEntriesScenario(t *testing.T) {
 	// Create task manager with memory storage
 	storage := utils.NewMemoryStorage()
 	tm := utils.NewTaskManager(storage)
 
-	// Create an initial entry
-	initialEntry, err := tm.StartEntry("existing-project", "Existing task")
+	// Create and stop an initial entry
+	_, err := tm.StartEntry("project1", "task1")
 	if err != nil {
 		t.Fatalf("Start initial entry failed: %v", err)
 	}
@@ -74,27 +71,10 @@ func TestStartWithIDScenario(t *testing.T) {
 		t.Fatalf("Stop initial entry failed: %v", err)
 	}
 
-	// Now start a new entry using the ID
-	newEntry, err := tm.GetEntry(initialEntry.ID)
+	// Start a second entry
+	_, err = tm.StartEntry("project2", "task2")
 	if err != nil {
-		t.Fatalf("Get entry failed: %v", err)
-	}
-
-	// Start new entry with same project and title
-	resumedEntry, err := tm.StartEntry(newEntry.Project, newEntry.Title)
-	if err != nil {
-		t.Fatalf("Start resumed entry failed: %v", err)
-	}
-
-	// Check the new entry
-	if resumedEntry.Project != "existing-project" {
-		t.Errorf("Expected project 'existing-project', got %s", resumedEntry.Project)
-	}
-	if resumedEntry.Title != "Existing task" {
-		t.Errorf("Expected title 'Existing task', got %s", resumedEntry.Title)
-	}
-	if resumedEntry.End != nil {
-		t.Errorf("New entry should be running")
+		t.Fatalf("Start second entry failed: %v", err)
 	}
 
 	// List entries
@@ -103,25 +83,19 @@ func TestStartWithIDScenario(t *testing.T) {
 		t.Fatalf("List entries failed: %v", err)
 	}
 
-	// Should have 3 entries: 1 initial (stopped) + 1 blank (stopped by start) + 1 resumed (running)
+	// Should have 3 entries: 1 initial (stopped) + 1 blank (from stop) + 1 second (running)
 	if len(entries) != 3 {
 		t.Errorf("Expected 3 entries, got %d", len(entries))
 	}
 
-	// The initial should be stopped, new running
-	var initialStopped, newRunning bool
-	for _, e := range entries {
-		if e.ID == initialEntry.ID && e.End != nil {
-			initialStopped = true
-		}
-		if e.ID == resumedEntry.ID && e.End == nil {
-			newRunning = true
-		}
+	// Verify entries
+	if entries[0].Project != "project1" || entries[0].End == nil {
+		t.Errorf("First entry should be project1 and stopped")
 	}
-	if !initialStopped {
-		t.Errorf("Initial entry should be stopped")
+	if entries[1].Project != "" || entries[1].Title != "" {
+		t.Errorf("Second entry should be blank")
 	}
-	if !newRunning {
-		t.Errorf("New entry should be running")
+	if entries[2].Project != "project2" || entries[2].End != nil {
+		t.Errorf("Third entry should be project2 and running")
 	}
 }

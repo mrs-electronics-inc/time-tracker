@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"time-tracker/config"
@@ -10,11 +9,16 @@ import (
 )
 
 var trackCmd = &cobra.Command{
-	Use:     "s [project title | ID]",
+	Use:     "s [project title]",
 	Short:   "Start (or stop) time tracking",
-	Long:    `Start a new time entry with project and title, resume by ID, or stop current entry. Can be called as 'start', 'stop', or 's'.`,
+	Long:    `Start a new time entry with project and title, or stop current entry. Can be called as 'start', 'stop', or 's'.`,
 	Aliases: []string{"start", "stop"},
-	Args:    cobra.RangeArgs(0, 2),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 0 && len(args) != 2 {
+			return fmt.Errorf("accepts 0 arguments (stop) or exactly 2 arguments (project title), received %d", len(args))
+		}
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		calledAs := cmd.CalledAs()
 
@@ -52,26 +56,12 @@ var trackCmd = &cobra.Command{
 
 		} else if isStart {
 			// Start operation
-			var project, title string
-
-			if len(args) == 1 {
-				// Single argument: treat as ID to resume
-				id, err := strconv.Atoi(args[0])
-				if err != nil {
-					return fmt.Errorf("invalid ID: %s", args[0])
-				}
-				entry, err := taskManager.GetEntry(id)
-				if err != nil {
-					return fmt.Errorf("failed to get entry: %w", err)
-				}
-				project = entry.Project
-				title = entry.Title
-			} else if len(args) == 2 {
-				project = args[0]
-				title = args[1]
-			} else {
-				return fmt.Errorf("provide project and title, or single ID to resume")
+			if len(args) != 2 {
+				return fmt.Errorf("'start' requires project and title arguments")
 			}
+
+			project := args[0]
+			title := args[1]
 
 			entry, err := taskManager.StartEntry(project, title)
 			if err != nil {

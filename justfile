@@ -4,6 +4,10 @@
 test:
     cd src && go test ./...
 
+# Build the Docker image
+build:
+    docker compose build
+
 # Run time-tracker with any subcommand and flags
 run *args:
     docker compose run --remove-orphans time-tracker {{ args }}

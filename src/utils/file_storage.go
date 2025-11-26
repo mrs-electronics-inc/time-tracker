@@ -12,7 +12,7 @@ import (
 	"time-tracker/models"
 )
 
-var migrations = map[int]func([]byte) []byte{
+var migrations = map[int]func([]byte) ([]byte, error){
 	0: MigrateToV1,
 }
 
@@ -75,7 +75,11 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	entriesJson := loadData.TimeEntries
 	for v := loadData.Version; v < models.CurrentVersion; v++ {
 		if mig, ok := migrations[v]; ok {
-			entriesJson = mig(entriesJson)
+			var err error
+			entriesJson, err = mig(entriesJson)
+			if err != nil {
+				return nil, fmt.Errorf("migration from version %d failed: %w", v, err)
+			}
 		}
 		loadData.Version++
 	}
@@ -87,13 +91,13 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	return entries, nil
 }
 
-func MigrateToV1(data []byte) []byte {
+func MigrateToV1(data []byte) ([]byte, error) {
 	var entries []models.TimeEntry
 	if err := json.Unmarshal(data, &entries); err != nil {
-		return data // or handle error
+		return nil, fmt.Errorf("failed to unmarshal data during migration to v1: %w", err)
 	}
 	if len(entries) == 0 {
-		return data
+		return data, nil
 	}
 
 	// Make a shallow copy to avoid mutating the input
@@ -128,8 +132,11 @@ func MigrateToV1(data []byte) []byte {
 			maxID++
 		}
 	}
-	result, _ := json.Marshal(newEntries)
-	return result
+	result, err := json.Marshal(newEntries)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal migrated data: %w", err)
+	}
+	return result, nil
 }
 
 func (fs *FileStorage) Save(entries []models.TimeEntry) error {

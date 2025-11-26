@@ -181,17 +181,17 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// Saves entries with the current version. If entries were loaded from an older version and migrated,
 	// this will upgrade the on-disk format to include migrated changes (e.g., blank entries).
 	
-	// Build entries without End field for version 2+
-	type v2Entry struct {
+	// Build entries without End field for storage (version 2+)
+	type SavedTimeEntry struct {
 		ID      int       `json:"id"`
 		Start   time.Time `json:"start"`
 		Project string    `json:"project"`
 		Title   string    `json:"title"`
 	}
 	
-	v2Entries := make([]v2Entry, len(entries))
+	saved := make([]SavedTimeEntry, len(entries))
 	for i, entry := range entries {
-		v2Entries[i] = v2Entry{
+		saved[i] = SavedTimeEntry{
 			ID:      entry.ID,
 			Start:   entry.Start,
 			Project: entry.Project,
@@ -201,7 +201,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	
 	data := map[string]any{
 		"version":      models.CurrentVersion,
-		"time-entries": v2Entries,
+		"time-entries": saved,
 	}
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

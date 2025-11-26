@@ -76,7 +76,6 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	}
 
 	// Apply migrations in-memory for older data versions to ensure compatibility.
-	// Note: This may add blank entries or other changes that will be persisted if Save() is called.
 	entriesJson := loadData.TimeEntries
 	for v := loadData.Version; v < models.CurrentVersion; v++ {
 		if mig, ok := migrations[v]; ok {

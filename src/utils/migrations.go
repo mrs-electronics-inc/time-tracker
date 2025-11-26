@@ -1,67 +1,11 @@
 package utils
 
 import (
-	"encoding/json"
-	"reflect"
 	"sort"
 	"time"
 
 	"time-tracker/models"
 )
-
-// Transformations maps source version to transformation function
-var Transformations = map[int]any{
-	0: TransformV0ToV1,
-	1: TransformV1ToV2,
-	2: TransformV2ToV3,
-}
-
-// callTransformWithMarshal handles the common pattern of unmarshal -> transform -> marshal
-// It uses reflection to work with any transformation function signature
-func callTransformWithMarshal(data []byte, transformFunc any) ([]byte, error) {
-	// First, try to unmarshal into a generic any
-	var entries any
-	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, err
-	}
-
-	// Call the transform function via reflection
-	rf := reflect.ValueOf(transformFunc)
-	result := rf.Call([]reflect.Value{reflect.ValueOf(entries)})
-
-	// Check for error return
-	if !result[1].IsNil() {
-		return nil, result[1].Interface().(error)
-	}
-
-	transformed := result[0].Interface()
-
-	// Marshal the result
-	marshalledData, err := json.Marshal(transformed)
-	if err != nil {
-		return nil, err
-	}
-	return marshalledData, nil
-}
-
-// MigrateWithTransform is a generic helper for transformation functions
-func MigrateWithTransform[In, Out any](data []byte, transform func([]In) ([]Out, error)) ([]byte, error) {
-	var entries []In
-	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, err
-	}
-
-	transformed, err := transform(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := json.Marshal(transformed)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
 
 func TransformV0ToV1(entries []models.V0Entry) ([]models.V1Entry, error) {
 	if len(entries) == 0 {
@@ -109,9 +53,9 @@ func TransformV0ToV1(entries []models.V0Entry) ([]models.V1Entry, error) {
 	return newEntries, nil
 }
 
-func TransformV1ToV2(entries []models.V1Entry) ([]models.V1Entry, error) {
+func TransformV1ToV2(entries []models.V1Entry) ([]models.V2Entry, error) {
 	// Filter out blank entries that are less than 5 seconds long
-	var filtered []models.V1Entry
+	var filtered []models.V2Entry
 	for _, entry := range entries {
 		// Skip if it's a blank entry with duration < 5 seconds
 		if entry.Project == "" && entry.Title == "" && entry.End != nil {
@@ -120,7 +64,12 @@ func TransformV1ToV2(entries []models.V1Entry) ([]models.V1Entry, error) {
 				continue
 			}
 		}
-		filtered = append(filtered, entry)
+		filtered = append(filtered, models.V2Entry{
+			ID:      entry.ID,
+			Start:   entry.Start,
+			Project: entry.Project,
+			Title:   entry.Title,
+		})
 	}
 	return filtered, nil
 }

@@ -46,13 +46,13 @@ We will have empty strings (`""`) for `project` and `title` for empty entries be
 
 ### Optimize Migration Performance
 
-- [ ] Refactor transformation function signatures to work with concrete Go types instead of JSON bytes
-- [ ] Remove `callTransformWithMarshal` helper function
-- [ ] Update `Load()` to:
-  - [ ] Read version from JSON metadata
-  - [ ] Based on source version, unmarshal `time-entries` JSON to the appropriate concrete type (V0Entry, V1Entry, or V2Entry)
-  - [ ] Chain transforms in-memory through all versions needed to reach CurrentVersion
-  - [ ] Return final Go objects without marshaling back to JSON
-- [ ] Remove marshal/unmarshal operations from the migration loop entirely
-- [ ] Move final marshaling to `Save()` where it happens once when writing to disk
-- [ ] Add tests to verify the refactored migration chain produces identical results to the current implementation
+- [x] Refactor transformation function signatures to work with concrete Go types instead of JSON bytes
+- [x] Remove `callTransformWithMarshal` helper function
+- [x] Update `Load()` to:
+  - [x] Read version from JSON metadata
+  - [x] Based on source version, unmarshal `time-entries` JSON to the appropriate concrete type (V0Entry, V1Entry, or V2Entry)
+  - [x] Chain transforms in-memory through all versions needed to reach CurrentVersion
+  - [x] Return final Go objects without marshaling back to JSON
+- [x] Remove marshal/unmarshal operations from the migration loop entirely
+- [x] Move final marshaling to `Save()` where it happens once when writing to disk
+- [x] Add tests to verify the refactored migration chain produces identical results to the current implementation

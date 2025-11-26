@@ -212,25 +212,18 @@ func MigrateToV3(data []byte) ([]byte, error) {
 		Title   string     `json:"title"`
 	}
 
-	// V3 entries do not have IDs
-	type V3Entry struct {
-		Start   time.Time `json:"start"`
-		Project string    `json:"project"`
-		Title   string    `json:"title"`
-	}
-
 	var entries []V2Entry
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal data during migration to v3: %w", err)
 	}
 
-	var v3Entries []V3Entry
-	for _, entry := range entries {
-		v3Entries = append(v3Entries, V3Entry{
+	v3Entries := make([]models.SavedTimeEntry, len(entries))
+	for i, entry := range entries {
+		v3Entries[i] = models.SavedTimeEntry{
 			Start:   entry.Start,
 			Project: entry.Project,
 			Title:   entry.Title,
-		})
+		}
 	}
 
 	result, err := json.Marshal(v3Entries)

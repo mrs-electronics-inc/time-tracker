@@ -22,21 +22,6 @@ func NewTaskManager(storage Storage) *TaskManager {
 	return &TaskManager{storage: storage}
 }
 
-func (tm *TaskManager) GetNextID() (int, error) {
-	entries, err := tm.storage.Load()
-	if err != nil {
-		return 0, err
-	}
-
-	maxID := 0
-	for _, entry := range entries {
-		if entry.ID > maxID {
-			maxID = entry.ID
-		}
-	}
-	return maxID + 1, nil
-}
-
 func (tm *TaskManager) StartEntry(project, title string) (*models.TimeEntry, error) {
 	entries, err := tm.storage.Load()
 	if err != nil {
@@ -53,13 +38,7 @@ func (tm *TaskManager) StartEntry(project, title string) (*models.TimeEntry, err
 	}
 
 	// Create new entry
-	nextID, err := tm.GetNextID()
-	if err != nil {
-		return nil, err
-	}
-
 	newEntry := models.TimeEntry{
-		ID:      nextID,
 		Start:   time.Now(),
 		End:     nil,
 		Project: project,
@@ -87,15 +66,7 @@ func (tm *TaskManager) StopEntry() (*models.TimeEntry, error) {
 			entries[i].End = &now
 			
 			// Add a blank entry to represent the gap after the stopped entry
-			// Find max ID
-			maxID := 0
-			for _, e := range entries {
-				if e.ID > maxID {
-					maxID = e.ID
-				}
-			}
 			blankEntry := models.TimeEntry{
-				ID:      maxID + 1,
 				Start:   now,
 				End:     nil,
 				Project: "",
@@ -111,21 +82,6 @@ func (tm *TaskManager) StopEntry() (*models.TimeEntry, error) {
 	}
 
 	return nil, fmt.Errorf("no active time entry to stop")
-}
-
-func (tm *TaskManager) GetEntry(id int) (*models.TimeEntry, error) {
-	entries, err := tm.storage.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range entries {
-		if entry.ID == id {
-			return &entry, nil
-		}
-	}
-
-	return nil, fmt.Errorf("entry with ID %d not found", id)
 }
 
 func (tm *TaskManager) ListEntries() ([]models.TimeEntry, error) {

@@ -12,13 +12,13 @@ func TestAutoStopScenario(t *testing.T) {
 	tm := utils.NewTaskManager(storage)
 
 	// Start first task
-	entry1, err := tm.StartEntry("project1", "Task 1")
+	_, err := tm.StartEntry("project1", "Task 1")
 	if err != nil {
 		t.Fatalf("Start entry 1 failed: %v", err)
 	}
 
 	// Start second task (should auto-stop first)
-	entry2, err := tm.StartEntry("project2", "Task 2")
+	_, err = tm.StartEntry("project2", "Task 2")
 	if err != nil {
 		t.Fatalf("Start entry 2 failed: %v", err)
 	}
@@ -34,23 +34,11 @@ func TestAutoStopScenario(t *testing.T) {
 		t.Errorf("Expected 2 entries, got %d", len(entries))
 	}
 	
-	// Find the entries (since sorted by start desc, entry2 first)
-	var found1, found2 bool
-	for _, e := range entries {
-		if e.ID == entry1.ID {
-			found1 = true
-			if e.End == nil {
-				t.Errorf("Entry 1 should be stopped")
-			}
-		}
-		if e.ID == entry2.ID {
-			found2 = true
-			if e.End != nil {
-				t.Errorf("Entry 2 should be running")
-			}
-		}
+	// Verify entries by order (since sorted by start time ascending)
+	if entries[0].Project != "project1" || entries[0].End == nil {
+		t.Errorf("First entry should be project1 and stopped")
 	}
-	if !found1 || !found2 {
-		t.Errorf("Both entries not found in list")
+	if entries[1].Project != "project2" || entries[1].End != nil {
+		t.Errorf("Second entry should be project2 and running")
 	}
 }

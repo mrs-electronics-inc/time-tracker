@@ -96,13 +96,6 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		return nil, fmt.Errorf("failed to unmarshal migrated data: %w", err)
 	}
 
-	// For v3+, generate IDs if they're missing (all IDs will be 0)
-	if loadData.Version >= 3 && len(entries) > 0 {
-		for i := range entries {
-			entries[i].ID = i + 1
-		}
-	}
-
 	// Reconstruct End times from next entry's Start time for all entries
 	for i := 0; i < len(entries)-1; i++ {
 		next := entries[i+1].Start
@@ -117,7 +110,16 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 }
 
 func MigrateToV1(data []byte) ([]byte, error) {
-	var entries []models.TimeEntry
+	// For v0, entries have IDs that we need to preserve during migration
+	type V0Entry struct {
+		ID      int        `json:"id"`
+		Start   time.Time  `json:"start"`
+		End     *time.Time `json:"end,omitempty"`
+		Project string     `json:"project"`
+		Title   string     `json:"title"`
+	}
+
+	var entries []V0Entry
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal data during migration to v1: %w", err)
 	}
@@ -126,7 +128,7 @@ func MigrateToV1(data []byte) ([]byte, error) {
 	}
 
 	// Make a shallow copy to avoid mutating the input
-	copied := append([]models.TimeEntry(nil), entries...)
+	copied := append([]V0Entry(nil), entries...)
 
 	// Sort by start time
 	sort.Slice(copied, func(i, j int) bool {
@@ -141,13 +143,13 @@ func MigrateToV1(data []byte) ([]byte, error) {
 		}
 	}
 
-	var newEntries []models.TimeEntry
+	var newEntries []V0Entry
 	for i, entry := range copied {
 		newEntries = append(newEntries, entry)
 		if i < len(copied)-1 && entry.End != nil && entry.End.Before(copied[i+1].Start) {
 			end := copied[i+1].Start
 			maxID++
-			blank := models.TimeEntry{
+			blank := V0Entry{
 				ID:      maxID,
 				Start:   *entry.End,
 				End:     &end,
@@ -165,16 +167,25 @@ func MigrateToV1(data []byte) ([]byte, error) {
 }
 
 func MigrateToV2(data []byte) ([]byte, error) {
-	var entries []models.TimeEntry
+	// For v1, entries still have IDs
+	type V1Entry struct {
+		ID      int        `json:"id"`
+		Start   time.Time  `json:"start"`
+		End     *time.Time `json:"end,omitempty"`
+		Project string     `json:"project"`
+		Title   string     `json:"title"`
+	}
+
+	var entries []V1Entry
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal data during migration to v2: %w", err)
 	}
 
 	// Filter out blank entries that are less than 5 seconds long
-	var filtered []models.TimeEntry
+	var filtered []V1Entry
 	for _, entry := range entries {
 		// Skip if it's a blank entry with duration < 5 seconds
-		if entry.IsBlank() && entry.End != nil {
+		if entry.Project == "" && entry.Title == "" && entry.End != nil {
 			duration := entry.End.Sub(entry.Start)
 			if duration < 5*time.Second {
 				continue

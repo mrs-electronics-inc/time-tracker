@@ -203,17 +203,25 @@ func MigrateToV2(data []byte) ([]byte, error) {
 }
 
 func MigrateToV3(data []byte) ([]byte, error) {
-	var entries []models.TimeEntry
-	if err := json.Unmarshal(data, &entries); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data during migration to v3: %w", err)
+	// For v2, entries still have IDs
+	type V2Entry struct {
+		ID      int        `json:"id"`
+		Start   time.Time  `json:"start"`
+		End     *time.Time `json:"end,omitempty"`
+		Project string     `json:"project"`
+		Title   string     `json:"title"`
 	}
 
-	// In version 3, we remove the ID field; IDs will be auto-generated in the UI
-	// For now, just marshal without the ID field by using a struct without ID
+	// V3 entries do not have IDs
 	type V3Entry struct {
 		Start   time.Time `json:"start"`
 		Project string    `json:"project"`
 		Title   string    `json:"title"`
+	}
+
+	var entries []V2Entry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal data during migration to v3: %w", err)
 	}
 
 	var v3Entries []V3Entry

@@ -109,16 +109,14 @@ func (m *Model) View() string {
 	table := m.renderTableViewport(availableHeight)
 	
 	// Add status message if present
-	var content strings.Builder
-	content.WriteString(table)
 	if m.status != "" {
-		content.WriteString(m.status + "\n")
+		table = table + m.status + "\n"
 	}
 	
 	// Build layout
 	return lipgloss.JoinVertical(
 		lipgloss.Top,
-		content.String(),
+		table,
 		footer,
 	)
 }
@@ -177,7 +175,7 @@ func (m *Model) renderTable() string {
 		duration := formatDuration(entry.Duration())
 
 		row := fmt.Sprintf(
-			"%-*s %-*s %-*s %-*s %-*s",
+			"%-*s %-*s %-*s %-*s %*s",
 			startWidth, startStr,
 			endWidth, endStr,
 			projectWidth, project,
@@ -273,12 +271,12 @@ func (m *Model) renderTableViewport(maxHeight int) string {
 		duration := formatDuration(entry.Duration())
 
 		row := fmt.Sprintf(
-			"%-*s %-*s %-*s %-*s %s",
+			"%-*s %-*s %-*s %-*s %*s",
 			startWidth, startStr,
 			endWidth, endStr,
 			projectWidth, project,
 			titleWidth, title,
-			duration,
+			durationWidth, duration,
 		)
 
 		// Apply styling

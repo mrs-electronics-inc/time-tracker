@@ -1,11 +1,10 @@
-package unit
+package utils
 
 import (
 	"testing"
 	"time"
 
 	"time-tracker/models"
-	"time-tracker/utils"
 )
 
 func TestMigrateToV1(t *testing.T) {
@@ -130,7 +129,7 @@ func TestMigrateToV1(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := utils.TransformV0ToV1(tt.input)
+			result, err := TransformV0ToV1(tt.input)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
@@ -168,7 +167,7 @@ func TestMigrateToV1InputIsolation(t *testing.T) {
 		{ID: 2, Start: t3, End: nil, Project: "p2", Title: "t2"},
 	}
 
-	result, err := utils.TransformV0ToV1(input)
+	result, err := TransformV0ToV1(input)
 	if err != nil {
 		t.Fatalf("TransformV0ToV1 failed: %v", err)
 	}
@@ -254,7 +253,7 @@ func TestMigrateToV2FilterBlankEntries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := utils.TransformV1ToV2(tt.input)
+			result, err := TransformV1ToV2(tt.input)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}
@@ -316,7 +315,7 @@ func TestMigrateToV3(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := utils.TransformV2ToV3(tt.input)
+			result, err := TransformV2ToV3(tt.input)
 			if (err != nil) != tt.expectErr {
 				t.Fatalf("expected error=%v, got err=%v", tt.expectErr, err)
 			}

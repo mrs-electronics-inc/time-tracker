@@ -1,11 +1,10 @@
-package unit
+package utils
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
-	"time-tracker/utils"
 )
 
 func TestFileStorage_VersionField(t *testing.T) {
@@ -14,7 +13,7 @@ func TestFileStorage_VersionField(t *testing.T) {
 	dataFile := filepath.Join(tempDir, "data.json")
 
 	// Create new file storage
-	_, err := utils.NewFileStorage(dataFile)
+	_, err := NewFileStorage(dataFile)
 	if err != nil {
 		t.Fatalf("Failed to create file storage: %v", err)
 	}

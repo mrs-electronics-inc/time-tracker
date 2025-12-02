@@ -1,16 +1,14 @@
-package integration
+package utils
 
 import (
 	"testing"
 	"time"
-
-	"time-tracker/utils"
 )
 
 func TestStartStopScenario(t *testing.T) {
 	// Create task manager with memory storage
-	storage := utils.NewMemoryStorage()
-	tm := utils.NewTaskManager(storage)
+	storage := NewMemoryStorage()
+	tm := NewTaskManager(storage)
 
 	// Start tracking
 	_, err := tm.StartEntry("test-project", "Test task")
@@ -56,8 +54,8 @@ func TestStartStopScenario(t *testing.T) {
 
 func TestMultipleEntriesScenario(t *testing.T) {
 	// Create task manager with memory storage
-	storage := utils.NewMemoryStorage()
-	tm := utils.NewTaskManager(storage)
+	storage := NewMemoryStorage()
+	tm := NewTaskManager(storage)
 
 	// Create and stop an initial entry
 	_, err := tm.StartEntry("project1", "task1")

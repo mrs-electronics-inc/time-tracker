@@ -100,11 +100,10 @@ func (m *Model) LoadEntries() error {
 
 	m.entries = entries
 
-	// Ensure selected index is valid
-	if m.selectedIdx >= len(m.entries) {
+	// Select most recent entry (last item)
+	if len(m.entries) > 0 {
 		m.selectedIdx = len(m.entries) - 1
-	}
-	if m.selectedIdx < 0 {
+	} else {
 		m.selectedIdx = 0
 	}
 

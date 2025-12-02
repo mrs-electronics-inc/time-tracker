@@ -122,18 +122,23 @@ func (m *Model) View() string {
 	usedLines := tableLines + footerHeight
 	spacerHeight := m.height - usedLines
 	
-	// Build layout with spacer
-	var spacer string
-	if spacerHeight > 0 {
-		spacer = lipgloss.NewStyle().Height(spacerHeight).Render("")
+	// Ensure spacer height is not negative
+	if spacerHeight < 0 {
+		spacerHeight = 0
 	}
 	
-	return lipgloss.JoinVertical(
-		lipgloss.Top,
-		table,
-		spacer,
-		footer,
-	)
+	// Build layout with spacer
+	var parts []string
+	parts = append(parts, table)
+	
+	if spacerHeight > 0 {
+		spacer := strings.Repeat("\n", spacerHeight)
+		parts = append(parts, spacer)
+	}
+	
+	parts = append(parts, footer)
+	
+	return strings.Join(parts, "")
 }
 
 // renderTable renders the table with entries

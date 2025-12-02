@@ -53,6 +53,7 @@ type Model struct {
 	taskManager  *utils.TaskManager
 	entries      []models.TimeEntry
 	selectedIdx  int
+	viewportTop  int            // Index of first visible row
 	err          error
 	status       string         // Status message from last action
 	keys         keyMap
@@ -168,4 +169,23 @@ func (m *Model) getRunningEntry() *models.TimeEntry {
 		}
 	}
 	return nil
+}
+
+// ensureSelectionVisible adjusts viewport so selected item is visible
+func (m *Model) ensureSelectionVisible(maxVisibleRows int) {
+	if m.selectedIdx < m.viewportTop {
+		// Selected item is above viewport, scroll up
+		m.viewportTop = m.selectedIdx
+	} else if m.selectedIdx >= m.viewportTop+maxVisibleRows {
+		// Selected item is below viewport, scroll down
+		m.viewportTop = m.selectedIdx - maxVisibleRows + 1
+	}
+
+	// Ensure viewport doesn't go past the end
+	if m.viewportTop > len(m.entries)-maxVisibleRows {
+		m.viewportTop = len(m.entries) - maxVisibleRows
+	}
+	if m.viewportTop < 0 {
+		m.viewportTop = 0
+	}
 }

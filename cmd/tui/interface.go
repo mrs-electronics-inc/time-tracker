@@ -102,8 +102,11 @@ func (m *Model) View() string {
 		availableHeight = 1
 	}
 	
-	// Render table with limited rows
-	table := m.renderTableLimited(availableHeight)
+	// Ensure selection is visible
+	m.ensureSelectionVisible(availableHeight)
+	
+	// Render table with viewport
+	table := m.renderTableViewport(availableHeight)
 	
 	// Add status message if present
 	var content strings.Builder
@@ -207,8 +210,8 @@ func (m *Model) renderTable() string {
 	return output.String()
 }
 
-// renderTableLimited renders the table with a maximum number of rows
-func (m *Model) renderTableLimited(maxHeight int) string {
+// renderTableViewport renders the table with viewport scrolling
+func (m *Model) renderTableViewport(maxHeight int) string {
 	if len(m.entries) == 0 {
 		return "No time entries found\n"
 	}
@@ -242,14 +245,16 @@ func (m *Model) renderTableLimited(maxHeight int) string {
 	separatorText := strings.Repeat("─", separatorWidth)
 	output.WriteString(m.styles.header.Render(separatorText) + "\n")
 
-	// Render rows up to maxHeight (maxHeight accounts for header + separator already)
+	// Render rows from viewport
 	maxRows := maxHeight
 	rowsRendered := 0
+	endIdx := m.viewportTop + maxRows
+	if endIdx > len(m.entries) {
+		endIdx = len(m.entries)
+	}
 
-	for i, entry := range m.entries {
-		if rowsRendered >= maxRows {
-			break
-		}
+	for i := m.viewportTop; i < endIdx; i++ {
+		entry := m.entries[i]
 
 		startStr := entry.Start.Format("2006-01-02 15:04")
 

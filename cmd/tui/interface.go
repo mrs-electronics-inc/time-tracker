@@ -126,7 +126,7 @@ func (m *Model) renderTable() string {
 	var output strings.Builder
 
 	// Render header
-	header := fmt.Sprintf(
+	headerText := fmt.Sprintf(
 		"%-*s %-*s %-*s %-*s %-*s",
 		startWidth, "Start",
 		endWidth, "End",
@@ -134,11 +134,11 @@ func (m *Model) renderTable() string {
 		titleWidth, "Title",
 		durationWidth, "Duration",
 	)
-	output.WriteString(m.styles.header.Render(header) + "\n")
+	output.WriteString(headerText + "\n")
 
 	// Render separator
-	separator := strings.Repeat("─", startWidth+endWidth+projectWidth+titleWidth+durationWidth+4)
-	output.WriteString(m.styles.header.Render(separator) + "\n")
+	separatorText := strings.Repeat("─", startWidth+endWidth+projectWidth+titleWidth+durationWidth+4)
+	output.WriteString(separatorText + "\n")
 
 	// Render rows
 	for i, entry := range m.entries {

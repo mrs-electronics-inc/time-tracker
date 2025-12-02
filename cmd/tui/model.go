@@ -21,6 +21,8 @@ type Model struct {
 	currentEntry *models.TimeEntry
 	currentScreen Screen
 	err          error
+	width        int
+	height       int
 }
 
 // NewModel creates a new TUI model

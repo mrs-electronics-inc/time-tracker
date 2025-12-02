@@ -12,6 +12,9 @@ func (m *Model) Init() tea.Cmd {
 // Update handles messages and updates the model
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -39,16 +42,25 @@ func (m *Model) View() string {
 
 // viewList renders the entry list view
 func (m *Model) viewList() string {
-	output := "=== Time Tracker ===\n\n"
+	// Header
+	output := "=== Time Tracker ===\n"
+	output += "\n"
 	
+	// Content area
+	contentHeight := m.height - 5 // Reserve space for header and footer
+	if contentHeight < 3 {
+		contentHeight = 3
+	}
+
 	if len(m.entries) == 0 {
 		output += "No time entries yet.\n"
 	} else {
 		output += "Recent entries:\n"
-		// Show up to 10 most recent entries
+		// Show entries that fit in the available space
+		displayCount := contentHeight - 1 // -1 for the "Recent entries:" line
 		start := 0
-		if len(m.entries) > 10 {
-			start = len(m.entries) - 10
+		if len(m.entries) > displayCount {
+			start = len(m.entries) - displayCount
 		}
 		for i := len(m.entries) - 1; i >= start; i-- {
 			entry := m.entries[i]
@@ -60,8 +72,10 @@ func (m *Model) viewList() string {
 		}
 	}
 
-	output += "\nKeybindings:\n"
-	output += "  q: quit\n"
+	// Footer with keybindings
+	output += "\n"
+	output += "─────────────────────────────────────────────────────────────────\n"
+	output += "q: quit\n"
 	
 	return output
 }

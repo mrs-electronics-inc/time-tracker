@@ -61,7 +61,7 @@ func (m *Model) viewList() string {
 	}
 
 	output += "\nKeybindings:\n"
-	output += "  s: start  e: stop  q: quit\n"
+	output += "  q: quit\n"
 	
 	return output
 }

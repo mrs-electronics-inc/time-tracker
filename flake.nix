@@ -17,10 +17,10 @@
           # We don't have real versions yet
           version = "alpha";
           
-          src = ./src;
+          src = ./.;
 
-          goPackagePath = "github.com/mrs-electronics-inc/time-tracker";
-          vendorHash = "sha256-bCeLxvAURw4A0T/jG2rVLe7fXEYRL+s3NCQ5iZvdEOM=";
+          goPackagePath = "time-tracker";
+          vendorHash = null;
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";
@@ -42,6 +42,9 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             go
+            just
+            docker
+            docker-compose
           ];
 
           shellHook = ''

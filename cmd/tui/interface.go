@@ -105,8 +105,12 @@ func (m *Model) View() string {
 	// Ensure selection is visible
 	m.ensureSelectionVisible(availableHeight)
 	
-	// Render table with viewport
-	table := m.renderTableViewport(availableHeight)
+	// Render header and rows separately
+	header := m.renderTableHeader()
+	rows := m.renderTableRows(availableHeight)
+	
+	// Combine header and rows
+	table := header + rows
 	
 	// Add status message if present
 	if m.status != "" {
@@ -219,8 +223,44 @@ func (m *Model) renderTable() string {
 	return output.String()
 }
 
-// renderTableViewport renders the table with viewport scrolling
-func (m *Model) renderTableViewport(maxHeight int) string {
+// renderTableHeader renders just the table header
+func (m *Model) renderTableHeader() string {
+	if len(m.entries) == 0 {
+		return ""
+	}
+
+	// Get column widths
+	startWidth, endWidth, projectWidth, titleWidth, durationWidth := m.getColumnWidths()
+
+	// Add some padding
+	padding := 1
+	startWidth += padding
+	endWidth += padding
+	projectWidth += padding
+	titleWidth += padding
+	durationWidth += padding
+
+	// Render header
+	headerText := fmt.Sprintf(
+		"%-*s %-*s %-*s %-*s %s",
+		startWidth, "Start",
+		endWidth, "End",
+		projectWidth, "Project",
+		titleWidth, "Title",
+		"Duration",
+	)
+	output := m.styles.header.Render(headerText) + "\n"
+
+	// Render separator (4 spaces for column separators between 5 columns)
+	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
+	separatorText := strings.Repeat("─", separatorWidth)
+	output += m.styles.header.Render(separatorText) + "\n"
+
+	return output
+}
+
+// renderTableRows renders the rows with viewport scrolling
+func (m *Model) renderTableRows(maxHeight int) string {
 	if len(m.entries) == 0 {
 		return "No time entries found\n"
 	}
@@ -237,22 +277,6 @@ func (m *Model) renderTableViewport(maxHeight int) string {
 	durationWidth += padding
 
 	var output strings.Builder
-
-	// Render header
-	headerText := fmt.Sprintf(
-		"%-*s %-*s %-*s %-*s %s",
-		startWidth, "Start",
-		endWidth, "End",
-		projectWidth, "Project",
-		titleWidth, "Title",
-		"Duration",
-	)
-	output.WriteString(m.styles.header.Render(headerText) + "\n")
-
-	// Render separator (4 spaces for column separators between 5 columns)
-	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
-	separatorText := strings.Repeat("─", separatorWidth)
-	output.WriteString(m.styles.header.Render(separatorText) + "\n")
 
 	// Render rows from viewport
 	maxRows := maxHeight

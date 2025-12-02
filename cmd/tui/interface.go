@@ -86,11 +86,25 @@ func (m *Model) View() string {
 	var output strings.Builder
 
 	// Render table
-	output.WriteString(m.renderTable())
+	table := m.renderTable()
+	output.WriteString(table)
 
 	// Add status message if present
 	if m.status != "" {
 		output.WriteString(m.status + "\n")
+	}
+
+	// Calculate lines used and pad to push footer to bottom
+	lines := strings.Count(table, "\n")
+	if m.status != "" {
+		lines++ // status message line
+	}
+	lines++ // blank line before footer
+	
+	// Pad with blank lines if needed
+	if m.height > 0 && lines < m.height-1 {
+		blankLines := m.height - 1 - lines
+		output.WriteString(strings.Repeat("\n", blankLines))
 	}
 
 	// Always show footer with help text
@@ -120,14 +134,14 @@ func (m *Model) renderTable() string {
 
 	// Render header
 	header := fmt.Sprintf(
-		"%-*s %-*s %-*s %-*s %-*s\n",
+		"%-*s %-*s %-*s %-*s %-*s",
 		startWidth, "Start",
 		endWidth, "End",
 		projectWidth, "Project",
 		titleWidth, "Title",
 		durationWidth, "Duration",
 	)
-	output.WriteString(m.styles.header.Render(header))
+	output.WriteString(m.styles.header.Render(header) + "\n")
 
 	// Render separator
 	separator := strings.Repeat("─", startWidth+endWidth+projectWidth+titleWidth+durationWidth+4)

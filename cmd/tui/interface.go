@@ -249,12 +249,12 @@ func (m *Model) renderTableHeader() string {
 		titleWidth, "Title",
 		"Duration",
 	)
-	output := m.styles.header.Render(headerText) + "\n"
+	output := headerText + "\n"
 
 	// Render separator (4 spaces for column separators between 5 columns)
 	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
 	separatorText := strings.Repeat("─", separatorWidth)
-	output += m.styles.header.Render(separatorText) + "\n"
+	output += separatorText + "\n"
 
 	return output
 }

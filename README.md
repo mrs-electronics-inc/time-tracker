@@ -28,13 +28,7 @@ go version
 git clone https://github.com/mrs-electronics-inc/time-tracker.git
 ```
 
-2. Navigate to the src directory:
-
-```bash
-cd time-tracker/src
-```
-
-3. Use the go install command to compile and install the binary automatically in your _$GOPATH/bin_ directory:
+2. Use the go install command to compile and install the binary automatically in your _$GOPATH/bin_ directory:
 
 ```bash
 go install

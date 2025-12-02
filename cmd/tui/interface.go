@@ -83,35 +83,41 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	// Render table
-	table := m.renderTable()
+	// Render footer first to know its height
+	footer := m.renderFooter()
+	footerHeight := strings.Count(footer, "\n") + 1
+	
+	// Header takes 2 lines (header + separator)
+	headerHeight := 2
+	
+	// Status message takes 1 line if present
+	statusHeight := 0
+	if m.status != "" {
+		statusHeight = 1
+	}
+	
+	// Available height for list rows
+	availableHeight := m.height - headerHeight - footerHeight - statusHeight
+	if availableHeight < 1 {
+		availableHeight = 1
+	}
+	
+	// Render table with limited rows
+	table := m.renderTableLimited(availableHeight)
 	
 	// Add status message if present
+	var content strings.Builder
+	content.WriteString(table)
 	if m.status != "" {
-		table = table + m.status + "\n"
+		content.WriteString(m.status + "\n")
 	}
 	
-	// Render footer
-	footer := m.renderFooter()
-
-	// Calculate spacer height to push footer to bottom
-	contentLines := strings.Count(table, "\n")
-	footerLines := strings.Count(footer, "\n") + 1
-	spacerHeight := m.height - contentLines - footerLines
-	
-	// Build layout with spacer
-	if spacerHeight > 0 {
-		spacer := lipgloss.NewStyle().Height(spacerHeight).Render("")
-		return lipgloss.JoinVertical(
-			lipgloss.Top,
-			table,
-			spacer,
-			footer,
-		)
-	}
-	
-	// If not enough space, just render table and footer
-	return table + footer
+	// Build layout
+	return lipgloss.JoinVertical(
+		lipgloss.Top,
+		content.String(),
+		footer,
+	)
 }
 
 // renderTable renders the table with entries
@@ -196,6 +202,101 @@ func (m *Model) renderTable() string {
 		}
 
 		output.WriteString(styledRow + "\n")
+	}
+
+	return output.String()
+}
+
+// renderTableLimited renders the table with a maximum number of rows
+func (m *Model) renderTableLimited(maxHeight int) string {
+	if len(m.entries) == 0 {
+		return "No time entries found\n"
+	}
+
+	// Get column widths
+	startWidth, endWidth, projectWidth, titleWidth, durationWidth := m.getColumnWidths()
+
+	// Add some padding
+	padding := 1
+	startWidth += padding
+	endWidth += padding
+	projectWidth += padding
+	titleWidth += padding
+	durationWidth += padding
+
+	var output strings.Builder
+
+	// Render header
+	headerText := fmt.Sprintf(
+		"%-*s %-*s %-*s %-*s %s",
+		startWidth, "Start",
+		endWidth, "End",
+		projectWidth, "Project",
+		titleWidth, "Title",
+		"Duration",
+	)
+	output.WriteString(headerText + "\n")
+
+	// Render separator (4 spaces for column separators between 5 columns)
+	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
+	separatorText := strings.Repeat("─", separatorWidth)
+	output.WriteString(separatorText + "\n")
+
+	// Render rows up to maxHeight (maxHeight accounts for header + separator already)
+	maxRows := maxHeight
+	rowsRendered := 0
+
+	for i, entry := range m.entries {
+		if rowsRendered >= maxRows {
+			break
+		}
+
+		startStr := entry.Start.Format("2006-01-02 15:04")
+
+		endStr := "running"
+		if entry.End != nil {
+			endStr = entry.End.Format("2006-01-02 15:04")
+		}
+
+		project := entry.Project
+		title := entry.Title
+		if entry.IsBlank() {
+			project = ""
+			title = ""
+		}
+
+		duration := formatDuration(entry.Duration())
+
+		row := fmt.Sprintf(
+			"%-*s %-*s %-*s %-*s %s",
+			startWidth, startStr,
+			endWidth, endStr,
+			projectWidth, project,
+			titleWidth, title,
+			duration,
+		)
+
+		// Apply styling
+		var styledRow string
+		if i == m.selectedIdx {
+			// Selected row - highlight with bold and inverse
+			styledRow = lipgloss.NewStyle().
+				Bold(true).
+				Reverse(true).
+				Render(row)
+		} else if entry.IsRunning() {
+			// Running entry - use running style
+			styledRow = m.styles.running.Render(row)
+		} else if entry.IsBlank() {
+			// Gap entry - use gap style
+			styledRow = m.styles.gap.Render(row)
+		} else {
+			// Regular unselected - use unselected style
+			styledRow = m.styles.unselected.Render(row)
+		}
+
+		output.WriteString(styledRow + "\n")
+		rowsRendered++
 	}
 
 	return output.String()

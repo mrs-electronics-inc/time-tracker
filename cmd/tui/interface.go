@@ -127,17 +127,18 @@ func (m *Model) renderTable() string {
 
 	// Render header
 	headerText := fmt.Sprintf(
-		"%-*s %-*s %-*s %-*s %-*s",
+		"%-*s %-*s %-*s %-*s %s",
 		startWidth, "Start",
 		endWidth, "End",
 		projectWidth, "Project",
 		titleWidth, "Title",
-		durationWidth, "Duration",
+		"Duration",
 	)
 	output.WriteString(headerText + "\n")
 
-	// Render separator
-	separatorText := strings.Repeat("─", startWidth+endWidth+projectWidth+titleWidth+durationWidth+4)
+	// Render separator (4 spaces for column separators between 5 columns)
+	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
+	separatorText := strings.Repeat("─", separatorWidth)
 	output.WriteString(separatorText + "\n")
 
 	// Render rows

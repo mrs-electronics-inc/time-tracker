@@ -12,7 +12,7 @@ Time Tracker is a simple CLI tool to track the time you spend on different proje
 
 ### Requirements
 
-To install this application, you will need **Go 1.23.0 or higher**.
+To install this application, you will need **Go 1.24.0 or higher**.
 You can download it from the [official Golang website](https://go.dev/dl/).
 To verify your Go installation and version, run the following command in your terminal:
 
@@ -136,12 +136,42 @@ time-tracker stats --weekly  # Weekly totals
 
 ## Development
 
-### Testing
+### Requirements
 
-To run the automated tests from the repository root:
+To develop this project, you need:
+- **Go 1.24.0 or higher**
+- **Docker and Docker Compose** (for running the app and tests)
+- **just** (optional, but recommended for running common tasks)
+
+### Running Commands
+
+All development commands should be run from the repository root using `just`:
 
 ```bash
-go test ./src/tests/...
+# Run all tests
+just test
+
+# Build the Docker image
+just build
+
+# Run the CLI with any subcommand
+just run list
+just run start "project" "task"
+just run stop
+
+# View the dev data file (for debugging)
+just inspect-data
+
+# Import JSON data into the dev volume
+just import-data < data.json
+```
+
+### Testing
+
+To run the automated tests:
+
+```bash
+just test
 ```
 
 This will run contract tests, integration tests, and unit tests.

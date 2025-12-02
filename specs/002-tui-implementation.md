@@ -95,8 +95,11 @@ The current CLI-only interface requires users to remember or look up project and
 - [ ] Clean up any deprecated information
 
 ### Testing
-- [ ] Add integration tests for TUI data operations
+- [ ] Add unit tests for model state transitions (sending messages and verifying state changes)
+- [ ] Add integration tests for TUI data operations:
+  - Start entry via TUI and verify data file
+  - Stop entry via TUI and verify data file
+  - Load recent entries and verify they match CLI list output
 - [ ] Test autocomplete filtering and ranking logic
-- [ ] Test navigation between screens
-- [ ] Verify data consistency between CLI and TUI
-- [ ] Test edge cases (no data, invalid input, rapid clicks)
+- [ ] Verify data consistency between CLI and TUI operations
+- [ ] Test edge cases (no data, invalid input, concurrent operations)

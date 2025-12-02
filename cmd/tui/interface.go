@@ -194,13 +194,21 @@ func (m *Model) renderTable() string {
 
 // renderFooter renders the footer with help text
 func (m *Model) renderFooter() string {
+	// Determine if selected entry is running
+	toggleAction := "start"
+	if m.selectedIdx >= 0 && m.selectedIdx < len(m.entries) {
+		if m.entries[m.selectedIdx].IsRunning() {
+			toggleAction = "stop"
+		}
+	}
+
 	if m.showHelp {
 		helpText := "Keybindings:\n"
-		helpText += "  j/↓ - down          s - toggle start/stop\n"
+		helpText += "  j/↓ - down          s - " + toggleAction + "\n"
 		helpText += "  k/↑ - up            ? - toggle help\n"
 		helpText += "  q/esc - quit\n"
 		return m.styles.footer.Render(helpText)
 	}
 	// Show compact help footer
-	return m.styles.footer.Render("j/k ↑↓: navigate | s: start/stop | ?: help | q: quit")
+	return m.styles.footer.Render("j/k ↑↓: navigate | s: " + toggleAction + " | ?: help | q: quit")
 }

@@ -113,10 +113,21 @@ func (m *Model) View() string {
 		table = table + m.status + "\n"
 	}
 	
-	// Build layout
+	// Calculate spacer to push footer to bottom
+	tableLines := strings.Count(table, "\n")
+	usedLines := tableLines + footerHeight
+	spacerHeight := m.height - usedLines
+	
+	// Build layout with spacer
+	var spacer string
+	if spacerHeight > 0 {
+		spacer = lipgloss.NewStyle().Height(spacerHeight).Render("")
+	}
+	
 	return lipgloss.JoinVertical(
 		lipgloss.Top,
 		table,
+		spacer,
 		footer,
 	)
 }

@@ -17,7 +17,7 @@
           # We don't have real versions yet
           version = "alpha";
           
-          src = ./.;
+          src = .;
 
           goPackagePath = "time-tracker";
           vendorHash = null;

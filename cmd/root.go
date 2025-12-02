@@ -30,7 +30,7 @@ See https://github.com/mrs-electronics-inc/time-tracker for more details.`,
 				return fmt.Errorf("failed to load entries: %w", err)
 			}
 
-			p := tea.NewProgram(model)
+			p := tea.NewProgram(model, tea.WithAltScreen())
 			_, err = p.Run()
 			return err
 		}

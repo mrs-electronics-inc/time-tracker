@@ -22,60 +22,68 @@ The current CLI-only interface requires users to remember or look up project and
 - **Decision**: Default TUI interface is the list of entries. Menu options are: start, stop, exit. Stats will be added in a future spec
 - **Rationale**: Keep initial scope focused on core time tracking actions with list view as the hub
 
+### Design Philosophy
+- **Decision**: TUI design inspired by helix editor and zellij - intuitive with keybindings prominently displayed in the interface
+- **Rationale**: Reduces learning curve and helps users discover features without external documentation
+
 ## Task List
 
-### Phase 1: Setup & Core Infrastructure
+### Setup Bubble Tea Framework
 - [ ] Add charmbracelet/bubbles and charmbracelet/bubbletea dependencies
 - [ ] Create `cmd/tui/` directory structure
 - [ ] Create main TUI model struct implementing bubbletea.Model interface
 - [ ] Implement basic TUI initialization and lifecycle (Init, Update, View)
 - [ ] Add TUI entry point to main CLI (show when no args provided)
 
-### Phase 2: Main Menu
-- [ ] Design main menu with options:
-  - Start new time entry
-  - Stop current entry
-  - List entries
-  - View statistics
-  - Exit
-- [ ] Implement menu navigation and selection
-- [ ] Create navigation stack system for moving between screens
+### Build Entry List View
+- [ ] Create list view showing recent time entries
+- [ ] Display columns: Start, End, Project, Title, Duration (matching CLI list command output)
+- [ ] Implement scrolling through entry list
+- [ ] Add navigation to start/stop options from list view
+- [ ] Display keybindings at bottom of screen (e.g., "s: start, e: stop, q: quit")
 
-### Phase 3: Start/Stop Entry Screens
-- [ ] Create "Start Entry" screen with:
-  - Project name input with autocomplete
-  - Task/title input with autocomplete
-  - Submit button
+### Build Autocomplete Component
+- [ ] Extract unique projects and tasks from historical entries, weighted by recency
+- [ ] Implement filtering logic as user types
+- [ ] Display top suggestions dynamically
+- [ ] Allow keyboard navigation (arrow keys) and selection (Enter)
+- [ ] Allow free-text entry not limited to historical values
+
+### Build Start Entry Flow
+- [ ] Create screen showing 10 most recent unique (project, task) combinations
+- [ ] Set "something else" as default selection
+- [ ] When "something else" selected, show manual entry input screens:
+  - Project name input with autocomplete from historical data
+  - Task/title input with autocomplete from historical data
+  - Submit to start new entry
+- [ ] When recent task selected, immediately start entry with that project/task
+- [ ] Display keybindings for navigation and actions (e.g., "↑↓: navigate, enter: select, esc: back")
+
+### Build Stop Entry Flow
 - [ ] Create "Stop Entry" screen
-  - Show currently running entry (if any)
-  - Confirmation prompt
-- [ ] Autocomplete component:
-  - Filter suggestions as user types
-  - Display top 5-10 matches
-  - Allow arrow keys to select suggestion
-  - Allow Enter to confirm selection
+- [ ] Show currently running entry (if any)
+- [ ] Display project, task, and elapsed time
+- [ ] Add confirmation prompt before stopping
+- [ ] Handle case when no entry is running
+- [ ] Display keybindings for confirmation and navigation (e.g., "y: confirm, n: cancel, esc: back")
 
-### Phase 4: Recent Entries & Duplicate
-- [ ] Create "Recent Entries" screen showing last 10 entries
-- [ ] Display: project, title, duration, start time
-- [ ] Implement duplicate entry functionality:
-  - Select entry from list
-  - Press 'd' to duplicate (start new entry with same project/title)
-- [ ] Gracefully handle duplicate of currently running entry
-
-### Phase 5: Integration with Data Store
-- [ ] Connect TUI start/stop actions to existing data store logic
+### Integration with Data Store
+- [ ] Connect TUI start action to existing data store start logic
+- [ ] Connect TUI stop action to existing data store stop logic
 - [ ] Ensure data consistency between CLI and TUI operations
+- [ ] Load historical entries for recent task list and autocomplete suggestions
 - [ ] Test concurrent operations (CLI + TUI)
 
-### Phase 6: Polish & UX
-- [ ] Add help text and keybinding hints
-- [ ] Improve visual styling with colors and spacing
+### Polish & UX
+- [ ] Implement consistent keybinding display across all screens (footer/status bar)
+- [ ] Improve visual styling with colors and spacing (inspired by helix/zellij)
 - [ ] Add loading states for data operations
-- [ ] Handle edge cases (empty data, no projects yet, errors)
+- [ ] Handle edge cases (empty data, no entries yet, errors)
 - [ ] Add ability to go back to previous screen (Escape key)
+- [ ] Smooth transitions between screens
+- [ ] Ensure all interactive elements show available keybindings in the interface
 
-### Phase 7: README Updates
+### README Updates
 - [ ] Add "Using the TUI" section with:
   - How to launch TUI (run without args)
   - Keyboard shortcuts reference
@@ -86,8 +94,9 @@ The current CLI-only interface requires users to remember or look up project and
   - Remove out-of-date build/run instructions
 - [ ] Clean up any deprecated information
 
-### Phase 8: Testing
+### Testing
 - [ ] Add integration tests for TUI data operations
-- [ ] Test autocomplete filtering logic
+- [ ] Test autocomplete filtering and ranking logic
 - [ ] Test navigation between screens
 - [ ] Verify data consistency between CLI and TUI
+- [ ] Test edge cases (no data, invalid input, rapid clicks)

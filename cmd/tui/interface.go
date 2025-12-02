@@ -87,23 +87,31 @@ func (m *Model) View() string {
 	table := m.renderTable()
 	
 	// Add status message if present
-	var content string
 	if m.status != "" {
-		content = table + m.status + "\n"
-	} else {
-		content = table
+		table = table + m.status + "\n"
 	}
 	
 	// Render footer
 	footer := m.renderFooter()
 
-	// Use lipgloss to position footer at bottom
-	return lipgloss.JoinVertical(
-		lipgloss.Top,
-		content,
-		lipgloss.NewStyle().Height(m.height - strings.Count(content, "\n") - 1).Render(""),
-		footer,
-	)
+	// Calculate spacer height to push footer to bottom
+	contentLines := strings.Count(table, "\n")
+	footerLines := strings.Count(footer, "\n") + 1
+	spacerHeight := m.height - contentLines - footerLines
+	
+	// Build layout with spacer
+	if spacerHeight > 0 {
+		spacer := lipgloss.NewStyle().Height(spacerHeight).Render("")
+		return lipgloss.JoinVertical(
+			lipgloss.Top,
+			table,
+			spacer,
+			footer,
+		)
+	}
+	
+	// If not enough space, just render table and footer
+	return table + footer
 }
 
 // renderTable renders the table with entries

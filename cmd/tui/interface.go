@@ -83,34 +83,27 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	var output strings.Builder
-
 	// Render table
 	table := m.renderTable()
-	output.WriteString(table)
-
-	// Add status message if present
-	if m.status != "" {
-		output.WriteString(m.status + "\n")
-	}
-
-	// Calculate lines used and pad to push footer to bottom
-	lines := strings.Count(table, "\n")
-	if m.status != "" {
-		lines++ // status message line
-	}
-	lines++ // blank line before footer
 	
-	// Pad with blank lines if needed
-	if m.height > 0 && lines < m.height-1 {
-		blankLines := m.height - 1 - lines
-		output.WriteString(strings.Repeat("\n", blankLines))
+	// Add status message if present
+	var content string
+	if m.status != "" {
+		content = table + m.status + "\n"
+	} else {
+		content = table
 	}
+	
+	// Render footer
+	footer := m.renderFooter()
 
-	// Always show footer with help text
-	output.WriteString("\n" + m.renderFooter())
-
-	return output.String()
+	// Use lipgloss to position footer at bottom
+	return lipgloss.JoinVertical(
+		lipgloss.Top,
+		content,
+		lipgloss.NewStyle().Height(m.height - strings.Count(content, "\n") - 1).Render(""),
+		footer,
+	)
 }
 
 // renderTable renders the table with entries

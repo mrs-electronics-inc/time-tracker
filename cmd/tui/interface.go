@@ -90,13 +90,11 @@ func (m *Model) View() string {
 
 	// Add status message if present
 	if m.status != "" {
-		output.WriteString("\n" + m.status + "\n")
+		output.WriteString(m.status + "\n")
 	}
 
-	// Add help if enabled
-	if m.showHelp {
-		output.WriteString("\n" + m.renderHelp())
-	}
+	// Always show footer with help text
+	output.WriteString("\n" + m.renderFooter())
 
 	return output.String()
 }
@@ -163,34 +161,39 @@ func (m *Model) renderTable() string {
 		)
 
 		// Apply styling
+		var styledRow string
 		if i == m.selectedIdx {
-			// Selected row - use selected style with inverse
-			row = lipgloss.NewStyle().
+			// Selected row - highlight with bold and inverse
+			styledRow = lipgloss.NewStyle().
+				Bold(true).
 				Reverse(true).
-				Foreground(lipgloss.Color("0")).
 				Render(row)
 		} else if entry.IsRunning() {
 			// Running entry - use running style
-			row = m.styles.running.Render(row)
+			styledRow = m.styles.running.Render(row)
 		} else if entry.IsBlank() {
 			// Gap entry - use gap style
-			row = m.styles.gap.Render(row)
+			styledRow = m.styles.gap.Render(row)
 		} else {
 			// Regular unselected - use unselected style
-			row = m.styles.unselected.Render(row)
+			styledRow = m.styles.unselected.Render(row)
 		}
 
-		output.WriteString(row + "\n")
+		output.WriteString(styledRow + "\n")
 	}
 
 	return output.String()
 }
 
-// renderHelp renders the help display
-func (m *Model) renderHelp() string {
-	helpText := "Keybindings:\n"
-	helpText += "  j/↓ - down          s - toggle start/stop\n"
-	helpText += "  k/↑ - up            ? - toggle help\n"
-	helpText += "  q/esc - quit\n"
-	return m.styles.footer.Render(helpText)
+// renderFooter renders the footer with help text
+func (m *Model) renderFooter() string {
+	if m.showHelp {
+		helpText := "Keybindings:\n"
+		helpText += "  j/↓ - down          s - toggle start/stop\n"
+		helpText += "  k/↑ - up            ? - toggle help\n"
+		helpText += "  q/esc - quit\n"
+		return m.styles.footer.Render(helpText)
+	}
+	// Show compact help footer
+	return m.styles.footer.Render("j/k ↑↓: navigate | s: start/stop | ?: help | q: quit")
 }

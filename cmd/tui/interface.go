@@ -148,12 +148,12 @@ func (m *Model) renderTable() string {
 		titleWidth, "Title",
 		"Duration",
 	)
-	output.WriteString(headerText + "\n")
+	output.WriteString(m.styles.header.Render(headerText) + "\n")
 
 	// Render separator (4 spaces for column separators between 5 columns)
 	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
 	separatorText := strings.Repeat("─", separatorWidth)
-	output.WriteString(separatorText + "\n")
+	output.WriteString(m.styles.header.Render(separatorText) + "\n")
 
 	// Render rows
 	for i, entry := range m.entries {
@@ -235,12 +235,12 @@ func (m *Model) renderTableLimited(maxHeight int) string {
 		titleWidth, "Title",
 		"Duration",
 	)
-	output.WriteString(headerText + "\n")
+	output.WriteString(m.styles.header.Render(headerText) + "\n")
 
 	// Render separator (4 spaces for column separators between 5 columns)
 	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
 	separatorText := strings.Repeat("─", separatorWidth)
-	output.WriteString(separatorText + "\n")
+	output.WriteString(m.styles.header.Render(separatorText) + "\n")
 
 	// Render rows up to maxHeight (maxHeight accounts for header + separator already)
 	maxRows := maxHeight

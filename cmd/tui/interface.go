@@ -1,6 +1,9 @@
 package tui
 
 import (
+	"strings"
+
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -15,9 +18,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.help.Width = msg.Width
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		if key.Matches(msg, m.keys.Quit) {
 			return m, tea.Quit
 		}
 	}
@@ -30,32 +33,23 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	switch m.currentScreen {
-	case ScreenList:
-		return m.viewList()
-	case ScreenMenu:
-		return m.viewMenu()
-	default:
-		return "Unknown screen\n"
-	}
-}
-
-// viewList renders the entry list view
-func (m *Model) viewList() string {
 	// Header
-	output := "=== Time Tracker ===\n"
-	output += "\n"
+	header := m.styles.header.Render("Time Tracker")
 	
-	// Content area
-	contentHeight := m.height - 5 // Reserve space for header and footer
+	// Content area - calculate available space
+	helpView := m.help.View(m.keys)
+	helpLines := strings.Count(helpView, "\n")
+	contentHeight := m.height - 3 - helpLines // -3 for header and spacing
 	if contentHeight < 3 {
 		contentHeight = 3
 	}
 
+	// Entries list
+	var content string
 	if len(m.entries) == 0 {
-		output += "No time entries yet.\n"
+		content = "No time entries yet.\n"
 	} else {
-		output += "Recent entries:\n"
+		content = "Recent entries:\n"
 		// Show entries that fit in the available space
 		displayCount := contentHeight - 1 // -1 for the "Recent entries:" line
 		start := 0
@@ -64,23 +58,17 @@ func (m *Model) viewList() string {
 		}
 		for i := len(m.entries) - 1; i >= start; i-- {
 			entry := m.entries[i]
-			status := "●" // Running indicator
+			status := "●"
 			if entry.End != nil {
 				status = "○"
 			}
-			output += status + " " + entry.Project + " > " + entry.Title + "\n"
+			content += status + " " + entry.Project + " > " + entry.Title + "\n"
 		}
 	}
 
-	// Footer with keybindings
-	output += "\n"
-	output += "─────────────────────────────────────────────────────────────────\n"
-	output += "q: quit\n"
-	
-	return output
-}
+	// Build final view
+	divider := m.styles.divider.Render(strings.Repeat("─", m.width))
+	footer := m.help.View(m.keys)
 
-// viewMenu renders the menu view
-func (m *Model) viewMenu() string {
-	return "Menu not yet implemented\n"
+	return header + "\n\n" + content + "\n" + divider + "\n" + footer
 }

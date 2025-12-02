@@ -85,17 +85,22 @@ func (m *Model) View() string {
 				durationStr = fmt.Sprintf("%dm", minutes)
 			}
 			
-			// Truncate long strings to fit columns
-			project := entry.Project
-			if len(project) > 15 {
-				project = project[:12] + "..."
+			// For blank entries, only show start/end/duration
+			if entry.IsBlank() {
+				content += fmt.Sprintf("%-20s %-20s %-15s %-20s %-10s\n", startStr, endStr, "", "", durationStr)
+			} else {
+				// Truncate long strings to fit columns
+				project := entry.Project
+				if len(project) > 15 {
+					project = project[:12] + "..."
+				}
+				title := entry.Title
+				if len(title) > 20 {
+					title = title[:17] + "..."
+				}
+				
+				content += fmt.Sprintf("%-20s %-20s %-15s %-20s %-10s\n", startStr, endStr, project, title, durationStr)
 			}
-			title := entry.Title
-			if len(title) > 20 {
-				title = title[:17] + "..."
-			}
-			
-			content += fmt.Sprintf("%-20s %-20s %-15s %-20s %-10s\n", startStr, endStr, project, title, durationStr)
 		}
 	}
 

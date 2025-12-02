@@ -29,11 +29,11 @@ The current CLI-only interface requires users to remember or look up project and
 ## Task List
 
 ### Setup Bubble Tea Framework
-- [ ] Add charmbracelet/bubbles and charmbracelet/bubbletea dependencies
-- [ ] Create `cmd/tui/` directory structure
-- [ ] Create main TUI model struct implementing bubbletea.Model interface
-- [ ] Implement basic TUI initialization and lifecycle (Init, Update, View)
-- [ ] Add TUI entry point to main CLI (show when no args provided)
+- [x] Add charmbracelet/bubbles and charmbracelet/bubbletea dependencies
+- [x] Create `cmd/tui/` directory structure
+- [x] Create main TUI model struct implementing bubbletea.Model interface
+- [x] Implement basic TUI initialization and lifecycle (Init, Update, View)
+- [x] Add TUI entry point to main CLI (show when no args provided)
 
 ### Build Entry List View
 - [ ] Create list view showing recent time entries

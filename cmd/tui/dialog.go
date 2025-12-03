@@ -6,7 +6,6 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"time-tracker/models"
 )
 
@@ -220,11 +219,6 @@ func (m *Model) renderDialog() string {
 			dialog.WriteString(m.styles.statusSuccess.Render(m.status) + "\n\n")
 		}
 	}
-
-	// Add help text
-	helpText := "Tab/↓/↑ switch • Enter submit • Esc cancel"
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
-	dialog.WriteString(helpStyle.Render(helpText) + "\n")
 
 	// Wrap in styled box
 	return m.styles.dialogBox.Render(dialog.String())

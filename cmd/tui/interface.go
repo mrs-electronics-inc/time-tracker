@@ -109,18 +109,19 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
+	// If in dialog mode, render dialog instead of list
+	if m.dialogMode {
+		return m.renderDialog()
+	}
+
 	// Show loading indicator if operation in progress
 	if m.loading {
 		return m.renderLoading()
 	}
 
-	// Render footer first to know its height (skip if in dialog mode)
-	var footer string
-	footerHeight := 0
-	if !m.dialogMode {
-		footer = m.renderFooter()
-		footerHeight = strings.Count(footer, "\n") + 1
-	}
+	// Render footer first to know its height
+	footer := m.renderFooter()
+	footerHeight := strings.Count(footer, "\n") + 1
 
 	// Header takes 2 lines (header + separator)
 	headerHeight := 2
@@ -166,15 +167,7 @@ func (m *Model) View() string {
 
 	parts = append(parts, footer)
 
-	output := strings.Join(parts, "")
-
-	// If in dialog mode, render as centered overlay
-	if m.dialogMode {
-		dialogContent := m.renderDialog()
-		output = m.compositeOverlay(output, dialogContent)
-	}
-
-	return output
+	return strings.Join(parts, "")
 }
 
 // renderTableHeader renders just the table header

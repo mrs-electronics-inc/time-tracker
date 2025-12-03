@@ -111,16 +111,19 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "enter":
 		// If autocomplete is showing and a suggestion is selected, auto-fill it
 		if m.showAutocomplete && m.focusIndex < 2 {
-			if selected := m.autocomplete.GetSelectedSuggestion(); selected != nil {
-				if m.focusIndex == 0 {
-					// Fill project and move to title
-					m.inputs[0].SetValue(selected.Project)
+			if m.focusIndex == 0 {
+				// Fill project from filtered projects and move to title
+				if m.autocomplete.selectedIdx >= 0 && m.autocomplete.selectedIdx < len(m.autocomplete.FilteredProjects) {
+					project := m.autocomplete.FilteredProjects[m.autocomplete.selectedIdx]
+					m.inputs[0].SetValue(project)
 					m.focusIndex = 1
 					m.updateInputFocus()
 					m.updateAutocompleteFilter()
 					return m, nil
-				} else if m.focusIndex == 1 {
-					// Fill title
+				}
+			} else if m.focusIndex == 1 {
+				// Fill title from filtered tasks
+				if selected := m.autocomplete.GetSelectedSuggestion(); selected != nil {
 					m.inputs[1].SetValue(selected.Title)
 					m.showAutocomplete = false
 					return m, nil
@@ -219,12 +222,12 @@ func (m *Model) updateAutocompleteFilter() {
 	if m.focusIndex == 0 {
 		// Filter projects based on project input
 		input := m.inputs[0].Value()
-		_ = m.autocomplete.FilterProjects(input)
+		m.autocomplete.FilterProjects(input)
 	} else if m.focusIndex == 1 {
 		// Filter tasks based on project and title inputs
 		project := m.inputs[0].Value()
 		title := m.inputs[1].Value()
-		_ = m.autocomplete.FilterTasks(title, project)
+		m.autocomplete.FilterTasks(title, project)
 	}
 }
 
@@ -239,36 +242,54 @@ func (m *Model) renderAutocompleteList(fieldIndex int) string {
 		return ""
 	}
 
-	suggestions := m.autocomplete.FilteredResults
-	if len(suggestions) == 0 {
-		return ""
-	}
-
-	// Limit to 5 visible suggestions
-	maxSuggestions := 5
-	if len(suggestions) > maxSuggestions {
-		suggestions = suggestions[:maxSuggestions]
-	}
-
 	var output strings.Builder
 	suggestionStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 	selectedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("220")).Bold(true)
 
-	output.WriteString("\n")
-	for i, suggestion := range suggestions {
-		var displayText string
-		if fieldIndex == 0 {
-			displayText = suggestion.Project
-		} else {
-			displayText = suggestion.Title
+	if fieldIndex == 0 {
+		// Show filtered projects
+		suggestions := m.autocomplete.FilteredProjects
+		if len(suggestions) == 0 {
+			return ""
 		}
 
-		if i == m.autocomplete.selectedIdx {
-			output.WriteString(selectedStyle.Render("▶ " + displayText))
-		} else {
-			output.WriteString(suggestionStyle.Render("  " + displayText))
+		// Limit to 5 visible suggestions
+		maxSuggestions := 5
+		if len(suggestions) > maxSuggestions {
+			suggestions = suggestions[:maxSuggestions]
 		}
+
 		output.WriteString("\n")
+		for i, project := range suggestions {
+			if i == m.autocomplete.selectedIdx {
+				output.WriteString(selectedStyle.Render("▶ " + project))
+			} else {
+				output.WriteString(suggestionStyle.Render("  " + project))
+			}
+			output.WriteString("\n")
+		}
+	} else if fieldIndex == 1 {
+		// Show filtered tasks (from selected project only)
+		suggestions := m.autocomplete.FilteredResults
+		if len(suggestions) == 0 {
+			return ""
+		}
+
+		// Limit to 5 visible suggestions
+		maxSuggestions := 5
+		if len(suggestions) > maxSuggestions {
+			suggestions = suggestions[:maxSuggestions]
+		}
+
+		output.WriteString("\n")
+		for i, task := range suggestions {
+			if i == m.autocomplete.selectedIdx {
+				output.WriteString(selectedStyle.Render("▶ " + task.Title))
+			} else {
+				output.WriteString(suggestionStyle.Render("  " + task.Title))
+			}
+			output.WriteString("\n")
+		}
 	}
 
 	return output.String()

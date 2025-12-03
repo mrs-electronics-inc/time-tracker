@@ -15,19 +15,23 @@ type AutocompleteResult struct {
 
 // AutocompleteSuggestions holds project and task suggestions
 type AutocompleteSuggestions struct {
-	Projects        []string           // Unique projects
-	Tasks           []AutocompleteResult // (project, title) combinations
-	FilteredResults []AutocompleteResult // Currently filtered results
-	selectedIdx     int                // Index of currently selected suggestion
+	Projects           []string           // Unique projects
+	Tasks              []AutocompleteResult // (project, title) combinations
+	FilteredResults    []AutocompleteResult // Currently filtered task results
+	FilteredProjects   []string            // Currently filtered project results
+	selectedIdx        int                // Index of currently selected suggestion
+	isProjectFiltering bool               // Whether we're currently filtering projects
 }
 
 // NewAutocompleteSuggestions creates a new autocomplete suggestions object
 func NewAutocompleteSuggestions() *AutocompleteSuggestions {
 	return &AutocompleteSuggestions{
-		Projects:        []string{},
-		Tasks:           []AutocompleteResult{},
-		FilteredResults: []AutocompleteResult{},
-		selectedIdx:     0,
+		Projects:           []string{},
+		Tasks:              []AutocompleteResult{},
+		FilteredResults:    []AutocompleteResult{},
+		FilteredProjects:   []string{},
+		selectedIdx:        0,
+		isProjectFiltering: false,
 	}
 }
 
@@ -80,13 +84,17 @@ func (a *AutocompleteSuggestions) ExtractFromEntries(entries []models.TimeEntry)
 
 	// Initialize filtered results with all tasks
 	a.FilteredResults = a.Tasks
+	a.FilteredProjects = a.Projects
 	a.selectedIdx = 0
 }
 
 // FilterProjects filters project suggestions based on input text
-func (a *AutocompleteSuggestions) FilterProjects(input string) []string {
+func (a *AutocompleteSuggestions) FilterProjects(input string) {
 	if input == "" {
-		return a.Projects
+		a.FilteredProjects = a.Projects
+		a.isProjectFiltering = true
+		a.selectedIdx = 0
+		return
 	}
 
 	input = strings.ToLower(input)
@@ -96,18 +104,14 @@ func (a *AutocompleteSuggestions) FilterProjects(input string) []string {
 			results = append(results, project)
 		}
 	}
-	return results
+	a.FilteredProjects = results
+	a.isProjectFiltering = true
+	a.selectedIdx = 0
 }
 
 // FilterTasks filters task suggestions based on input text
 // If projectFilter is not empty, only tasks from that project are returned
-func (a *AutocompleteSuggestions) FilterTasks(input string, projectFilter string) []AutocompleteResult {
-	if input == "" && projectFilter == "" {
-		a.FilteredResults = a.Tasks
-		a.selectedIdx = 0
-		return a.Tasks
-	}
-
+func (a *AutocompleteSuggestions) FilterTasks(input string, projectFilter string) {
 	input = strings.ToLower(input)
 	projectFilter = strings.ToLower(projectFilter)
 
@@ -118,15 +122,17 @@ func (a *AutocompleteSuggestions) FilterTasks(input string, projectFilter string
 			continue
 		}
 
-		// Match input against title
-		if strings.Contains(strings.ToLower(task.Title), input) {
-			results = append(results, task)
+		// Match input against title only if input is provided
+		if input != "" && !strings.Contains(strings.ToLower(task.Title), input) {
+			continue
 		}
+
+		results = append(results, task)
 	}
 
 	a.FilteredResults = results
+	a.isProjectFiltering = false
 	a.selectedIdx = 0
-	return results
 }
 
 // GetSelectedSuggestion returns the currently selected suggestion

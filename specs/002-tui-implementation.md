@@ -50,9 +50,29 @@ The current CLI-only interface requires users to remember or look up project and
 
 ### Build Start Entry Flow
 
-- [ ] Improve the start keybinding - it should open dialog with project and title inputs
-- [ ] Input should default to currently selected item's project and title values
-- [ ] If the currently selected item is the running item, just stop the entry and start a blank entry
+- [ ] Add dialog state to Model (dialogMode, inputs []textinput.Model, focusIndex)
+- [ ] Initialize textinput components with proper styling (focused/blurred styles)
+- [ ] Implement dialog mode in Update handler:
+  - [ ] Trigger dialog on 's' key in list mode, pre-populate with selected entry values
+  - [ ] Handle Tab/Up/Down/Shift+Tab to cycle focus between project and title inputs
+  - [ ] Handle Enter to submit and call taskManager.StartEntry()
+  - [ ] Handle Esc to cancel and return to list
+  - [ ] Route character input to focused textinput
+- [ ] Implement dialog rendering in View:
+  - [ ] Show modal dialog with project and title inputs
+  - [ ] Display keybinding hints (Enter: Submit | Esc: Cancel)
+  - [ ] Handle special case: if selected entry is running, show "stop and start blank" option
+- [ ] Reload entries after successful start and return to list view
+
+### Autocomplete Suggestions
+
+- [ ] Implement autocomplete suggestions for project and title inputs:
+  - [ ] Extract unique projects and (project, title) combinations from entries
+  - [ ] Weight suggestions toward most recent entries
+  - [ ] Filter suggestions as user types
+  - [ ] Display matching suggestions below input field
+- [ ] Handle autocomplete navigation (arrow keys to select suggestion)
+- [ ] Auto-fill input when user selects a suggestion
 
 ### Polish & UX
 

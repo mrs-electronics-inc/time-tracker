@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"time-tracker/models"
 	"time-tracker/utils"
@@ -77,22 +78,47 @@ type Model struct {
 	height      int                // Terminal height
 	showHelp    bool               // Whether to show full help text
 	help        help.Model         // Help component
+
+	// Dialog state
+	dialogMode  bool                  // Whether we're in dialog mode
+	inputs      []textinput.Model     // Text inputs for project and title
+	focusIndex  int                   // Currently focused input (0 = project, 1 = title)
 }
 
 // styles defines the visual styling for different UI elements
 type styles struct {
-	header     lipgloss.Style // Header row style
-	footer     lipgloss.Style // Footer style
-	selected   lipgloss.Style // Selected row style
-	unselected lipgloss.Style // Unselected row style
-	running    lipgloss.Style // Running entry style
-	gap        lipgloss.Style // Gap/blank entry style
+	header          lipgloss.Style // Header row style
+	footer          lipgloss.Style // Footer style
+	selected        lipgloss.Style // Selected row style
+	unselected      lipgloss.Style // Unselected row style
+	running         lipgloss.Style // Running entry style
+	gap             lipgloss.Style // Gap/blank entry style
+	dialogFocused   lipgloss.Style // Dialog focused input style
+	dialogBlurred   lipgloss.Style // Dialog blurred input style
 }
 
 // NewModel creates a new TUI model
 func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	h := help.New()
 	h.ShowAll = false
+
+	// Create textinput models for dialog
+	inputs := make([]textinput.Model, 2)
+
+	// Project input
+	inputs[0] = textinput.New()
+	inputs[0].Placeholder = "Project"
+	inputs[0].CharLimit = 128
+	inputs[0].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	inputs[0].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
+	// Title input
+	inputs[1] = textinput.New()
+	inputs[1].Placeholder = "Title"
+	inputs[1].CharLimit = 128
+	inputs[1].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[1].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
 	return &Model{
 		storage:     storage,
 		taskManager: taskManager,
@@ -101,13 +127,18 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		keys:        keys,
 		showHelp:    false,
 		help:        h,
+		dialogMode:  false,
+		inputs:      inputs,
+		focusIndex:  0,
 		styles: styles{
-			header:     lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
-			footer:     lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
-			selected:   lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true),
-			unselected: lipgloss.NewStyle().Foreground(lipgloss.Color("7")),
-			running:    lipgloss.NewStyle().Foreground(lipgloss.Color("11")),
-			gap:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true),
+			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
+			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
+			selected:      lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true),
+			unselected:    lipgloss.NewStyle().Foreground(lipgloss.Color("7")),
+			running:       lipgloss.NewStyle().Foreground(lipgloss.Color("11")),
+			gap:           lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true),
+			dialogFocused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
+			dialogBlurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
 		},
 	}
 }

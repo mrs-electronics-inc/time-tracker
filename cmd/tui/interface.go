@@ -109,11 +109,6 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	// If in dialog mode, render dialog instead of list
-	if m.dialogMode {
-		return m.renderDialog()
-	}
-
 	// Show loading indicator if operation in progress
 	if m.loading {
 		return m.renderLoading()
@@ -351,12 +346,12 @@ func (m *Model) compositeOverlay(background, foreground string) string {
 func (m *Model) renderLoading() string {
 	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 	frame := frames[int(time.Now().Unix()*10)%len(frames)]
-	
+
 	loadingText := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("11")).
 		Bold(true).
 		Render(frame + " Loading...")
-	
+
 	return "\n\n" + loadingText + "\n"
 }
 

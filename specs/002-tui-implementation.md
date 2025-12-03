@@ -50,8 +50,8 @@ The current CLI-only interface requires users to remember or look up project and
 
 ### Build Start Entry Flow
 
-- [ ] Add dialog state to Model (dialogMode, inputs []textinput.Model, focusIndex)
-- [ ] Initialize textinput components with proper styling (focused/blurred styles)
+- [x] Add dialog state to Model (dialogMode, inputs []textinput.Model, focusIndex)
+- [x] Initialize textinput components with proper styling (focused/blurred styles)
 - [ ] Implement dialog mode in Update handler:
   - [ ] Trigger dialog on 's' key in list mode, pre-populate with selected entry values
   - [ ] Handle Tab/Up/Down/Shift+Tab to cycle focus between project and title inputs

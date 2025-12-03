@@ -22,6 +22,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 	case tea.KeyMsg:
+		// Dialog mode key handling
+		if m.dialogMode {
+			return m.handleDialogKeyMsg(msg)
+		}
+
+		// List mode key handling
 		if key.Matches(msg, m.keys.Help) {
 			m.showHelp = !m.showHelp
 			return m, nil
@@ -68,12 +74,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.status = "Entry stopped"
 					}
 				} else if !entry.IsBlank() {
-					// Start new entry from selected entry's project/title
-					if _, err := m.taskManager.StartEntry(entry.Project, entry.Title); err != nil {
-						m.status = "Error starting entry: " + err.Error()
-					} else {
-						m.status = "Entry started: " + entry.Project
-					}
+					// Open dialog to start new entry
+					m.openStartDialog(entry)
 				}
 				// Reload entries to update display
 				if err := m.LoadEntries(); err != nil {
@@ -91,6 +93,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) View() string {
 	if m.err != nil {
 		return "Error: " + m.err.Error() + "\n"
+	}
+
+	// If in dialog mode, render dialog instead of list
+	if m.dialogMode {
+		return m.renderDialog()
 	}
 
 	// Render footer first to know its height

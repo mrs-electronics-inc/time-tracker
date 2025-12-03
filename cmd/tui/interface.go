@@ -30,14 +30,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		// Dialog mode key handling
-		if m.dialogMode {
-			return m.handleDialogKeyMsg(msg)
+		// Start mode key handling
+		if m.mode == ModeStart {
+			return m.handleStartKeyMsg(msg)
+		}
+
+		// Help mode key handling
+		if m.mode == ModeHelp {
+			return m.handleHelpKeyMsg(msg)
 		}
 
 		// List mode key handling
 		if key.Matches(msg, m.keys.Help) {
-			m.showHelp = !m.showHelp
+			m.prevMode = m.mode
+			m.mode = ModeHelp
 			return m, nil
 		}
 
@@ -70,11 +76,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Toggle start/stop or open dialog to start
+		// Toggle start/stop
 		if key.Matches(msg, m.keys.Toggle) {
 			if len(m.entries) == 0 {
-				// No entries yet - open blank start dialog
-				m.openStartDialogBlank()
+				// No entries yet - open blank start mode
+				m.openStartModeBlank()
 			} else if m.selectedIdx >= 0 && m.selectedIdx < len(m.entries) {
 				entry := m.entries[m.selectedIdx]
 				if entry.IsRunning() {
@@ -85,11 +91,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.status = "Entry stopped"
 					}
 				} else if !entry.IsBlank() {
-					// Open dialog to start new entry
-					m.openStartDialog(entry)
+					// Start new entry based on selected
+					m.openStartMode(entry)
 				} else {
-					// Blank entry - open blank start dialog
-					m.openStartDialogBlank()
+					// Blank entry - open blank start mode
+					m.openStartModeBlank()
 				}
 				// Reload entries to update display
 				if err := m.LoadEntries(); err != nil {
@@ -109,9 +115,14 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	// If in dialog mode, render dialog instead of list
-	if m.dialogMode {
-		return m.renderDialog()
+	// If in start mode, render start screen
+	if m.mode == ModeStart {
+		return m.renderStartScreen()
+	}
+
+	// If in help mode, render help screen
+	if m.mode == ModeHelp {
+		return m.renderHelpScreen()
 	}
 
 	// Show loading indicator if operation in progress
@@ -282,69 +293,6 @@ func (m *Model) renderTableRows(maxHeight int) string {
 	return output.String()
 }
 
-// compositeOverlay overlays a dialog centered on the background using simple string compositing
-func (m *Model) compositeOverlay(background, foreground string) string {
-	bgLines := strings.Split(background, "\n")
-	fgLines := strings.Split(foreground, "\n")
-
-	// Calculate dimensions (use lipgloss.Width for proper terminal width with ANSI codes)
-	fgHeight := len(fgLines)
-	fgWidth := 0
-	for _, line := range fgLines {
-		width := lipgloss.Width(line)
-		if width > fgWidth {
-			fgWidth = width
-		}
-	}
-
-	// Calculate starting positions for centering
-	startRow := (m.height - fgHeight) / 2
-	startCol := (m.width - fgWidth) / 2
-
-	// Ensure non-negative offsets
-	if startRow < 0 {
-		startRow = 0
-	}
-	if startCol < 0 {
-		startCol = 0
-	}
-
-	// Pad background to ensure it has enough lines
-	for len(bgLines) < m.height {
-		bgLines = append(bgLines, "")
-	}
-
-	// Overlay foreground onto background
-	for i := 0; i < fgHeight && startRow+i < len(bgLines); i++ {
-		bgLine := bgLines[startRow+i]
-		fgLine := fgLines[i]
-
-		// Pad background line to at least startCol characters
-		bgLineWidth := lipgloss.Width(bgLine)
-		if bgLineWidth < startCol {
-			bgLine = bgLine + strings.Repeat(" ", startCol-bgLineWidth)
-		}
-
-		// Replace the section of bgLine with fgLine, using terminal widths not string lengths
-		fgLineWidth := lipgloss.Width(fgLine)
-		if bgLineWidth < startCol+fgLineWidth {
-			// Dialog extends beyond background line, just append
-			bgLines[startRow+i] = bgLine + fgLine
-		} else {
-			// Need to handle ANSI codes - just use simple replacement for now
-			// This is a limitation: we're replacing based on display width but the string length doesn't match
-			bgLines[startRow+i] = bgLine[:startCol] + fgLine
-		}
-	}
-
-	// Trim trailing empty lines to original height
-	if len(bgLines) > m.height {
-		bgLines = bgLines[:m.height]
-	}
-
-	return strings.Join(bgLines, "\n")
-}
-
 // renderLoading renders a loading indicator
 func (m *Model) renderLoading() string {
 	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
@@ -365,67 +313,81 @@ func (m *Model) renderFooter() string {
 
 // renderStatusBar renders a zellij-style status bar with mode and keybindings
 func (m *Model) renderStatusBar() string {
+	// Colors
+	keyBg := lipgloss.Color("5")   // Magenta for keys
+	keyFg := lipgloss.Color("0")   // Black text on keys
+	labelBg := lipgloss.Color("0") // Black for labels
+	labelFg := lipgloss.Color("8") // Gray text for labels
+	modeBg := lipgloss.Color("10") // Green for mode
+	modeFg := lipgloss.Color("0")  // Black text on mode
+
+	// Styles
 	modeStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("10")).
-		Foreground(lipgloss.Color("0")).
+		Background(modeBg).
+		Foreground(modeFg).
 		Bold(true).
 		Padding(0, 1)
-	
+
+	modeSep := lipgloss.NewStyle().
+		Background(labelBg).
+		Foreground(modeBg).
+		Render("\uE0B0")
+
 	keyStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("8")).
-		Foreground(lipgloss.Color("15")).
+		Background(keyBg).
+		Foreground(keyFg).
 		Padding(0, 1)
-	
-	actionStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("15"))
-	
-	quitStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8"))
-	
-	separator := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8")).
-		Render(" ▶ ")
-	
-	// Build status bar segments
-	var segments []string
-	
-	if m.dialogMode {
-		segments = append(segments, modeStyle.Render("DIALOG"))
-		segments = append(segments, keyStyle.Render("Tab"))
-		segments = append(segments, actionStyle.Render("switch"))
-		segments = append(segments, keyStyle.Render("↵"))
-		segments = append(segments, actionStyle.Render("submit"))
-		segments = append(segments, keyStyle.Render("Esc"))
-		segments = append(segments, actionStyle.Render("cancel"))
-	} else {
-		segments = append(segments, modeStyle.Render("LIST"))
-		segments = append(segments, keyStyle.Render("j/k"))
-		segments = append(segments, actionStyle.Render("navigate"))
-		segments = append(segments, keyStyle.Render("s"))
-		segments = append(segments, actionStyle.Render("start"))
-		segments = append(segments, keyStyle.Render("?"))
-		segments = append(segments, actionStyle.Render("help"))
+
+	keySepLeft := lipgloss.NewStyle().
+		Background(keyBg).
+		Foreground(labelBg).
+		Render("\uE0B0")
+
+	keySepRight := lipgloss.NewStyle().
+		Background(labelBg).
+		Foreground(keyBg).
+		Render("\uE0B0")
+
+	labelStyle := lipgloss.NewStyle().
+		Background(labelBg).
+		Foreground(labelFg).
+		Padding(0, 1)
+
+	// Helper to render a key-label pair with powerline separators
+	renderPair := func(key, label string) string {
+		return keySepLeft + keyStyle.Render(key) + keySepRight + labelStyle.Render(label)
 	}
-	
-	statusBar := strings.Join(segments, separator)
-	
-	// Right-align quit option
-	quitText := keyStyle.Render("q") + separator + quitStyle.Render("quit")
-	
-	// Pad to full width
+
+	var parts []string
+
+	// Mode indicator and keybindings based on current mode
+	switch m.mode {
+	case ModeStart:
+		parts = append(parts, modeStyle.Render("START")+modeSep)
+		parts = append(parts, renderPair("Tab", "switch"))
+		parts = append(parts, renderPair("↵", "submit"))
+		parts = append(parts, renderPair("Esc", "cancel"))
+	case ModeHelp:
+		parts = append(parts, modeStyle.Render("HELP")+modeSep)
+		parts = append(parts, renderPair("Esc", "close"))
+	default: // ModeList
+		parts = append(parts, modeStyle.Render("LIST")+modeSep)
+		parts = append(parts, renderPair("j/k", "navigate"))
+		parts = append(parts, renderPair("s", "start"))
+		parts = append(parts, renderPair("?", "help"))
+		parts = append(parts, renderPair("q", "quit"))
+	}
+
+	statusBar := strings.Join(parts, "")
+
+	// Pad to full width with black background
 	statusBarWidth := lipgloss.Width(statusBar)
-	quitWidth := lipgloss.Width(quitText)
-	totalWidth := statusBarWidth + quitWidth
-	
-	if totalWidth < m.width {
-		padding := strings.Repeat(" ", m.width-totalWidth)
-		statusBar = statusBar + padding + quitText
-	} else {
-		statusBar = statusBar + separator + quitText
+	if statusBarWidth < m.width {
+		padding := lipgloss.NewStyle().
+			Background(labelBg).
+			Render(strings.Repeat(" ", m.width-statusBarWidth))
+		statusBar = statusBar + padding
 	}
-	
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8")).
-		Background(lipgloss.Color("0")).
-		Render(statusBar)
+
+	return statusBar
 }

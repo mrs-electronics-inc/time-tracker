@@ -32,3 +32,6 @@ go.work.sum
 
 # local data
 data/
+
+# output directory
+.go/

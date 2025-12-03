@@ -84,30 +84,16 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "esc":
 		// Cancel dialog
 		m.closeDialog()
-		m.showDialogHelp = false
-		return m, nil
-
-	case "?":
-		// Toggle help in dialog mode
-		m.showDialogHelp = !m.showDialogHelp
 		return m, nil
 
 	case "tab", "down":
-		// Move focus to next input (skip help toggle)
-		if m.showDialogHelp {
-			m.showDialogHelp = false
-			return m, nil
-		}
+		// Move focus to next input
 		m.focusIndex = (m.focusIndex + 1) % len(m.inputs)
 		m.updateInputFocus()
 		return m, nil
 
 	case "shift+tab", "up":
-		// Move focus to previous input (skip help toggle)
-		if m.showDialogHelp {
-			m.showDialogHelp = false
-			return m, nil
-		}
+		// Move focus to previous input
 		m.focusIndex--
 		if m.focusIndex < 0 {
 			m.focusIndex = len(m.inputs) - 1

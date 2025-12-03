@@ -23,6 +23,9 @@ type OperationCompleteMsg struct {
 	Error error
 }
 
+// ContentRenderer is a function type for rendering content for a specific mode
+type ContentRenderer func(availableHeight int) string
+
 // keyMap defines keybindings for the TUI
 type keyMap struct {
 	Help       key.Binding

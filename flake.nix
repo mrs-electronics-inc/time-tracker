@@ -19,8 +19,7 @@
           
           src = self;
 
-          goPackagePath = "time-tracker";
-          vendorHash = null;
+          vendorHash = "sha256-arEPtNEVBcrVM9dR2E25asI6A+viWd/k/rOv0eG+2tk=";
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";

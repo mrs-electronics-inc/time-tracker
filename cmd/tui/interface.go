@@ -248,6 +248,8 @@ func (m *Model) renderTableRows(maxHeight int) string {
 		endStr := "running"
 		if entry.End != nil {
 			endStr = entry.End.Format("2006-01-02 15:04")
+		} else if entry.IsBlank() {
+			endStr = "stopped"
 		}
 
 		project := entry.Project
@@ -363,8 +365,8 @@ func (m *Model) renderStatusBar() string {
 	switch m.mode {
 	case ModeStart:
 		parts = append(parts, modeStyle.Render("START")+modeSep)
-		parts = append(parts, renderPair("Tab", "NEXT INPUT"))
-		parts = append(parts, renderPair("↵", "SUBMIT"))
+		parts = append(parts, renderPair("Tab", "NEXT"))
+		parts = append(parts, renderPair("Enter", "SUBMIT"))
 		parts = append(parts, renderPair("Esc", "CANCEL"))
 	case ModeHelp:
 		parts = append(parts, modeStyle.Render("HELP")+modeSep)
@@ -372,9 +374,10 @@ func (m *Model) renderStatusBar() string {
 	default: // ModeList
 		parts = append(parts, modeStyle.Render("LIST")+modeSep)
 		parts = append(parts, renderPair("j/k", "NAVIGATE"))
+		parts = append(parts, renderPair("G", "GO TO CURRENT"))
 		parts = append(parts, renderPair("s", "START/STOP"))
 		parts = append(parts, renderPair("?", "HELP"))
-		parts = append(parts, renderPair("q", "QUIT"))
+		parts = append(parts, renderPair("Esc", "QUIT"))
 	}
 
 	// Build left side of status bar
@@ -386,13 +389,13 @@ func (m *Model) renderStatusBar() string {
 			Foreground(magenta).
 			Padding(0, 1)
 		rightSide := statusStyle.Render(m.status)
-		
+
 		// Calculate padding to right-align status
 		leftWidth := lipgloss.Width(leftSide)
 		rightWidth := lipgloss.Width(rightSide)
 		totalWidth := leftWidth + rightWidth
 		paddingWidth := max(m.width-totalWidth, 0)
-		
+
 		padding := strings.Repeat(" ", paddingWidth)
 		return leftSide + padding + rightSide
 	}

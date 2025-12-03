@@ -135,12 +135,12 @@ func (m *Model) handleStartKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Build the start time
 		now := time.Now()
 		date := now
-		
+
 		// If entered time is later than current time, use yesterday's date
 		if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
 			date = now.AddDate(0, 0, -1)
 		}
-		
+
 		startTime := time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location())
 
 		// Start the entry with specified time
@@ -207,16 +207,16 @@ func (m *Model) renderHelpScreen() string {
 	// Show keybindings based on the previous mode
 	switch m.prevMode {
 	case ModeStart:
-		content.WriteString(keyStyle.Render("Tab / ↓") + descStyle.Render("  Next field") + "\n")
+		content.WriteString(keyStyle.Render("Tab / ↓      ") + descStyle.Render("  Next field") + "\n")
 		content.WriteString(keyStyle.Render("Shift+Tab / ↑") + descStyle.Render("  Previous field") + "\n")
-		content.WriteString(keyStyle.Render("Enter") + descStyle.Render("  Submit entry") + "\n")
-		content.WriteString(keyStyle.Render("Esc") + descStyle.Render("  Cancel") + "\n")
+		content.WriteString(keyStyle.Render("Enter        ") + descStyle.Render("  Submit entry") + "\n")
+		content.WriteString(keyStyle.Render("Esc          ") + descStyle.Render("  Cancel") + "\n")
 	default: // ModeList
-		content.WriteString(keyStyle.Render("j / ↓") + descStyle.Render("  Move down") + "\n")
-		content.WriteString(keyStyle.Render("k / ↑") + descStyle.Render("  Move up") + "\n")
-		content.WriteString(keyStyle.Render("G") + descStyle.Render("  Jump to bottom") + "\n")
-		content.WriteString(keyStyle.Render("s") + descStyle.Render("  Start/stop entry") + "\n")
-		content.WriteString(keyStyle.Render("?") + descStyle.Render("  Toggle help") + "\n")
+		content.WriteString(keyStyle.Render("j / ↓  ") + descStyle.Render("  Move down") + "\n")
+		content.WriteString(keyStyle.Render("k / ↑  ") + descStyle.Render("  Move up") + "\n")
+		content.WriteString(keyStyle.Render("G      ") + descStyle.Render("  Go to current") + "\n")
+		content.WriteString(keyStyle.Render("s      ") + descStyle.Render("  Start/stop entry") + "\n")
+		content.WriteString(keyStyle.Render("?      ") + descStyle.Render("  Toggle help") + "\n")
 		content.WriteString(keyStyle.Render("q / Esc") + descStyle.Render("  Quit") + "\n")
 	}
 

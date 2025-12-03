@@ -80,9 +80,11 @@ type Model struct {
 	help        help.Model         // Help component
 
 	// Dialog state
-	dialogMode  bool                  // Whether we're in dialog mode
-	inputs      []textinput.Model     // Text inputs for project, title, hour, minute
-	focusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	dialogMode      bool                     // Whether we're in dialog mode
+	inputs          []textinput.Model        // Text inputs for project, title, hour, minute
+	focusIndex      int                      // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	autocomplete    *AutocompleteSuggestions // Autocomplete suggestions
+	showAutocomplete bool                    // Whether to show autocomplete suggestions
 }
 
 // styles defines the visual styling for different UI elements
@@ -138,16 +140,17 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[3].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	return &Model{
-		storage:     storage,
-		taskManager: taskManager,
-		entries:     []models.TimeEntry{},
-		selectedIdx: 0,
-		keys:        keys,
-		showHelp:    false,
-		help:        h,
-		dialogMode:  false,
-		inputs:      inputs,
-		focusIndex:  0,
+		storage:      storage,
+		taskManager:  taskManager,
+		entries:      []models.TimeEntry{},
+		selectedIdx:  0,
+		keys:         keys,
+		showHelp:     false,
+		help:         h,
+		dialogMode:   false,
+		inputs:       inputs,
+		focusIndex:   0,
+		autocomplete: NewAutocompleteSuggestions(),
 		styles: styles{
 			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
@@ -169,6 +172,9 @@ func (m *Model) LoadEntries() error {
 	}
 
 	m.entries = entries
+
+	// Update autocomplete suggestions with new entries
+	m.autocomplete.ExtractFromEntries(m.entries)
 
 	// Select most recent entry (last item)
 	if len(m.entries) > 0 {

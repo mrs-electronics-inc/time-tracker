@@ -14,6 +14,7 @@ import (
 func (m *Model) openStartDialog(entry models.TimeEntry) {
 	m.dialogMode = true
 	m.focusIndex = 0
+	m.showAutocomplete = true
 
 	// Pre-fill the inputs with the selected entry's values
 	m.inputs[0].SetValue(entry.Project)
@@ -35,12 +36,16 @@ func (m *Model) openStartDialog(entry models.TimeEntry) {
 		m.inputs[i].PromptStyle = m.styles.dialogBlurred
 		m.inputs[i].TextStyle = m.styles.dialogBlurred
 	}
+
+	// Initialize autocomplete filters
+	m.updateAutocompleteFilter()
 }
 
 // closeDialog closes the dialog and returns to list mode
 func (m *Model) closeDialog() {
 	m.dialogMode = false
 	m.focusIndex = 0
+	m.showAutocomplete = false
 
 	// Clear and blur all inputs
 	for i := range m.inputs {
@@ -57,23 +62,73 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.closeDialog()
 		return m, nil
 
-	case "tab", "down":
+	case "tab":
 		// Move focus to next input
 		m.focusIndex = (m.focusIndex + 1) % len(m.inputs)
 		m.updateInputFocus()
+		m.updateAutocompleteFilter()
 		return m, nil
 
-	case "shift+tab", "up":
+	case "shift+tab":
 		// Move focus to previous input
 		m.focusIndex--
 		if m.focusIndex < 0 {
 			m.focusIndex = len(m.inputs) - 1
 		}
 		m.updateInputFocus()
+		m.updateAutocompleteFilter()
+		return m, nil
+
+	case "down":
+		// If autocomplete is showing, move to next suggestion
+		// Otherwise move to next input field
+		if m.showAutocomplete && m.focusIndex < 2 && len(m.autocomplete.FilteredResults) > 0 {
+			m.autocomplete.SelectNext()
+			return m, nil
+		}
+		// Move focus to next input
+		m.focusIndex = (m.focusIndex + 1) % len(m.inputs)
+		m.updateInputFocus()
+		m.updateAutocompleteFilter()
+		return m, nil
+
+	case "up":
+		// If autocomplete is showing, move to previous suggestion
+		// Otherwise move to previous input field
+		if m.showAutocomplete && m.focusIndex < 2 && len(m.autocomplete.FilteredResults) > 0 {
+			m.autocomplete.SelectPrev()
+			return m, nil
+		}
+		// Move focus to previous input
+		m.focusIndex--
+		if m.focusIndex < 0 {
+			m.focusIndex = len(m.inputs) - 1
+		}
+		m.updateInputFocus()
+		m.updateAutocompleteFilter()
 		return m, nil
 
 	case "enter":
-		// Submit dialog
+		// If autocomplete is showing and a suggestion is selected, auto-fill it
+		if m.showAutocomplete && m.focusIndex < 2 {
+			if selected := m.autocomplete.GetSelectedSuggestion(); selected != nil {
+				if m.focusIndex == 0 {
+					// Fill project and move to title
+					m.inputs[0].SetValue(selected.Project)
+					m.focusIndex = 1
+					m.updateInputFocus()
+					m.updateAutocompleteFilter()
+					return m, nil
+				} else if m.focusIndex == 1 {
+					// Fill title
+					m.inputs[1].SetValue(selected.Title)
+					m.showAutocomplete = false
+					return m, nil
+				}
+			}
+		}
+
+		// Otherwise, submit dialog
 		project := m.inputs[0].Value()
 		title := m.inputs[1].Value()
 		hourStr := m.inputs[2].Value()
@@ -133,6 +188,12 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	for i := range m.inputs {
 		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
 	}
+
+	// After input update, refresh autocomplete filter if in project/title inputs
+	if m.focusIndex < 2 {
+		m.updateAutocompleteFilter()
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -153,6 +214,66 @@ func (m *Model) updateInputFocus() {
 	}
 }
 
+// updateAutocompleteFilter updates the autocomplete suggestions based on current input
+func (m *Model) updateAutocompleteFilter() {
+	if m.focusIndex == 0 {
+		// Filter projects based on project input
+		input := m.inputs[0].Value()
+		_ = m.autocomplete.FilterProjects(input)
+	} else if m.focusIndex == 1 {
+		// Filter tasks based on project and title inputs
+		project := m.inputs[0].Value()
+		title := m.inputs[1].Value()
+		_ = m.autocomplete.FilterTasks(title, project)
+	}
+}
+
+// renderAutocompleteList renders the autocomplete suggestions list
+func (m *Model) renderAutocompleteList(fieldIndex int) string {
+	if !m.showAutocomplete {
+		return ""
+	}
+
+	// Don't show autocomplete for hour/minute fields
+	if fieldIndex > 1 {
+		return ""
+	}
+
+	suggestions := m.autocomplete.FilteredResults
+	if len(suggestions) == 0 {
+		return ""
+	}
+
+	// Limit to 5 visible suggestions
+	maxSuggestions := 5
+	if len(suggestions) > maxSuggestions {
+		suggestions = suggestions[:maxSuggestions]
+	}
+
+	var output strings.Builder
+	suggestionStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+	selectedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("220")).Bold(true)
+
+	output.WriteString("\n")
+	for i, suggestion := range suggestions {
+		var displayText string
+		if fieldIndex == 0 {
+			displayText = suggestion.Project
+		} else {
+			displayText = suggestion.Title
+		}
+
+		if i == m.autocomplete.selectedIdx {
+			output.WriteString(selectedStyle.Render("▶ " + displayText))
+		} else {
+			output.WriteString(suggestionStyle.Render("  " + displayText))
+		}
+		output.WriteString("\n")
+	}
+
+	return output.String()
+}
+
 // renderDialog renders the start entry dialog
 func (m *Model) renderDialog() string {
 	// Create title
@@ -162,10 +283,12 @@ func (m *Model) renderDialog() string {
 	// Create project input section
 	projectLabel := "Project:"
 	projectInput := m.inputs[0].View()
+	projectAutocomplete := m.renderAutocompleteList(0)
 
 	// Create title input section
 	titleLabel := "Title:"
 	titleInput := m.inputs[1].View()
+	titleAutocomplete := m.renderAutocompleteList(1)
 
 	// Create time input section
 	timeLabel := "Time (HH:MM):"
@@ -173,7 +296,7 @@ func (m *Model) renderDialog() string {
 	minuteInput := m.inputs[3].View()
 
 	// Create help text
-	helpText := "Tab/↓/↑ to switch fields • Enter to submit • Esc to cancel"
+	helpText := "↑/↓ for suggestions • Enter to select/submit • Tab to switch fields • Esc to cancel"
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
 
 	// Create error text style (red)
@@ -183,9 +306,13 @@ func (m *Model) renderDialog() string {
 	var dialog strings.Builder
 	dialog.WriteString(titleStyle.Render(title) + "\n\n")
 	dialog.WriteString(projectLabel + "\n")
-	dialog.WriteString(projectInput + "\n\n")
+	dialog.WriteString(projectInput)
+	dialog.WriteString(projectAutocomplete)
+	dialog.WriteString("\n")
 	dialog.WriteString(titleLabel + "\n")
-	dialog.WriteString(titleInput + "\n\n")
+	dialog.WriteString(titleInput)
+	dialog.WriteString(titleAutocomplete)
+	dialog.WriteString("\n")
 	dialog.WriteString(timeLabel + "\n")
 	dialog.WriteString(hourInput + " : " + minuteInput + "\n\n")
 

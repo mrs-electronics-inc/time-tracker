@@ -28,6 +28,14 @@ func (tm *TaskManager) StartEntry(project, title string) (*models.TimeEntry, err
 		return nil, err
 	}
 
+	// Check if we're already tracking this exact project/title
+	if len(entries) > 0 {
+		lastEntry := &entries[len(entries)-1]
+		if lastEntry.IsRunning() && lastEntry.Project == project && lastEntry.Title == title {
+			return nil, fmt.Errorf("already tracking: %s", project)
+		}
+	}
+
 	// Stop last entry
 	if len(entries) > 0 {
 		lastEntry := &entries[len(entries)-1]

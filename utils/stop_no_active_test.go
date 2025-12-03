@@ -1,16 +1,14 @@
-package integration
+package utils
 
 import (
 	"strings"
 	"testing"
-
-	"time-tracker/utils"
 )
 
 func TestStopNoActiveScenario(t *testing.T) {
 	// Create task manager with memory storage
-	storage := utils.NewMemoryStorage()
-	tm := utils.NewTaskManager(storage)
+	storage := NewMemoryStorage()
+	tm := NewTaskManager(storage)
 
 	// Try to stop when no active entry
 	_, err := tm.StopEntry()

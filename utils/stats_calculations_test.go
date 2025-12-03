@@ -1,10 +1,9 @@
-package unit
+package utils
 
 import (
 	"testing"
 	"time"
 	"time-tracker/models"
-	"time-tracker/utils"
 )
 
 func TestCalculateDailyTotals(t *testing.T) {
@@ -19,7 +18,7 @@ func TestCalculateDailyTotals(t *testing.T) {
 		},
 	}
 
-	totals := utils.CalculateDailyTotals(entries, 14)
+	totals := CalculateDailyTotals(entries, 14)
 
 	if len(totals) != 14 {
 		t.Errorf("Expected 14 daily totals, got %d", len(totals))
@@ -55,7 +54,7 @@ func TestCalculateWeeklyTotals(t *testing.T) {
 		},
 	}
 
-	totals := utils.CalculateWeeklyTotals(entries, 4)
+	totals := CalculateWeeklyTotals(entries, 4)
 
 	if len(totals) != 4 {
 		t.Errorf("Expected 4 weekly totals, got %d", len(totals))

@@ -1,15 +1,13 @@
-package unit
+package models
 
 import (
 	"testing"
 	"time"
-
-	"time-tracker/models"
 )
 
 func TestTimeEntry_IsRunning(t *testing.T) {
 	// Running entry
-	entry := models.TimeEntry{
+	entry := TimeEntry{
 		Start:   time.Now(),
 		End:     nil,
 		Project: "test",
@@ -29,7 +27,7 @@ func TestTimeEntry_IsRunning(t *testing.T) {
 
 func TestTimeEntry_Duration(t *testing.T) {
 	start := time.Now().Add(-time.Hour)
-	entry := models.TimeEntry{
+	entry := TimeEntry{
 		Start: start,
 		End:   nil,
 	}

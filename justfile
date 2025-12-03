@@ -2,7 +2,7 @@
 
 # Run all Go tests
 test:
-    cd src && go test ./...
+    go test ./...
 
 # Build the Docker image
 build:

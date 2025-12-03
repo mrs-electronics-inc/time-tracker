@@ -1,15 +1,13 @@
-package integration
+package utils
 
 import (
 	"testing"
-
-	"time-tracker/utils"
 )
 
 func TestAutoStopScenario(t *testing.T) {
 	// Create task manager with memory storage
-	storage := utils.NewMemoryStorage()
-	tm := utils.NewTaskManager(storage)
+	storage := NewMemoryStorage()
+	tm := NewTaskManager(storage)
 
 	// Start first task
 	_, err := tm.StartEntry("project1", "Task 1")

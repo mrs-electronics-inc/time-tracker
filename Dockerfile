@@ -1,7 +1,7 @@
 # Build stage
-FROM golang:1.23 AS builder
+FROM golang:1.24 AS builder
 WORKDIR /app
-COPY src/ .
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o time-tracker .
 
 # Runtime stage

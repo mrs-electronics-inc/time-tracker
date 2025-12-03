@@ -2,11 +2,9 @@ package tui
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"time-tracker/models"
 )
 
@@ -192,92 +190,4 @@ func (m *Model) handleHelpKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, nil
-}
-
-// renderHelpScreen renders the help screen showing keybindings for the previous mode
-func (m *Model) renderHelpScreen() string {
-	var content strings.Builder
-
-	title := m.styles.title.Render("Keyboard Shortcuts")
-	content.WriteString(title + "\n\n")
-
-	keyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true)
-	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
-
-	// Show keybindings based on the previous mode
-	switch m.prevMode {
-	case ModeStart:
-		content.WriteString(keyStyle.Render("Tab / ↓      ") + descStyle.Render("  Next field") + "\n")
-		content.WriteString(keyStyle.Render("Shift+Tab / ↑") + descStyle.Render("  Previous field") + "\n")
-		content.WriteString(keyStyle.Render("Enter        ") + descStyle.Render("  Submit entry") + "\n")
-		content.WriteString(keyStyle.Render("Esc          ") + descStyle.Render("  Cancel") + "\n")
-	default: // ModeList
-		content.WriteString(keyStyle.Render("j / ↓  ") + descStyle.Render("  Move down") + "\n")
-		content.WriteString(keyStyle.Render("k / ↑  ") + descStyle.Render("  Move up") + "\n")
-		content.WriteString(keyStyle.Render("G      ") + descStyle.Render("  Go to current") + "\n")
-		content.WriteString(keyStyle.Render("s      ") + descStyle.Render("  Start/stop entry") + "\n")
-		content.WriteString(keyStyle.Render("?      ") + descStyle.Render("  Toggle help") + "\n")
-		content.WriteString(keyStyle.Render("q / Esc") + descStyle.Render("  Quit") + "\n")
-	}
-
-	// Add spacer to push footer to bottom
-	// Content already has trailing newlines, footer is 1 line
-	contentLines := strings.Count(content.String(), "\n")
-	spacerLines := m.height - contentLines - 1
-	if spacerLines > 0 {
-		content.WriteString(strings.Repeat("\n", spacerLines))
-	}
-	content.WriteString(m.renderStatusBar())
-
-	return content.String()
-}
-
-// renderStartScreen renders the start mode screen
-func (m *Model) renderStartScreen() string {
-	// Create title
-	title := "Start New Entry"
-
-	// Create project input section
-	projectLabel := m.styles.label.Render("Project:")
-	projectInput := m.inputs[0].View()
-
-	// Create title input section
-	titleLabel := m.styles.label.Render("Title:")
-	titleInput := m.inputs[1].View()
-
-	// Create time input section
-	timeLabel := m.styles.label.Render("Time (HH:MM):")
-	hourInput := m.inputs[2].View()
-	minuteInput := m.inputs[3].View()
-
-	// Build content
-	var content strings.Builder
-	content.WriteString(m.styles.title.Render(title) + "\n\n")
-	content.WriteString(projectLabel + "\n")
-	content.WriteString(projectInput + "\n\n")
-	content.WriteString(titleLabel + "\n")
-	content.WriteString(titleInput + "\n\n")
-	content.WriteString(timeLabel + "\n")
-	content.WriteString(hourInput + " : " + minuteInput + "\n\n")
-
-	// Show status/error message if present
-	if m.status != "" {
-		// Determine if it's an error or success based on message content
-		if strings.Contains(strings.ToLower(m.status), "error") {
-			content.WriteString(m.styles.statusError.Render(m.status) + "\n\n")
-		} else {
-			content.WriteString(m.styles.statusSuccess.Render(m.status) + "\n\n")
-		}
-	}
-
-	// Add spacer to push footer to bottom
-	// Content already has trailing newlines, footer is 1 line
-	contentLines := strings.Count(content.String(), "\n")
-	spacerLines := m.height - contentLines - 1
-	if spacerLines > 0 {
-		content.WriteString(strings.Repeat("\n", spacerLines))
-	}
-	content.WriteString(m.renderStatusBar())
-
-	return content.String()
 }

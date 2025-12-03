@@ -115,59 +115,59 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	// If in start mode, render start screen
-	if m.mode == ModeStart {
-		return m.renderStartScreen()
+	// Calculate available height (status bar is always 1 line)
+	statusBarHeight := 1
+	availableHeight := max(m.height-statusBarHeight, 1)
+
+	var content string
+
+	// Render content based on mode
+	switch m.mode {
+	case ModeStart:
+		content = m.renderStartContent(availableHeight)
+	case ModeHelp:
+		content = m.renderHelpContent(availableHeight)
+	default: // ModeList
+		content = m.renderListContent(availableHeight)
 	}
 
-	// If in help mode, render help screen
-	if m.mode == ModeHelp {
-		return m.renderHelpScreen()
+	// Add status bar
+	statusBar := m.renderStatusBar()
+	contentLines := strings.Count(content, "\n")
+	spacerLines := m.height - contentLines - statusBarHeight
+	spacerLines = max(spacerLines, 0)
+	var result strings.Builder
+	result.WriteString(content)
+	if spacerLines > 0 {
+		result.WriteString( // Build final output
+			strings.Repeat("\n", spacerLines))
 	}
+	result.WriteString(statusBar)
+	return result.String()
+}
 
+// renderListContent renders the list mode content without footer
+func (m *Model) renderListContent(availableHeight int) string {
 	// Show loading indicator if operation in progress
 	if m.loading {
 		return m.renderLoading()
 	}
 
-	// Render footer first to know its height
-	footer := m.renderFooter()
-	footerHeight := strings.Count(footer, "\n") + 1
-
 	// Header takes 2 lines (header + separator)
 	headerHeight := 2
 
 	// Available height for list rows
-	availableHeight := max(m.height-headerHeight-footerHeight, 1)
+	listRowHeight := max(availableHeight-headerHeight, 1)
 
 	// Ensure selection is visible
-	m.ensureSelectionVisible(availableHeight)
+	m.ensureSelectionVisible(listRowHeight)
 
 	// Render header and rows separately
 	header := m.renderTableHeader()
-	rows := m.renderTableRows(availableHeight)
+	rows := m.renderTableRows(listRowHeight)
 
 	// Combine header and rows
-	table := header + rows
-
-	// Calculate spacer to push footer to bottom
-	tableLines := strings.Count(table, "\n")
-	usedLines := tableLines + footerHeight
-	// Ensure spacer height is not negative
-	spacerHeight := max(m.height-usedLines, 0)
-
-	// Build layout with spacer
-	var parts []string
-	parts = append(parts, table)
-
-	if spacerHeight > 0 {
-		spacer := strings.Repeat("\n", spacerHeight)
-		parts = append(parts, spacer)
-	}
-
-	parts = append(parts, footer)
-
-	return strings.Join(parts, "")
+	return header + rows
 }
 
 // renderTableHeader renders just the table header
@@ -305,11 +305,6 @@ func (m *Model) renderLoading() string {
 	return "\n\n" + loadingText + "\n"
 }
 
-// renderFooter renders the footer with status bar
-func (m *Model) renderFooter() string {
-	return m.renderStatusBar()
-}
-
 // renderStatusBar renders a zellij-style status bar with mode and keybindings
 func (m *Model) renderStatusBar() string {
 	// Colors
@@ -401,4 +396,76 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	return leftSide
+}
+
+// renderStartContent renders the start mode content
+func (m *Model) renderStartContent(availableHeight int) string {
+	_ = availableHeight // Available for future use
+	// Create title
+	title := "Start New Entry"
+
+	// Create project input section
+	projectLabel := m.styles.label.Render("Project:")
+	projectInput := m.inputs[0].View()
+
+	// Create title input section
+	titleLabel := m.styles.label.Render("Title:")
+	titleInput := m.inputs[1].View()
+
+	// Create time input section
+	timeLabel := m.styles.label.Render("Time (HH:MM):")
+	hourInput := m.inputs[2].View()
+	minuteInput := m.inputs[3].View()
+
+	// Build content
+	var content strings.Builder
+	content.WriteString(m.styles.title.Render(title) + "\n\n")
+	content.WriteString(projectLabel + "\n")
+	content.WriteString(projectInput + "\n\n")
+	content.WriteString(titleLabel + "\n")
+	content.WriteString(titleInput + "\n\n")
+	content.WriteString(timeLabel + "\n")
+	content.WriteString(hourInput + " : " + minuteInput + "\n\n")
+
+	// Show status/error message if present
+	if m.status != "" {
+		// Determine if it's an error or success based on message content
+		if strings.Contains(strings.ToLower(m.status), "error") {
+			content.WriteString(m.styles.statusError.Render(m.status) + "\n\n")
+		} else {
+			content.WriteString(m.styles.statusSuccess.Render(m.status) + "\n\n")
+		}
+	}
+
+	return content.String()
+}
+
+// renderHelpContent renders the help mode content
+func (m *Model) renderHelpContent(availableHeight int) string {
+	_ = availableHeight // Available for future use
+	var content strings.Builder
+
+	title := m.styles.title.Render("Keyboard Shortcuts")
+	content.WriteString(title + "\n\n")
+
+	keyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true)
+	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
+
+	// Show keybindings based on the previous mode
+	switch m.prevMode {
+	case ModeStart:
+		content.WriteString(keyStyle.Render("Tab / ↓      ") + descStyle.Render("  Next field") + "\n")
+		content.WriteString(keyStyle.Render("Shift+Tab / ↑") + descStyle.Render("  Previous field") + "\n")
+		content.WriteString(keyStyle.Render("Enter        ") + descStyle.Render("  Submit entry") + "\n")
+		content.WriteString(keyStyle.Render("Esc          ") + descStyle.Render("  Cancel") + "\n")
+	default: // ModeList
+		content.WriteString(keyStyle.Render("j / ↓  ") + descStyle.Render("  Move down") + "\n")
+		content.WriteString(keyStyle.Render("k / ↑  ") + descStyle.Render("  Move up") + "\n")
+		content.WriteString(keyStyle.Render("G      ") + descStyle.Render("  Go to current") + "\n")
+		content.WriteString(keyStyle.Render("s      ") + descStyle.Render("  Start/stop entry") + "\n")
+		content.WriteString(keyStyle.Render("?      ") + descStyle.Render("  Toggle help") + "\n")
+		content.WriteString(keyStyle.Render("q / Esc") + descStyle.Render("  Quit") + "\n")
+	}
+
+	return content.String()
 }

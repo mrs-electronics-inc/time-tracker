@@ -47,6 +47,29 @@ go install
 
 ## Usage
 
+### Using the TUI
+
+The Time Tracker features an interactive Terminal User Interface (TUI) for a more intuitive experience.
+
+**Launch the TUI:**
+
+```bash
+time-tracker
+```
+
+The TUI provides a visual list of your time entries with the following keyboard shortcuts:
+
+| Key         | Action                |
+| ----------- | --------------------- |
+| `j` / `↓`   | Move down             |
+| `k` / `↑`   | Move up               |
+| `G`         | Jump to current entry |
+| `s`         | Start/stop tracking   |
+| `?`         | Toggle help           |
+| `q` / `esc` | Quit                  |
+
+### Using the CLI
+
 The time tracker uses a combined command that can be invoked as `start`, `stop`, or `s` (short alias).
 
 ### Start Tracking
@@ -125,8 +148,10 @@ time-tracker stats --weekly  # Weekly totals
 
 ## Tech Stack
 
-- [Go](https://go.dev/)
-- [Cobra](https://github.com/spf13/cobra)
+- **Language**: [Go](https://go.dev/)
+- **CLI Framework**: [Cobra](https://github.com/spf13/cobra)
+- **TUI Framework**: [Bubble Tea](https://github.com/charmbracelet/bubbletea) + [Bubbles](https://github.com/charmbracelet/bubbles)
+- **Styling**: [Lipgloss](https://github.com/charmbracelet/lipgloss)
 
 ## Development
 
@@ -136,11 +161,23 @@ To develop this project, you need:
 
 - **Go 1.24.0 or higher**
 - **Docker and Docker Compose** (for running the app and tests)
-- **just** (optional, but recommended for running common tasks)
+- **just** (recommended for running development commands)
+- **Nix** (optional, for reproducible development environment)
+
+### Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/mrs-electronics-inc/time-tracker.git
+cd time-tracker
+```
+
+2. All development tasks use the `just` command runner (see [justfile](./justfile) for all available recipes).
 
 ### Running Commands
 
-All development commands should be run from the repository root using `just`:
+**Testing and Building:**
 
 ```bash
 # Run all tests
@@ -148,31 +185,49 @@ just test
 
 # Build the Docker image
 just build
+```
 
-# Run the TUI
+**Running the Application:**
+
+```bash
+# Run the TUI (interactive interface)
 just run
 
-# Run the CLI with any subcommand
-just run list
-just run start "project" "task"
+# Run the CLI with any subcommand and flags
+just run start "project-name" "task-name"
 just run stop
+just run list
+just run list --all
+just run edit
+just run stats
+just run stats --weekly
+just run stats --rows 7
+```
 
-# View the dev data file (for debugging)
+**Debugging:**
+
+```bash
+# View the dev data file from the Docker volume
 just inspect-data
 
-# Import JSON data into the dev volume
+# Import JSON data into the dev volume (overwrites existing data)
+# Always use the latest data version from models/migration_types.go
 just import-data < data.json
 ```
 
-### Testing
+### Environment
 
-To run the automated tests:
+**Important:** Never run the binary directly on the host system. Always use `just run` for CLI and TUI testing. This ensures the app uses the Docker volume for data persistence.
 
-```bash
-just test
-```
+The vendor directory is gitignored. Dependencies are fetched from the network during builds.
 
-This will run contract tests, integration tests, and unit tests.
+**When `go.mod` changes:**
+
+1. Set `vendorHash = "";` in `flake.nix` (empty string)
+2. Run `nix build 2>&1 | grep -E "(specified|got):"`
+3. Copy the `got:` hash and update `vendorHash` in `flake.nix`
+4. Run `nix build` again to verify
+5. **Do NOT run `go mod vendor`** - the vendor directory should remain empty
 
 ## License
 

@@ -4,13 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"time-tracker/models"
 	"time-tracker/utils"
 )
+
+// Mode constants define the different TUI modes
+const (
+	ModeList  = "list"
+	ModeStart = "start"
+	ModeHelp  = "help"
+)
+
+// OperationCompleteMsg is sent when an async operation completes
+type OperationCompleteMsg struct {
+	Error error
+}
+
+// ContentRenderer is a function type for rendering content for a specific mode
+type ContentRenderer func(availableHeight int) string
 
 // keyMap defines keybindings for the TUI
 type keyMap struct {
@@ -47,7 +61,7 @@ var keys = keyMap{
 	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "esc", "ctrl+c"),
-		key.WithHelp("q", "quit"),
+		key.WithHelp("q/esc", "quit"),
 	),
 	Up: key.NewBinding(
 		key.WithKeys("k", "up"),
@@ -76,33 +90,38 @@ type Model struct {
 	styles      styles             // UI styling
 	width       int                // Terminal width
 	height      int                // Terminal height
-	showHelp    bool               // Whether to show full help text
-	help        help.Model         // Help component
 
-	// Dialog state
-	dialogMode  bool                  // Whether we're in dialog mode
+	// Mode state
+	mode        string                // Current TUI mode (list, start, etc.)
 	inputs      []textinput.Model     // Text inputs for project, title, hour, minute
 	focusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+
+	// Loading state
+	loading     bool                  // Whether we're waiting for a data operation
+
+	// Navigation history
+	prevMode    string                // Previous view mode (for back navigation)
 }
 
 // styles defines the visual styling for different UI elements
 type styles struct {
-	header          lipgloss.Style // Header row style
-	footer          lipgloss.Style // Footer style
-	selected        lipgloss.Style // Selected row style
-	unselected      lipgloss.Style // Unselected row style
-	running         lipgloss.Style // Running entry style
-	gap             lipgloss.Style // Gap/blank entry style
-	dialogFocused   lipgloss.Style // Dialog focused input style
-	dialogBlurred   lipgloss.Style // Dialog blurred input style
+	header        lipgloss.Style // Header row style
+	footer        lipgloss.Style // Footer style
+	selected      lipgloss.Style // Selected row style
+	unselected    lipgloss.Style // Unselected row style
+	running       lipgloss.Style // Running entry style
+	gap           lipgloss.Style // Gap/blank entry style
+	inputFocused  lipgloss.Style // Focused input style
+	inputBlurred  lipgloss.Style // Blurred input style
+	title         lipgloss.Style // Screen title style
+	label         lipgloss.Style // Input label style
+	statusError   lipgloss.Style // Status error message style
+	statusSuccess lipgloss.Style // Status success message style
 }
 
 // NewModel creates a new TUI model
 func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
-	h := help.New()
-	h.ShowAll = false
-
-	// Create textinput models for dialog
+	// Create textinput models for start mode
 	inputs := make([]textinput.Model, 4)
 
 	// Project input
@@ -143,11 +162,11 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		entries:     []models.TimeEntry{},
 		selectedIdx: 0,
 		keys:        keys,
-		showHelp:    false,
-		help:        h,
-		dialogMode:  false,
+		mode:        ModeList,
 		inputs:      inputs,
 		focusIndex:  0,
+		loading:     false,
+		prevMode:    ModeList,
 		styles: styles{
 			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
@@ -155,8 +174,12 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 			unselected:    lipgloss.NewStyle().Foreground(lipgloss.Color("7")),
 			running:       lipgloss.NewStyle().Foreground(lipgloss.Color("11")),
 			gap:           lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true),
-			dialogFocused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
-			dialogBlurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+			inputFocused:  lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
+			inputBlurred:  lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+			title:         lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
+			label:         lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
+			statusError:   lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true),
+			statusSuccess: lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true),
 		},
 	}
 }

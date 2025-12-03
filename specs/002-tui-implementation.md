@@ -59,26 +59,31 @@ Add a TUI to improve the user experience.
 
 ### Polish & UX
 
-- [ ] Implement consistent keybinding display across all screens (footer/status bar)
-- [ ] Improve visual styling with colors and spacing (inspired by helix/zellij)
-- [ ] Add loading states for data operations
-- [ ] Handle edge cases (empty data, no entries yet, errors)
-- [ ] Add ability to go back to previous screen (Escape key)
-- [ ] Smooth transitions between screens
-- [ ] Ensure all interactive elements show available keybindings in the interface
+- [x] Implement consistent keybinding display across all screens (footer/status bar)
+- [x] Improve visual styling with colors and spacing (inspired by helix/zellij)
+- [x] Add loading states for data operations
+- [x] Handle edge cases (empty data, no entries yet, errors)
+- [x] Add ability to go back to previous screen (Escape key)
+- [x] Smooth transitions between screens
+- [x] Ensure all interactive elements show available keybindings in the interface
 
 ### README Updates
 
-- [ ] Add "Using the TUI" section with:
+- [x] Add "Using the TUI" section with:
   - How to launch TUI (run without args)
   - Basic keyboard shortcuts reference
-- [ ] Update "Development" section with:
+- [x] Update "Development" section with:
   - `just` recipes for running dev commands
   - Remove out-of-date build/run instructions
-- [ ] Clean up any deprecated information
+- [x] Clean up any deprecated information
 
-### Testing
+### Clean up & Testing
 
+- [ ] Add Mode struct
+  - Title
+  - Key bindings
+  - Render function
+- [ ] Use Mode values to reduce duplicate code for handling key bindings and other things related to modes
 - [ ] Add unit tests for model state transitions (sending messages and verifying state changes)
 - [ ] Add integration tests for TUI data operations:
   - Start entry via TUI and verify data file

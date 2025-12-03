@@ -19,7 +19,7 @@
           src = self;
           
           # vendorHash locks Go module dependencies
-          vendorHash = "sha256-dlpdd9vlfUczUJQ5Sj51bc+dGdSipVZV5KjUb/Tb5Dg=";
+          vendorHash = "sha256-2caz5wagKxYEBWkHpkdY3rv/K7Vvpqbt0DFK86N5oeY=";
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";

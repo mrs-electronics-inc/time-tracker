@@ -106,7 +106,14 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 		// Build the start time
 		now := time.Now()
-		startTime := time.Date(now.Year(), now.Month(), now.Day(), hour, minute, 0, 0, now.Location())
+		date := now
+		
+		// If entered time is later than current time, use yesterday's date
+		if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
+			date = now.AddDate(0, 0, -1)
+		}
+		
+		startTime := time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location())
 
 		// Start the entry with specified time
 		if _, err := m.taskManager.StartEntryAt(project, title, startTime); err != nil {

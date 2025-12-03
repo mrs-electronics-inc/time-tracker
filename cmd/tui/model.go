@@ -12,6 +12,11 @@ import (
 	"time-tracker/utils"
 )
 
+// OperationCompleteMsg is sent when an async operation completes
+type OperationCompleteMsg struct {
+	Error error
+}
+
 // keyMap defines keybindings for the TUI
 type keyMap struct {
 	Help       key.Binding
@@ -94,6 +99,9 @@ type Model struct {
 	inputs      []textinput.Model     // Text inputs for project, title, hour, minute
 	focusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
 	showDialogHelp bool                // Whether to show help in dialog mode
+
+	// Loading state
+	loading     bool                  // Whether we're waiting for a data operation
 }
 
 // styles defines the visual styling for different UI elements
@@ -165,6 +173,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		inputs:      inputs,
 		focusIndex:  0,
 		showDialogHelp: false,
+		loading:     false,
 		styles: styles{
 			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),

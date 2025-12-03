@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -20,6 +21,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+
+	case OperationCompleteMsg:
+		m.loading = false
+		if msg.Error != nil {
+			m.status = "Error: " + msg.Error.Error()
+		}
+		return m, nil
 
 	case tea.KeyMsg:
 		// Dialog mode key handling
@@ -98,6 +106,11 @@ func (m *Model) View() string {
 	// If in dialog mode, render dialog instead of list
 	if m.dialogMode {
 		return m.renderDialog()
+	}
+
+	// Show loading indicator if operation in progress
+	if m.loading {
+		return m.renderLoading()
 	}
 
 	// Render footer first to know its height
@@ -259,6 +272,19 @@ func (m *Model) renderTableRows(maxHeight int) string {
 	}
 
 	return output.String()
+}
+
+// renderLoading renders a loading indicator
+func (m *Model) renderLoading() string {
+	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+	frame := frames[int(time.Now().Unix()*10)%len(frames)]
+	
+	loadingText := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("11")).
+		Bold(true).
+		Render(frame + " Loading...")
+	
+	return "\n\n" + loadingText + "\n"
 }
 
 // renderFooter renders the footer with help text

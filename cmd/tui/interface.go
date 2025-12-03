@@ -70,9 +70,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Toggle start/stop
+		// Toggle start/stop or open dialog to start
 		if key.Matches(msg, m.keys.Toggle) {
-			if m.selectedIdx >= 0 && m.selectedIdx < len(m.entries) {
+			if len(m.entries) == 0 {
+				// No entries yet - open blank start dialog
+				m.openStartDialogBlank()
+			} else if m.selectedIdx >= 0 && m.selectedIdx < len(m.entries) {
 				entry := m.entries[m.selectedIdx]
 				if entry.IsRunning() {
 					// Stop entry
@@ -84,6 +87,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else if !entry.IsBlank() {
 					// Open dialog to start new entry
 					m.openStartDialog(entry)
+				} else {
+					// Blank entry - open blank start dialog
+					m.openStartDialogBlank()
 				}
 				// Reload entries to update display
 				if err := m.LoadEntries(); err != nil {
@@ -203,7 +209,9 @@ func (m *Model) renderTableHeader() string {
 // renderTableRows renders the rows with viewport scrolling
 func (m *Model) renderTableRows(maxHeight int) string {
 	if len(m.entries) == 0 {
-		return "No time entries found\n"
+		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
+		msg := "No time entries found. Press 's' to start tracking.\n"
+		return emptyStyle.Render(msg)
 	}
 
 	// Get column widths

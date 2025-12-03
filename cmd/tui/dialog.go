@@ -37,6 +37,34 @@ func (m *Model) openStartDialog(entry models.TimeEntry) {
 	}
 }
 
+// openStartDialogBlank opens the start entry dialog with blank values
+func (m *Model) openStartDialogBlank() {
+	m.dialogMode = true
+	m.focusIndex = 0
+
+	// Clear all inputs
+	for i := range m.inputs {
+		m.inputs[i].SetValue("")
+	}
+
+	// Set current time as default
+	now := time.Now()
+	m.inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+
+	// Set focus to first input
+	m.inputs[0].Focus()
+	m.inputs[0].PromptStyle = m.styles.dialogFocused
+	m.inputs[0].TextStyle = m.styles.dialogFocused
+
+	// Blur other inputs
+	for i := 1; i < len(m.inputs); i++ {
+		m.inputs[i].Blur()
+		m.inputs[i].PromptStyle = m.styles.dialogBlurred
+		m.inputs[i].TextStyle = m.styles.dialogBlurred
+	}
+}
+
 // closeDialog closes the dialog and returns to list mode
 func (m *Model) closeDialog() {
 	m.dialogMode = false

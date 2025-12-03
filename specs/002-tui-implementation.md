@@ -59,13 +59,13 @@ Add a TUI to improve the user experience.
 
 ### Polish & UX
 
-- [ ] Implement consistent keybinding display across all screens (footer/status bar)
-- [ ] Improve visual styling with colors and spacing (inspired by helix/zellij)
-- [ ] Add loading states for data operations
-- [ ] Handle edge cases (empty data, no entries yet, errors)
-- [ ] Add ability to go back to previous screen (Escape key)
+- [x] Implement consistent keybinding display across all screens (footer/status bar)
+- [x] Improve visual styling with colors and spacing (inspired by helix/zellij)
+- [x] Add loading states for data operations
+- [x] Handle edge cases (empty data, no entries yet, errors)
+- [x] Add ability to go back to previous screen (Escape key)
 - [ ] Smooth transitions between screens
-- [ ] Ensure all interactive elements show available keybindings in the interface
+- [x] Ensure all interactive elements show available keybindings in the interface
 
 ### README Updates
 

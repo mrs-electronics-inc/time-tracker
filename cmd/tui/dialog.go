@@ -42,13 +42,11 @@ func (m *Model) closeDialog() {
 	m.dialogMode = false
 	m.focusIndex = 0
 
-	// Clear inputs
-	m.inputs[0].SetValue("")
-	m.inputs[1].SetValue("")
-
-	// Blur all inputs
-	m.inputs[0].Blur()
-	m.inputs[1].Blur()
+	// Clear and blur all inputs
+	for i := range m.inputs {
+		m.inputs[i].SetValue("")
+		m.inputs[i].Blur()
+	}
 }
 
 // handleDialogKeyMsg handles key messages while in dialog mode

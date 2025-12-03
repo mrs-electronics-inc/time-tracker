@@ -35,3 +35,6 @@ data/
 
 # output directory
 .go/
+
+# vendor directory
+vendor/

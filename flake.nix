@@ -11,12 +11,19 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         
+        # Filter out vendor directory
+        src = pkgs.lib.cleanSourceWith {
+          src = self;
+          filter = name: type: 
+            !(pkgs.lib.hasSuffix "/vendor" name);
+        };
+        
         # Go module attributes
         goModule = pkgs.buildGoModule {
           pname = "time-tracker";
           version = "alpha";
           
-          src = self;
+          src = src;
 
           vendorHash = null;
           

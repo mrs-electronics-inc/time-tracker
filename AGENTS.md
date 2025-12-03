@@ -25,12 +25,21 @@ just run stats --rows 7
 just inspect-data
 
 # Import JSON data from stdin into the volume (OVERWRITES existing data)
+# Always use the latest data version from models/migration_types.go
 just import-data < data.json
 ```
 
 See `justfile` in the repo root for all available recipes.
 
 **IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing.
+
+Vendor directory is gitignored; dependencies are fetched from the network during builds.
+
+## Data Format
+
+- **Always use latest version**: Check `models/migration_types.go` for the current data format
+- **Blank entries**: Use empty `project` and `title` strings to mark gaps/end of day. Each workday must end with a blank entry at closing time to prevent overnight durations
+- **Duration calculation**: End times are derived from the next entry's start time
 
 ## GitHub
 

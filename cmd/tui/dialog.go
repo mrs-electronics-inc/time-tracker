@@ -79,8 +79,8 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		hourStr := m.inputs[2].Value()
 		minuteStr := m.inputs[3].Value()
 
-		if project == "" && title == "" {
-			m.status = "Project and title cannot both be empty"
+		if project == "" || title == "" {
+			m.status = "Project and title are required"
 			return m, nil
 		}
 

@@ -220,14 +220,14 @@ func (m *Model) renderHelpScreen() string {
 		content.WriteString(keyStyle.Render("q / Esc") + descStyle.Render("  Quit") + "\n")
 	}
 
-	// Calculate content height and add spacer to push footer to bottom
-	contentHeight := strings.Count(content.String(), "\n")
-	footer := m.renderStatusBar()
-	spacerHeight := m.height - contentHeight - 1
-	if spacerHeight > 0 {
-		content.WriteString(strings.Repeat("\n", spacerHeight-1))
+	// Add spacer to push footer to bottom
+	// Content already has trailing newlines, footer is 1 line
+	contentLines := strings.Count(content.String(), "\n")
+	spacerLines := m.height - contentLines - 1
+	if spacerLines > 0 {
+		content.WriteString(strings.Repeat("\n", spacerLines))
 	}
-	content.WriteString(footer)
+	content.WriteString(m.renderStatusBar())
 
 	return content.String()
 }
@@ -270,14 +270,14 @@ func (m *Model) renderStartScreen() string {
 		}
 	}
 
-	// Calculate content height and add spacer to push footer to bottom
-	contentHeight := strings.Count(content.String(), "\n")
-	footer := m.renderStatusBar()
-	spacerHeight := m.height - contentHeight - 1
-	if spacerHeight > 0 {
-		content.WriteString(strings.Repeat("\n", spacerHeight-1))
+	// Add spacer to push footer to bottom
+	// Content already has trailing newlines, footer is 1 line
+	contentLines := strings.Count(content.String(), "\n")
+	spacerLines := m.height - contentLines - 1
+	if spacerLines > 0 {
+		content.WriteString(strings.Repeat("\n", spacerLines))
 	}
-	content.WriteString(footer)
+	content.WriteString(m.renderStatusBar())
 
 	return content.String()
 }

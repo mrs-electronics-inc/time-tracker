@@ -265,8 +265,10 @@ func (m *Model) renderAutocompleteList(fieldIndex int) string {
 	if fieldIndex == 0 {
 		// Show filtered projects
 		suggestions := m.autocomplete.FilteredProjects
+		
+		// If no suggestions, just return a blank line for spacing
 		if len(suggestions) == 0 {
-			return ""
+			return "\n"
 		}
 
 		// Limit to 5 visible suggestions
@@ -287,8 +289,10 @@ func (m *Model) renderAutocompleteList(fieldIndex int) string {
 	} else if fieldIndex == 1 {
 		// Show filtered tasks (from selected project only)
 		suggestions := m.autocomplete.FilteredResults
+		
+		// If no suggestions, just return a blank line for spacing
 		if len(suggestions) == 0 {
-			return ""
+			return "\n"
 		}
 
 		// Limit to 5 visible suggestions

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"time-tracker/models"
 )
 
@@ -215,10 +214,6 @@ func (m *Model) renderDialog() string {
 	hourInput := m.inputs[2].View()
 	minuteInput := m.inputs[3].View()
 
-	// Create help text
-	helpText := "Tab/↓/↑ switch • Enter submit • Esc cancel • ? help"
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
-
 	// Build dialog content
 	var dialog strings.Builder
 	dialog.WriteString(m.styles.dialogTitle.Render(title) + "\n\n")
@@ -237,18 +232,6 @@ func (m *Model) renderDialog() string {
 		} else {
 			dialog.WriteString(m.styles.statusSuccess.Render(m.status) + "\n\n")
 		}
-	}
-
-	// Show keybindings hint
-	if m.showDialogHelp {
-		// Show full keybindings in help mode
-		m.help.Width = m.width
-		m.help.ShowAll = true
-		footer := m.styles.footer.Render(m.help.View(m.keys))
-		dialog.WriteString(footer)
-	} else {
-		// Show inline help hint
-		dialog.WriteString(helpStyle.Render(helpText) + "\n")
 	}
 
 	// Wrap in styled box

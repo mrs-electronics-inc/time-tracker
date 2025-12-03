@@ -81,8 +81,8 @@ type Model struct {
 
 	// Dialog state
 	dialogMode  bool                  // Whether we're in dialog mode
-	inputs      []textinput.Model     // Text inputs for project and title
-	focusIndex  int                   // Currently focused input (0 = project, 1 = title)
+	inputs      []textinput.Model     // Text inputs for project, title, hour, minute
+	focusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
 }
 
 // styles defines the visual styling for different UI elements
@@ -103,7 +103,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	h.ShowAll = false
 
 	// Create textinput models for dialog
-	inputs := make([]textinput.Model, 2)
+	inputs := make([]textinput.Model, 4)
 
 	// Project input
 	inputs[0] = textinput.New()
@@ -120,6 +120,22 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[1].Width = 40
 	inputs[1].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[1].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Hour input
+	inputs[2] = textinput.New()
+	inputs[2].Placeholder = "HH"
+	inputs[2].CharLimit = 2
+	inputs[2].Width = 2
+	inputs[2].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[2].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Minute input
+	inputs[3] = textinput.New()
+	inputs[3].Placeholder = "MM"
+	inputs[3].CharLimit = 2
+	inputs[3].Width = 2
+	inputs[3].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[3].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	return &Model{
 		storage:     storage,

@@ -1,7 +1,9 @@
 package tui
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -17,15 +19,22 @@ func (m *Model) openStartDialog(entry models.TimeEntry) {
 	m.inputs[0].SetValue(entry.Project)
 	m.inputs[1].SetValue(entry.Title)
 
+	// Set current time as default
+	now := time.Now()
+	m.inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+
 	// Set focus to first input
 	m.inputs[0].Focus()
 	m.inputs[0].PromptStyle = m.styles.dialogFocused
 	m.inputs[0].TextStyle = m.styles.dialogFocused
 
-	// Blur second input
-	m.inputs[1].Blur()
-	m.inputs[1].PromptStyle = m.styles.dialogBlurred
-	m.inputs[1].TextStyle = m.styles.dialogBlurred
+	// Blur other inputs
+	for i := 1; i < len(m.inputs); i++ {
+		m.inputs[i].Blur()
+		m.inputs[i].PromptStyle = m.styles.dialogBlurred
+		m.inputs[i].TextStyle = m.styles.dialogBlurred
+	}
 }
 
 // closeDialog closes the dialog and returns to list mode
@@ -69,14 +78,38 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Submit dialog
 		project := m.inputs[0].Value()
 		title := m.inputs[1].Value()
+		hourStr := m.inputs[2].Value()
+		minuteStr := m.inputs[3].Value()
 
 		if project == "" && title == "" {
 			m.status = "Project and title cannot both be empty"
 			return m, nil
 		}
 
-		// Start the entry
-		if _, err := m.taskManager.StartEntry(project, title); err != nil {
+		// Validate and parse time
+		if hourStr == "" {
+			hourStr = "00"
+		}
+		if minuteStr == "" {
+			minuteStr = "00"
+		}
+
+		var hour, minute int
+		if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
+			m.status = "Invalid hour (0-23)"
+			return m, nil
+		}
+		if n, err := fmt.Sscanf(minuteStr, "%d", &minute); err != nil || n != 1 || minute < 0 || minute > 59 {
+			m.status = "Invalid minute (0-59)"
+			return m, nil
+		}
+
+		// Build the start time
+		now := time.Now()
+		startTime := time.Date(now.Year(), now.Month(), now.Day(), hour, minute, 0, 0, now.Location())
+
+		// Start the entry with specified time
+		if _, err := m.taskManager.StartEntryAt(project, title, startTime); err != nil {
 			m.status = "Error starting entry: " + err.Error()
 		} else {
 			m.status = "Entry started: " + project
@@ -129,6 +162,11 @@ func (m *Model) renderDialog() string {
 	titleLabel := "Title:"
 	titleInput := m.inputs[1].View()
 
+	// Create time input section
+	timeLabel := "Time (HH:MM):"
+	hourInput := m.inputs[2].View()
+	minuteInput := m.inputs[3].View()
+
 	// Create help text
 	helpText := "Tab/↓/↑ to switch fields • Enter to submit • Esc to cancel"
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
@@ -140,6 +178,8 @@ func (m *Model) renderDialog() string {
 	dialog.WriteString(projectInput + "\n\n")
 	dialog.WriteString(titleLabel + "\n")
 	dialog.WriteString(titleInput + "\n\n")
+	dialog.WriteString(timeLabel + "\n")
+	dialog.WriteString(hourInput + " : " + minuteInput + "\n\n")
 	dialog.WriteString(helpStyle.Render(helpText) + "\n")
 
 	return dialog.String()

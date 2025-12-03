@@ -23,6 +23,10 @@ func NewTaskManager(storage Storage) *TaskManager {
 }
 
 func (tm *TaskManager) StartEntry(project, title string) (*models.TimeEntry, error) {
+	return tm.StartEntryAt(project, title, time.Now())
+}
+
+func (tm *TaskManager) StartEntryAt(project, title string, startTime time.Time) (*models.TimeEntry, error) {
 	entries, err := tm.storage.Load()
 	if err != nil {
 		return nil, err
@@ -40,14 +44,13 @@ func (tm *TaskManager) StartEntry(project, title string) (*models.TimeEntry, err
 	if len(entries) > 0 {
 		lastEntry := &entries[len(entries)-1]
 		if lastEntry.IsRunning() {
-			now := time.Now()
-			entries[len(entries)-1].End = &now
+			entries[len(entries)-1].End = &startTime
 		}
 	}
 
 	// Create new entry
 	newEntry := models.TimeEntry{
-		Start:   time.Now(),
+		Start:   startTime,
 		End:     nil,
 		Project: project,
 		Title:   title,

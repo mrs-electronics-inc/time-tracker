@@ -19,7 +19,9 @@
           
           src = self;
 
-          vendorHash = "sha256-arEPtNEVBcrVM9dR2E25asI6A+viWd/k/rOv0eG+2tk=";
+          # vendorHash is null because vendor/ is gitignored.
+          # Dependencies are fetched from the network during builds.
+          vendorHash = null;
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";

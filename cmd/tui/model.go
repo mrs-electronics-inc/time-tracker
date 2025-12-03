@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/lipgloss"
 	"time-tracker/models"
@@ -12,18 +13,28 @@ import (
 
 // keyMap defines keybindings for the TUI
 type keyMap struct {
-	Help   key.Binding
-	Toggle key.Binding
-	Quit   key.Binding
-	Up     key.Binding
-	Down   key.Binding
+	Help       key.Binding
+	Toggle     key.Binding
+	Quit       key.Binding
+	Up         key.Binding
+	Down       key.Binding
+	JumpBottom key.Binding
 }
 
 // ShortHelp returns keybindings shown in the mini help view
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Help, k.Toggle, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.JumpBottom, k.Toggle, k.Help, k.Quit}
 }
 
+// FullHelp returns all keybindings
+func (k keyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.JumpBottom},
+		{k.Toggle, k.Help, k.Quit},
+	}
+}
+
+// keys defines the default keybindings
 var keys = keyMap{
 	Help: key.NewBinding(
 		key.WithKeys("?"),
@@ -45,35 +56,43 @@ var keys = keyMap{
 		key.WithKeys("j", "down"),
 		key.WithHelp("j/↓", "down"),
 	),
+	JumpBottom: key.NewBinding(
+		key.WithKeys("G"),
+		key.WithHelp("G", "jump to bottom"),
+	),
 }
 
 // Model represents the state of the TUI application
 type Model struct {
-	storage      models.Storage
-	taskManager  *utils.TaskManager
-	entries      []models.TimeEntry
-	selectedIdx  int
-	viewportTop  int            // Index of first visible row
-	err          error
-	status       string         // Status message from last action
-	keys         keyMap
-	styles       styles
-	width        int
-	height       int
-	showHelp     bool
+	storage     models.Storage     // Persistent storage backend
+	taskManager *utils.TaskManager // Task management operations
+	entries     []models.TimeEntry // Loaded time entries
+	selectedIdx int                // Index of currently selected entry
+	viewportTop int                // Index of first visible row
+	err         error              // Error state
+	status      string             // Status message from last action
+	keys        keyMap             // Keybindings
+	styles      styles             // UI styling
+	width       int                // Terminal width
+	height      int                // Terminal height
+	showHelp    bool               // Whether to show full help text
+	help        help.Model         // Help component
 }
 
+// styles defines the visual styling for different UI elements
 type styles struct {
-	header      lipgloss.Style
-	footer      lipgloss.Style
-	selected    lipgloss.Style
-	unselected  lipgloss.Style
-	running     lipgloss.Style
-	gap         lipgloss.Style
+	header     lipgloss.Style // Header row style
+	footer     lipgloss.Style // Footer style
+	selected   lipgloss.Style // Selected row style
+	unselected lipgloss.Style // Unselected row style
+	running    lipgloss.Style // Running entry style
+	gap        lipgloss.Style // Gap/blank entry style
 }
 
 // NewModel creates a new TUI model
 func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
+	h := help.New()
+	h.ShowAll = false
 	return &Model{
 		storage:     storage,
 		taskManager: taskManager,
@@ -81,6 +100,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		selectedIdx: 0,
 		keys:        keys,
 		showHelp:    false,
+		help:        h,
 		styles: styles{
 			header:     lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			footer:     lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
@@ -152,6 +172,7 @@ func (m *Model) getColumnWidths() (int, int, int, int, int) {
 	return startWidth, endWidth, projectWidth, titleWidth, durationWidth
 }
 
+// formatDuration converts a time.Duration to a human-readable string (e.g., "2h 15m")
 func formatDuration(d time.Duration) string {
 	hours := int(d.Hours())
 	minutes := int(d.Minutes()) % 60
@@ -159,16 +180,6 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%dh %dm", hours, minutes)
 	}
 	return fmt.Sprintf("%dm", minutes)
-}
-
-// getRunningEntry returns the currently running entry, if any
-func (m *Model) getRunningEntry() *models.TimeEntry {
-	for i, entry := range m.entries {
-		if entry.IsRunning() {
-			return &m.entries[i]
-		}
-	}
-	return nil
 }
 
 // ensureSelectionVisible adjusts viewport so selected item is visible

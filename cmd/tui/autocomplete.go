@@ -38,6 +38,13 @@ func NewAutocompleteSuggestions() *AutocompleteSuggestions {
 // ExtractFromEntries extracts unique projects and (project, title) combinations
 // from time entries, weighted toward most recent ones
 func (a *AutocompleteSuggestions) ExtractFromEntries(entries []models.TimeEntry) {
+	// Reset slices to avoid accumulation from previous calls
+	a.Projects = []string{}
+	a.Tasks = []AutocompleteResult{}
+	a.FilteredResults = []AutocompleteResult{}
+	a.FilteredProjects = []string{}
+	a.selectedIdx = 0
+
 	projectMap := make(map[string]bool)
 	taskMap := make(map[string]AutocompleteResult) // key: "project|title"
 

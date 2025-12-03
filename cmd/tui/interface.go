@@ -109,11 +109,6 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
-	// If in dialog mode, render dialog instead of list
-	if m.dialogMode {
-		return m.renderDialog()
-	}
-
 	// Show loading indicator if operation in progress
 	if m.loading {
 		return m.renderLoading()
@@ -167,7 +162,21 @@ func (m *Model) View() string {
 
 	parts = append(parts, footer)
 
-	return strings.Join(parts, "")
+	output := strings.Join(parts, "")
+
+	// If in dialog mode, render as overlay
+	if m.dialogMode {
+		dialogContent := m.renderDialog()
+		output = lipgloss.Place(
+			m.width,
+			m.height,
+			lipgloss.Center,
+			lipgloss.Center,
+			dialogContent,
+		)
+	}
+
+	return output
 }
 
 // renderTableHeader renders just the table header

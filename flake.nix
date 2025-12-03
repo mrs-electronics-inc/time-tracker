@@ -14,14 +14,11 @@
         # Go module attributes
         goModule = pkgs.buildGoModule {
           pname = "time-tracker";
-          # We don't have real versions yet
           version = "alpha";
           
           src = self;
 
-          # vendorHash is null because vendor/ is gitignored.
-          # Dependencies are fetched from the network during builds.
-          vendorHash = null;
+          vendorHash = "sha256-ZknVM8bMM0kLIbuV4Bv4XsbgtyhlKyP7p2AVOE1k0GA=";
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";

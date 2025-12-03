@@ -55,16 +55,30 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "esc":
 		// Cancel dialog
 		m.closeDialog()
+		m.showDialogHelp = false
+		return m, nil
+
+	case "?":
+		// Toggle help in dialog mode
+		m.showDialogHelp = !m.showDialogHelp
 		return m, nil
 
 	case "tab", "down":
-		// Move focus to next input
+		// Move focus to next input (skip help toggle)
+		if m.showDialogHelp {
+			m.showDialogHelp = false
+			return m, nil
+		}
 		m.focusIndex = (m.focusIndex + 1) % len(m.inputs)
 		m.updateInputFocus()
 		return m, nil
 
 	case "shift+tab", "up":
-		// Move focus to previous input
+		// Move focus to previous input (skip help toggle)
+		if m.showDialogHelp {
+			m.showDialogHelp = false
+			return m, nil
+		}
 		m.focusIndex--
 		if m.focusIndex < 0 {
 			m.focusIndex = len(m.inputs) - 1
@@ -194,7 +208,17 @@ func (m *Model) renderDialog() string {
 		dialog.WriteString(errorStyle.Render(m.status) + "\n\n")
 	}
 
-	dialog.WriteString(helpStyle.Render(helpText) + "\n")
+	// Show keybindings hint
+	if m.showDialogHelp {
+		// Show full keybindings in help mode
+		m.help.Width = m.width
+		m.help.ShowAll = true
+		footer := m.styles.footer.Render(m.help.View(m.keys))
+		dialog.WriteString(footer)
+	} else {
+		// Show inline help hint
+		dialog.WriteString(helpStyle.Render(helpText) + "\n")
+	}
 
 	return dialog.String()
 }

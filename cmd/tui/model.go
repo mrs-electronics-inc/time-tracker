@@ -20,6 +20,7 @@ type keyMap struct {
 	Up         key.Binding
 	Down       key.Binding
 	JumpBottom key.Binding
+	DialogBack key.Binding
 }
 
 // ShortHelp returns keybindings shown in the mini help view
@@ -33,6 +34,11 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down, k.JumpBottom},
 		{k.Toggle, k.Help, k.Quit},
 	}
+}
+
+// DialogShortHelp returns keybindings for dialog mode
+func (k keyMap) DialogShortHelp() []key.Binding {
+	return []key.Binding{k.DialogBack, k.Help}
 }
 
 // keys defines the default keybindings
@@ -61,6 +67,10 @@ var keys = keyMap{
 		key.WithKeys("G"),
 		key.WithHelp("G", "jump to bottom"),
 	),
+	DialogBack: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "back"),
+	),
 }
 
 // Model represents the state of the TUI application
@@ -83,6 +93,7 @@ type Model struct {
 	dialogMode  bool                  // Whether we're in dialog mode
 	inputs      []textinput.Model     // Text inputs for project, title, hour, minute
 	focusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	showDialogHelp bool                // Whether to show help in dialog mode
 }
 
 // styles defines the visual styling for different UI elements
@@ -148,6 +159,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		dialogMode:  false,
 		inputs:      inputs,
 		focusIndex:  0,
+		showDialogHelp: false,
 		styles: styles{
 			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),

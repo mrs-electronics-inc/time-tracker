@@ -66,13 +66,13 @@ The current CLI-only interface requires users to remember or look up project and
 
 ### Autocomplete Suggestions
 
-- [ ] Implement autocomplete suggestions for project and title inputs:
-  - [ ] Extract unique projects and (project, title) combinations from entries
-  - [ ] Weight suggestions toward most recent entries
-  - [ ] Filter suggestions as user types
-  - [ ] Display matching suggestions below input field
-- [ ] Handle autocomplete navigation (arrow keys to select suggestion)
-- [ ] Auto-fill input when user selects a suggestion
+- [x] Implement autocomplete suggestions for project and title inputs:
+  - [x] Extract unique projects and (project, title) combinations from entries
+  - [x] Weight suggestions toward most recent entries
+  - [x] Filter suggestions as user types
+  - [x] Display matching suggestions below input field
+- [x] Handle autocomplete navigation (arrow keys to select suggestion)
+- [x] Auto-fill input when user selects a suggestion
 
 ### Polish & UX
 

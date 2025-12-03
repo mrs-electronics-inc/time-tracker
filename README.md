@@ -133,6 +133,7 @@ time-tracker stats --weekly  # Weekly totals
 ### Requirements
 
 To develop this project, you need:
+
 - **Go 1.24.0 or higher**
 - **Docker and Docker Compose** (for running the app and tests)
 - **just** (optional, but recommended for running common tasks)
@@ -147,6 +148,9 @@ just test
 
 # Build the Docker image
 just build
+
+# Run the TUI
+just run
 
 # Run the CLI with any subcommand
 just run list

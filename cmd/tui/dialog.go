@@ -258,6 +258,11 @@ func (m *Model) renderAutocompleteList(fieldIndex int) string {
 		return ""
 	}
 
+	// Only show autocomplete for the focused field
+	if m.focusIndex != fieldIndex {
+		return "\n"
+	}
+
 	var output strings.Builder
 	suggestionStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 	selectedStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("220")).Bold(true)

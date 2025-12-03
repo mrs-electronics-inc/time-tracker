@@ -114,9 +114,13 @@ func (m *Model) View() string {
 		return m.renderLoading()
 	}
 
-	// Render footer first to know its height
-	footer := m.renderFooter()
-	footerHeight := strings.Count(footer, "\n") + 1
+	// Render footer first to know its height (skip if in dialog mode)
+	var footer string
+	footerHeight := 0
+	if !m.dialogMode {
+		footer = m.renderFooter()
+		footerHeight = strings.Count(footer, "\n") + 1
+	}
 
 	// Header takes 2 lines (header + separator)
 	headerHeight := 2

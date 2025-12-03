@@ -314,48 +314,50 @@ func (m *Model) renderFooter() string {
 // renderStatusBar renders a zellij-style status bar with mode and keybindings
 func (m *Model) renderStatusBar() string {
 	// Colors
-	keyBg := lipgloss.Color("5")   // Magenta for keys
-	keyFg := lipgloss.Color("0")   // Black text on keys
-	labelBg := lipgloss.Color("0") // Black for labels
-	labelFg := lipgloss.Color("8") // Gray text for labels
-	modeBg := lipgloss.Color("10") // Green for mode
-	modeFg := lipgloss.Color("0")  // Black text on mode
+	black := lipgloss.Color("0")
+	magenta := lipgloss.Color("5")
+	gray := lipgloss.Color("8")
+	green := lipgloss.Color("10")
 
 	// Styles
 	modeStyle := lipgloss.NewStyle().
-		Background(modeBg).
-		Foreground(modeFg).
+		Background(green).
+		Foreground(black).
 		Bold(true).
 		Padding(0, 1)
 
-	modeSep := lipgloss.NewStyle().
-		Background(labelBg).
-		Foreground(modeBg).
-		Render("\uE0B0")
-
 	keyStyle := lipgloss.NewStyle().
-		Background(keyBg).
-		Foreground(keyFg).
+		Background(black).
+		Foreground(magenta).
 		Padding(0, 1)
-
-	keySepLeft := lipgloss.NewStyle().
-		Background(keyBg).
-		Foreground(labelBg).
-		Render("\uE0B0")
-
-	keySepRight := lipgloss.NewStyle().
-		Background(labelBg).
-		Foreground(keyBg).
-		Render("\uE0B0")
 
 	labelStyle := lipgloss.NewStyle().
-		Background(labelBg).
-		Foreground(labelFg).
+		Background(gray).
+		Foreground(black).
+		Bold(true).
 		Padding(0, 1)
+
+	// Separators
+	powerlineSeparator := "\uE0B0"
+
+	modeSep := lipgloss.NewStyle().
+		Background(black).
+		Foreground(green).
+		Render(powerlineSeparator)
+
+	keySep := lipgloss.NewStyle().
+		Background(gray).
+		Foreground(black).
+		Render(powerlineSeparator)
+
+	labelSep := lipgloss.NewStyle().
+		Background(black).
+		Foreground(gray).
+		Render(powerlineSeparator)
 
 	// Helper to render a key-label pair with powerline separators
 	renderPair := func(key, label string) string {
-		return keySepLeft + keyStyle.Render(key) + keySepRight + labelStyle.Render(label)
+		return keyStyle.Render(key) + keySep + labelStyle.Render(label) + labelSep
 	}
 
 	var parts []string
@@ -364,18 +366,18 @@ func (m *Model) renderStatusBar() string {
 	switch m.mode {
 	case ModeStart:
 		parts = append(parts, modeStyle.Render("START")+modeSep)
-		parts = append(parts, renderPair("Tab", "switch"))
-		parts = append(parts, renderPair("↵", "submit"))
-		parts = append(parts, renderPair("Esc", "cancel"))
+		parts = append(parts, renderPair("Tab", "NEXT INPUT"))
+		parts = append(parts, renderPair("↵", "SUBMIT"))
+		parts = append(parts, renderPair("Esc", "CANCEL"))
 	case ModeHelp:
 		parts = append(parts, modeStyle.Render("HELP")+modeSep)
-		parts = append(parts, renderPair("Esc", "close"))
+		parts = append(parts, renderPair("Esc", "BACK"))
 	default: // ModeList
 		parts = append(parts, modeStyle.Render("LIST")+modeSep)
-		parts = append(parts, renderPair("j/k", "navigate"))
-		parts = append(parts, renderPair("s", "start"))
-		parts = append(parts, renderPair("?", "help"))
-		parts = append(parts, renderPair("q", "quit"))
+		parts = append(parts, renderPair("j/k", "NAVIGATE"))
+		parts = append(parts, renderPair("s", "START/STOP"))
+		parts = append(parts, renderPair("?", "HELP"))
+		parts = append(parts, renderPair("q", "QUIT"))
 	}
 
 	statusBar := strings.Join(parts, "")
@@ -384,7 +386,7 @@ func (m *Model) renderStatusBar() string {
 	statusBarWidth := lipgloss.Width(statusBar)
 	if statusBarWidth < m.width {
 		padding := lipgloss.NewStyle().
-			Background(labelBg).
+			Background(black).
 			Render(strings.Repeat(" ", m.width-statusBarWidth))
 		statusBar = statusBar + padding
 	}

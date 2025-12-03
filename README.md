@@ -55,29 +55,18 @@ The Time Tracker features an interactive Terminal User Interface (TUI) for a mor
 
 ```bash
 time-tracker
-# or
-time-tracker --tui
 ```
 
 The TUI provides a visual list of your time entries with the following keyboard shortcuts:
 
-| Key | Action |
-|-----|--------|
-| `j` / `↓` | Move down |
-| `k` / `↑` | Move up |
-| `G` | Jump to bottom |
-| `s` | Start/stop tracking (or start from blank if no entries) |
-| `?` | Toggle help |
-| `q` / `esc` / `ctrl+c` | Quit |
-
-**In the Start Entry Dialog:**
-
-| Key | Action |
-|-----|--------|
-| `Tab` / `↓` / `↑` | Switch between fields |
-| `Enter` | Submit and start entry |
-| `Esc` | Cancel and return to list |
-| `?` | Toggle help |
+| Key         | Action                |
+| ----------- | --------------------- |
+| `j` / `↓`   | Move down             |
+| `k` / `↑`   | Move up               |
+| `G`         | Jump to current entry |
+| `s`         | Start/stop tracking   |
+| `?`         | Toggle help           |
+| `q` / `esc` | Quit                  |
 
 ### Using the CLI
 

@@ -169,16 +169,10 @@ func (m *Model) View() string {
 
 	output := strings.Join(parts, "")
 
-	// If in dialog mode, render as overlay
+	// If in dialog mode, render as centered overlay
 	if m.dialogMode {
 		dialogContent := m.renderDialog()
-		output = lipgloss.Place(
-			m.width,
-			m.height,
-			lipgloss.Center,
-			lipgloss.Center,
-			dialogContent,
-		)
+		output = m.compositeOverlay(output, dialogContent)
 	}
 
 	return output
@@ -294,6 +288,63 @@ func (m *Model) renderTableRows(maxHeight int) string {
 	}
 
 	return output.String()
+}
+
+// compositeOverlay overlays a dialog centered on the background using simple string compositing
+func (m *Model) compositeOverlay(background, foreground string) string {
+	bgLines := strings.Split(background, "\n")
+	fgLines := strings.Split(foreground, "\n")
+
+	// Calculate dimensions
+	fgHeight := len(fgLines)
+	fgWidth := 0
+	for _, line := range fgLines {
+		if len(line) > fgWidth {
+			fgWidth = len(line)
+		}
+	}
+
+	// Calculate starting positions for centering
+	startRow := (m.height - fgHeight) / 2
+	startCol := (m.width - fgWidth) / 2
+
+	// Ensure non-negative offsets
+	if startRow < 0 {
+		startRow = 0
+	}
+	if startCol < 0 {
+		startCol = 0
+	}
+
+	// Pad background to ensure it has enough lines
+	for len(bgLines) < m.height {
+		bgLines = append(bgLines, "")
+	}
+
+	// Overlay foreground onto background
+	for i := 0; i < fgHeight && startRow+i < len(bgLines); i++ {
+		bgLine := bgLines[startRow+i]
+		fgLine := fgLines[i]
+
+		// Pad background line to at least startCol characters
+		if len(bgLine) < startCol {
+			bgLine = bgLine + strings.Repeat(" ", startCol-len(bgLine))
+		}
+
+		// Replace the section of bgLine with fgLine
+		if startCol+len(fgLine) <= len(bgLine) {
+			bgLines[startRow+i] = bgLine[:startCol] + fgLine + bgLine[startCol+len(fgLine):]
+		} else {
+			bgLines[startRow+i] = bgLine[:startCol] + fgLine
+		}
+	}
+
+	// Trim trailing empty lines to original height
+	if len(bgLines) > m.height {
+		bgLines = bgLines[:m.height]
+	}
+
+	return strings.Join(bgLines, "\n")
 }
 
 // renderLoading renders a loading indicator

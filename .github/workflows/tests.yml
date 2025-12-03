@@ -5,26 +5,13 @@ on:
     branches: [ main, master ]
 
 jobs:
-  integration-tests:
+  tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-go@v4
       with:
-        go-version: '1.23'
-    - name: Run integration tests
-      run: |
-        cd src
-        go test -race ./tests/integration
-
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-    - name: Run unit tests
-      run: |
-        cd src
-        go test -race ./tests/unit
+        go-version: '1.24'
+    - uses: extractions/setup-just@v3
+    - name: Run tests
+      run: just test

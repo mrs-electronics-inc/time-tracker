@@ -109,6 +109,11 @@ func (m *Model) View() string {
 		return "Error: " + m.err.Error() + "\n"
 	}
 
+	// If in dialog mode, render dialog instead of list
+	if m.dialogMode {
+		return m.renderDialog()
+	}
+
 	// Show loading indicator if operation in progress
 	if m.loading {
 		return m.renderLoading()

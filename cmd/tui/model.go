@@ -106,6 +106,11 @@ type styles struct {
 	gap             lipgloss.Style // Gap/blank entry style
 	dialogFocused   lipgloss.Style // Dialog focused input style
 	dialogBlurred   lipgloss.Style // Dialog blurred input style
+	dialogTitle     lipgloss.Style // Dialog title style
+	dialogBox       lipgloss.Style // Dialog container style
+	dialogLabel     lipgloss.Style // Dialog input label style
+	statusError     lipgloss.Style // Status error message style
+	statusSuccess   lipgloss.Style // Status success message style
 }
 
 // NewModel creates a new TUI model
@@ -169,6 +174,11 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 			gap:           lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true),
 			dialogFocused: lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
 			dialogBlurred: lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+			dialogTitle:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
+			dialogBox:     lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("240")).Padding(1, 2),
+			dialogLabel:   lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
+			statusError:   lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true),
+			statusSuccess: lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true),
 		},
 	}
 }

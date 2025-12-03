@@ -171,31 +171,27 @@ func (m *Model) updateInputFocus() {
 func (m *Model) renderDialog() string {
 	// Create title
 	title := "Start New Entry"
-	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10"))
 
 	// Create project input section
-	projectLabel := "Project:"
+	projectLabel := m.styles.dialogLabel.Render("Project:")
 	projectInput := m.inputs[0].View()
 
 	// Create title input section
-	titleLabel := "Title:"
+	titleLabel := m.styles.dialogLabel.Render("Title:")
 	titleInput := m.inputs[1].View()
 
 	// Create time input section
-	timeLabel := "Time (HH:MM):"
+	timeLabel := m.styles.dialogLabel.Render("Time (HH:MM):")
 	hourInput := m.inputs[2].View()
 	minuteInput := m.inputs[3].View()
 
 	// Create help text
-	helpText := "Tab/↓/↑ to switch fields • Enter to submit • Esc to cancel"
+	helpText := "Tab/↓/↑ switch • Enter submit • Esc cancel • ? help"
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
-
-	// Create error text style (red)
-	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 
 	// Build dialog content
 	var dialog strings.Builder
-	dialog.WriteString(titleStyle.Render(title) + "\n\n")
+	dialog.WriteString(m.styles.dialogTitle.Render(title) + "\n\n")
 	dialog.WriteString(projectLabel + "\n")
 	dialog.WriteString(projectInput + "\n\n")
 	dialog.WriteString(titleLabel + "\n")
@@ -205,7 +201,12 @@ func (m *Model) renderDialog() string {
 
 	// Show status/error message if present
 	if m.status != "" {
-		dialog.WriteString(errorStyle.Render(m.status) + "\n\n")
+		// Determine if it's an error or success based on message content
+		if strings.Contains(strings.ToLower(m.status), "error") {
+			dialog.WriteString(m.styles.statusError.Render(m.status) + "\n\n")
+		} else {
+			dialog.WriteString(m.styles.statusSuccess.Render(m.status) + "\n\n")
+		}
 	}
 
 	// Show keybindings hint
@@ -220,5 +221,6 @@ func (m *Model) renderDialog() string {
 		dialog.WriteString(helpStyle.Render(helpText) + "\n")
 	}
 
-	return dialog.String()
+	// Wrap in styled box
+	return m.styles.dialogBox.Render(dialog.String())
 }

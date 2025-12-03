@@ -64,7 +64,7 @@ Add a TUI to improve the user experience.
 - [x] Add loading states for data operations
 - [x] Handle edge cases (empty data, no entries yet, errors)
 - [x] Add ability to go back to previous screen (Escape key)
-- [ ] Smooth transitions between screens
+- [x] Smooth transitions between screens
 - [x] Ensure all interactive elements show available keybindings in the interface
 
 ### README Updates
@@ -77,8 +77,13 @@ Add a TUI to improve the user experience.
   - Remove out-of-date build/run instructions
 - [x] Clean up any deprecated information
 
-### Testing
+### Clean up & Testing
 
+- [ ] Add Mode struct
+  - Title
+  - Key bindings
+  - Render function
+- [ ] Use Mode values to reduce duplicate code for handling key bindings and other things related to modes
 - [ ] Add unit tests for model state transitions (sending messages and verifying state changes)
 - [ ] Add integration tests for TUI data operations:
   - Start entry via TUI and verify data file

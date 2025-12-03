@@ -82,9 +82,17 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "down":
 		// If autocomplete is showing, move to next suggestion
 		// Otherwise move to next input field
-		if m.showAutocomplete && m.focusIndex < 2 && len(m.autocomplete.FilteredResults) > 0 {
-			m.autocomplete.SelectNext()
-			return m, nil
+		if m.showAutocomplete && m.focusIndex < 2 {
+			hasResults := false
+			if m.focusIndex == 0 && len(m.autocomplete.FilteredProjects) > 0 {
+				hasResults = true
+			} else if m.focusIndex == 1 && len(m.autocomplete.FilteredResults) > 0 {
+				hasResults = true
+			}
+			if hasResults {
+				m.autocomplete.SelectNext()
+				return m, nil
+			}
 		}
 		// Move focus to next input
 		m.focusIndex = (m.focusIndex + 1) % len(m.inputs)
@@ -95,9 +103,17 @@ func (m *Model) handleDialogKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "up":
 		// If autocomplete is showing, move to previous suggestion
 		// Otherwise move to previous input field
-		if m.showAutocomplete && m.focusIndex < 2 && len(m.autocomplete.FilteredResults) > 0 {
-			m.autocomplete.SelectPrev()
-			return m, nil
+		if m.showAutocomplete && m.focusIndex < 2 {
+			hasResults := false
+			if m.focusIndex == 0 && len(m.autocomplete.FilteredProjects) > 0 {
+				hasResults = true
+			} else if m.focusIndex == 1 && len(m.autocomplete.FilteredResults) > 0 {
+				hasResults = true
+			}
+			if hasResults {
+				m.autocomplete.SelectPrev()
+				return m, nil
+			}
 		}
 		// Move focus to previous input
 		m.focusIndex--

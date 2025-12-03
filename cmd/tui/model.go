@@ -109,6 +109,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[0] = textinput.New()
 	inputs[0].Placeholder = "Project"
 	inputs[0].CharLimit = 128
+	inputs[0].Width = 40
 	inputs[0].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	inputs[0].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
@@ -116,6 +117,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[1] = textinput.New()
 	inputs[1].Placeholder = "Title"
 	inputs[1].CharLimit = 128
+	inputs[1].Width = 40
 	inputs[1].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[1].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 

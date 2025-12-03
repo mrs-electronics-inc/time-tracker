@@ -260,7 +260,7 @@ func (m *Model) renderAutocompleteList(fieldIndex int) string {
 
 	// Only show autocomplete for the focused field
 	if m.focusIndex != fieldIndex {
-		return "\n"
+		return ""
 	}
 
 	var output strings.Builder

@@ -1,8 +1,6 @@
 # TUI Implementation
 
-## Description
-
-The current CLI-only interface requires users to remember or look up project and task names when starting/stopping time entries. A Text User Interface (TUI) will improve usability by providing autocomplete suggestions, visual feedback, and the ability to duplicate recent entries. This makes time tracking more accessible and efficient for everyday use.
+Add a TUI to improve the user experience.
 
 ## Design Decisions
 
@@ -10,11 +8,6 @@ The current CLI-only interface requires users to remember or look up project and
 
 - **Decision**: Use charmbracelet/bubbletea and charmbracelet/bubbles for TUI framework
 - **Rationale**: Referenced in issue #2, purpose-built for Go TUIs with good component library and documentation
-
-### Autocomplete Suggestions
-
-- **Decision**: Project and task suggestions come from existing time entries, weighted toward most recent ones
-- **Rationale**: Reduces typing for frequently-used projects/tasks and reflects actual user patterns
 
 ### Start Entry Flow
 
@@ -64,16 +57,6 @@ The current CLI-only interface requires users to remember or look up project and
   - [x] Handle special case: if selected entry is running, show "stop and start blank" option
 - [x] Reload entries after successful start and return to list view
 
-### Autocomplete Suggestions
-
-- [ ] Implement autocomplete suggestions for project and title inputs:
-  - [ ] Extract unique projects and (project, title) combinations from entries
-  - [ ] Weight suggestions toward most recent entries
-  - [ ] Filter suggestions as user types
-  - [ ] Display matching suggestions below input field
-- [ ] Handle autocomplete navigation (arrow keys to select suggestion)
-- [ ] Auto-fill input when user selects a suggestion
-
 ### Polish & UX
 
 - [ ] Implement consistent keybinding display across all screens (footer/status bar)
@@ -88,9 +71,7 @@ The current CLI-only interface requires users to remember or look up project and
 
 - [ ] Add "Using the TUI" section with:
   - How to launch TUI (run without args)
-  - Keyboard shortcuts reference
-  - Autocomplete behavior explanation
-  - How to duplicate entries
+  - Basic keyboard shortcuts reference
 - [ ] Update "Development" section with:
   - `just` recipes for running dev commands
   - Remove out-of-date build/run instructions
@@ -103,6 +84,5 @@ The current CLI-only interface requires users to remember or look up project and
   - Start entry via TUI and verify data file
   - Stop entry via TUI and verify data file
   - Load recent entries and verify they match CLI list output
-- [ ] Test autocomplete filtering and ranking logic
 - [ ] Verify data consistency between CLI and TUI operations
 - [ ] Test edge cases (no data, invalid input, concurrent operations)

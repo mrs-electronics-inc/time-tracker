@@ -69,13 +69,13 @@ Add a TUI to improve the user experience.
 
 ### README Updates
 
-- [ ] Add "Using the TUI" section with:
+- [x] Add "Using the TUI" section with:
   - How to launch TUI (run without args)
   - Basic keyboard shortcuts reference
-- [ ] Update "Development" section with:
+- [x] Update "Development" section with:
   - `just` recipes for running dev commands
   - Remove out-of-date build/run instructions
-- [ ] Clean up any deprecated information
+- [x] Clean up any deprecated information
 
 ### Testing
 

@@ -171,6 +171,9 @@ func (m *Model) renderDialog() string {
 	helpText := "Tab/↓/↑ to switch fields • Enter to submit • Esc to cancel"
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
 
+	// Create error text style (red)
+	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
+
 	// Build dialog content
 	var dialog strings.Builder
 	dialog.WriteString(titleStyle.Render(title) + "\n\n")
@@ -180,6 +183,12 @@ func (m *Model) renderDialog() string {
 	dialog.WriteString(titleInput + "\n\n")
 	dialog.WriteString(timeLabel + "\n")
 	dialog.WriteString(hourInput + " : " + minuteInput + "\n\n")
+
+	// Show status/error message if present
+	if m.status != "" {
+		dialog.WriteString(errorStyle.Render(m.status) + "\n\n")
+	}
+
 	dialog.WriteString(helpStyle.Render(helpText) + "\n")
 
 	return dialog.String()

@@ -10,22 +10,16 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        
-        # Filter out vendor directory
-        src = pkgs.lib.cleanSourceWith {
+        pname = "time-tracker";
+        version = "alpha";
+      in
+      {
+        packages.default = pkgs.buildGoModule {
+          inherit pname version;
           src = self;
-          filter = name: type: 
-            !(pkgs.lib.hasSuffix "/vendor" name);
-        };
-        
-        # Go module attributes
-        goModule = pkgs.buildGoModule {
-          pname = "time-tracker";
-          version = "alpha";
           
-          src = src;
-
-          vendorHash = null;
+          # vendorHash locks Go module dependencies
+          vendorHash = "sha256-ZknVM8bMM0kLIbuV4Bv4XsbgtyhlKyP7p2AVOE1k0GA=";
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";
@@ -34,14 +28,12 @@
             platforms = platforms.all;
           };
         };
-      in
-      {
-        packages.default = goModule;
-        packages.time-tracker = goModule;
+
+        packages.time-tracker = self.packages.${system}.default;
 
         apps.default = {
           type = "app";
-          program = "${goModule}/bin/time-tracker";
+          program = "${self.packages.${system}.default}/bin/time-tracker";
         };
 
         devShells.default = pkgs.mkShell {

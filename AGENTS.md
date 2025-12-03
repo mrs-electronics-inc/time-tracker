@@ -36,14 +36,16 @@ See `justfile` in the repo root for all available recipes.
 Vendor directory is gitignored; dependencies are fetched from the network during builds.
 
 **Updating vendorHash**: When `go.mod` changes:
-1. Run `nix build 2>&1 | tail`
-2. Nix will show a hash mismatch error with the correct hash:
+1. Set `vendorHash = "";` in `flake.nix` (empty string)
+2. Run `nix build 2>&1 | grep -E "(specified|got):"`
+3. Nix will show the correct hash:
    ```
    specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
       got:    sha256-ZknVM8bMM0kLIbuV4Bv4XsbgtyhlKyP7p2AVOE1k0GA=
    ```
-3. Copy the `got:` hash and update `vendorHash` in `flake.nix`
-4. Run `nix build` again to verify it works
+4. Copy the `got:` hash and update `vendorHash` in `flake.nix`
+5. Run `nix build` again to verify it works
+6. **DO NOT run `go mod vendor`** - the vendor directory should remain empty/deleted
 
 ## Data Format
 

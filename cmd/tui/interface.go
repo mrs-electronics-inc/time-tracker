@@ -137,14 +137,8 @@ func (m *Model) View() string {
 	// Header takes 2 lines (header + separator)
 	headerHeight := 2
 
-	// Status message takes 1 line if present
-	statusHeight := 0
-	if m.status != "" {
-		statusHeight = 1
-	}
-
 	// Available height for list rows
-	availableHeight := max(m.height-headerHeight-footerHeight-statusHeight, 1)
+	availableHeight := max(m.height-headerHeight-footerHeight, 1)
 
 	// Ensure selection is visible
 	m.ensureSelectionVisible(availableHeight)
@@ -155,11 +149,6 @@ func (m *Model) View() string {
 
 	// Combine header and rows
 	table := header + rows
-
-	// Add status message if present
-	if m.status != "" {
-		table = table + m.status + "\n"
-	}
 
 	// Calculate spacer to push footer to bottom
 	tableLines := strings.Count(table, "\n")
@@ -195,8 +184,12 @@ func (m *Model) renderTableHeader() string {
 	startWidth += padding
 	endWidth += padding
 	projectWidth += padding
-	titleWidth += padding
 	durationWidth += padding
+
+	// Calculate available width for title column
+	fixedWidth := startWidth + endWidth + projectWidth + durationWidth + 4 // 4 for column separators
+	availableTitleWidth := max(m.width-fixedWidth, len("Title")+padding)
+	titleWidth = availableTitleWidth
 
 	// Render header
 	headerText := fmt.Sprintf(
@@ -209,7 +202,7 @@ func (m *Model) renderTableHeader() string {
 	)
 	output := m.styles.header.Render(headerText) + "\n"
 
-	// Render separator (4 spaces for column separators between 5 columns)
+	// Render separator
 	separatorWidth := startWidth + endWidth + projectWidth + titleWidth + durationWidth + 4
 	separatorText := strings.Repeat("─", separatorWidth)
 	output += m.styles.header.Render(separatorText) + "\n"
@@ -233,8 +226,12 @@ func (m *Model) renderTableRows(maxHeight int) string {
 	startWidth += padding
 	endWidth += padding
 	projectWidth += padding
-	titleWidth += padding
 	durationWidth += padding
+
+	// Calculate available width for title column
+	fixedWidth := startWidth + endWidth + projectWidth + durationWidth + 4 // 4 for column separators
+	availableTitleWidth := max(m.width-fixedWidth, len("Title")+padding)
+	titleWidth = availableTitleWidth
 
 	var output strings.Builder
 
@@ -380,16 +377,25 @@ func (m *Model) renderStatusBar() string {
 		parts = append(parts, renderPair("q", "QUIT"))
 	}
 
-	statusBar := strings.Join(parts, "")
+	// Build left side of status bar
+	leftSide := strings.Join(parts, "")
 
-	// Pad to full width with black background
-	statusBarWidth := lipgloss.Width(statusBar)
-	if statusBarWidth < m.width {
-		padding := lipgloss.NewStyle().
-			Background(black).
-			Render(strings.Repeat(" ", m.width-statusBarWidth))
-		statusBar = statusBar + padding
+	// Add status message on the right side if present
+	if m.status != "" {
+		statusStyle := lipgloss.NewStyle().
+			Foreground(magenta).
+			Padding(0, 1)
+		rightSide := statusStyle.Render(m.status)
+		
+		// Calculate padding to right-align status
+		leftWidth := lipgloss.Width(leftSide)
+		rightWidth := lipgloss.Width(rightSide)
+		totalWidth := leftWidth + rightWidth
+		paddingWidth := max(m.width-totalWidth, 0)
+		
+		padding := strings.Repeat(" ", paddingWidth)
+		return leftSide + padding + rightSide
 	}
 
-	return statusBar
+	return leftSide
 }

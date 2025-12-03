@@ -358,9 +358,74 @@ func (m *Model) renderLoading() string {
 	return "\n\n" + loadingText + "\n"
 }
 
-// renderFooter renders the footer with help text
+// renderFooter renders the footer with status bar
 func (m *Model) renderFooter() string {
-	m.help.Width = m.width
-	m.help.ShowAll = m.showHelp
-	return m.styles.footer.Render(m.help.View(m.keys))
+	return m.renderStatusBar()
+}
+
+// renderStatusBar renders a zellij-style status bar with mode and keybindings
+func (m *Model) renderStatusBar() string {
+	modeStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("10")).
+		Foreground(lipgloss.Color("0")).
+		Bold(true).
+		Padding(0, 1)
+	
+	keyStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("8")).
+		Foreground(lipgloss.Color("15")).
+		Padding(0, 1)
+	
+	actionStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("15"))
+	
+	quitStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("8"))
+	
+	separator := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("8")).
+		Render(" ▶ ")
+	
+	// Build status bar segments
+	var segments []string
+	
+	if m.dialogMode {
+		segments = append(segments, modeStyle.Render("DIALOG"))
+		segments = append(segments, keyStyle.Render("Tab"))
+		segments = append(segments, actionStyle.Render("switch"))
+		segments = append(segments, keyStyle.Render("↵"))
+		segments = append(segments, actionStyle.Render("submit"))
+		segments = append(segments, keyStyle.Render("Esc"))
+		segments = append(segments, actionStyle.Render("cancel"))
+	} else {
+		segments = append(segments, modeStyle.Render("LIST"))
+		segments = append(segments, keyStyle.Render("j/k"))
+		segments = append(segments, actionStyle.Render("navigate"))
+		segments = append(segments, keyStyle.Render("s"))
+		segments = append(segments, actionStyle.Render("start"))
+		segments = append(segments, keyStyle.Render("?"))
+		segments = append(segments, actionStyle.Render("help"))
+	}
+	
+	statusBar := strings.Join(segments, separator)
+	
+	// Right-align quit option
+	quitText := keyStyle.Render("q") + separator + quitStyle.Render("quit")
+	
+	// Pad to full width
+	statusBarWidth := lipgloss.Width(statusBar)
+	quitWidth := lipgloss.Width(quitText)
+	totalWidth := statusBarWidth + quitWidth
+	
+	if totalWidth < m.width {
+		padding := strings.Repeat(" ", m.width-totalWidth)
+		statusBar = statusBar + padding + quitText
+	} else {
+		statusBar = statusBar + separator + quitText
+	}
+	
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("8")).
+		Background(lipgloss.Color("0")).
+		Render(statusBar)
 }

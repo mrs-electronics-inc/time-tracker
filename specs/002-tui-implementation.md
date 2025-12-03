@@ -52,17 +52,17 @@ The current CLI-only interface requires users to remember or look up project and
 
 - [x] Add dialog state to Model (dialogMode, inputs []textinput.Model, focusIndex)
 - [x] Initialize textinput components with proper styling (focused/blurred styles)
-- [ ] Implement dialog mode in Update handler:
-  - [ ] Trigger dialog on 's' key in list mode, pre-populate with selected entry values
-  - [ ] Handle Tab/Up/Down/Shift+Tab to cycle focus between project and title inputs
-  - [ ] Handle Enter to submit and call taskManager.StartEntry()
-  - [ ] Handle Esc to cancel and return to list
-  - [ ] Route character input to focused textinput
-- [ ] Implement dialog rendering in View:
-  - [ ] Show modal dialog with project and title inputs
-  - [ ] Display keybinding hints (Enter: Submit | Esc: Cancel)
-  - [ ] Handle special case: if selected entry is running, show "stop and start blank" option
-- [ ] Reload entries after successful start and return to list view
+- [x] Implement dialog mode in Update handler:
+  - [x] Trigger dialog on 's' key in list mode, pre-populate with selected entry values
+  - [x] Handle Tab/Up/Down/Shift+Tab to cycle focus between project and title inputs
+  - [x] Handle Enter to submit and call taskManager.StartEntry()
+  - [x] Handle Esc to cancel and return to list
+  - [x] Route character input to focused textinput
+- [x] Implement dialog rendering in View:
+  - [x] Show modal dialog with project and title inputs
+  - [x] Display keybinding hints (Enter: Submit | Esc: Cancel)
+  - [x] Handle special case: if selected entry is running, show "stop and start blank" option
+- [x] Reload entries after successful start and return to list view
 
 ### Autocomplete Suggestions
 

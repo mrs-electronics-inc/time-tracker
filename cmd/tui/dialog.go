@@ -142,28 +142,5 @@ func (m *Model) renderDialog() string {
 	dialog.WriteString(titleInput + "\n\n")
 	dialog.WriteString(helpStyle.Render(helpText) + "\n")
 
-	// Center dialog on screen
-	dialogStr := dialog.String()
-	dialogLines := strings.Split(strings.TrimSuffix(dialogStr, "\n"), "\n")
-
-	var centered strings.Builder
-	// Add top padding
-	topPadding := (m.height - len(dialogLines)) / 2
-	if topPadding < 0 {
-		topPadding = 0
-	}
-	for i := 0; i < topPadding; i++ {
-		centered.WriteString("\n")
-	}
-
-	// Add centered content
-	for _, line := range dialogLines {
-		leftPadding := (m.width - len(line)) / 2
-		if leftPadding < 0 {
-			leftPadding = 0
-		}
-		centered.WriteString(strings.Repeat(" ", leftPadding) + line + "\n")
-	}
-
-	return centered.String()
+	return dialog.String()
 }

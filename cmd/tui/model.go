@@ -102,6 +102,9 @@ type Model struct {
 
 	// Loading state
 	loading     bool                  // Whether we're waiting for a data operation
+
+	// Navigation history
+	prevMode    string                // Previous view mode (for back navigation)
 }
 
 // styles defines the visual styling for different UI elements
@@ -174,6 +177,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		focusIndex:  0,
 		showDialogHelp: false,
 		loading:     false,
+		prevMode:    "list",
 		styles: styles{
 			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),

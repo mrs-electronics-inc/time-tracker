@@ -12,6 +12,7 @@ import (
 
 // openStartDialog opens the start entry dialog with pre-filled values
 func (m *Model) openStartDialog(entry models.TimeEntry) {
+	m.prevMode = "list"
 	m.dialogMode = true
 	m.focusIndex = 0
 
@@ -39,6 +40,7 @@ func (m *Model) openStartDialog(entry models.TimeEntry) {
 
 // openStartDialogBlank opens the start entry dialog with blank values
 func (m *Model) openStartDialogBlank() {
+	m.prevMode = "list"
 	m.dialogMode = true
 	m.focusIndex = 0
 

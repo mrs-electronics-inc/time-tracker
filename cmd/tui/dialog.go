@@ -130,7 +130,7 @@ func (m *Model) renderDialog() string {
 	titleInput := m.inputs[1].View()
 
 	// Create help text
-	helpText := "Tab/↓ to switch fields • Enter to submit • Esc to cancel"
+	helpText := "Tab/↓/↑ to switch fields • Enter to submit • Esc to cancel"
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
 
 	// Build dialog content

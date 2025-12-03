@@ -18,7 +18,7 @@
           
           src = self;
 
-          vendorHash = "sha256-ZknVM8bMM0kLIbuV4Bv4XsbgtyhlKyP7p2AVOE1k0GA=";
+          vendorHash = null;
           
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";

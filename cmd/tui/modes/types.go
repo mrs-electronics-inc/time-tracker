@@ -56,9 +56,10 @@ type Model struct {
 	Height      int                // Terminal height
 
 	// Mode state
-	CurrentMode *Mode             // Current TUI mode
-	Inputs      []textinput.Model // Text inputs for project, title, hour, minute
-	FocusIndex  int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	CurrentMode  *Mode             // Current TUI mode
+	PreviousMode *Mode             // Previous mode (used for help context)
+	Inputs       []textinput.Model // Text inputs for project, title, hour, minute
+	FocusIndex   int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
 
 	// Loading state
 	Loading bool // Whether we're waiting for a data operation

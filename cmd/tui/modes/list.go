@@ -22,6 +22,7 @@ var ListMode = &Mode{
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
 		case "?":
+			m.PreviousMode = m.CurrentMode
 			m.CurrentMode = m.HelpMode
 			return m, nil
 

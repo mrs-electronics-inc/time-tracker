@@ -16,7 +16,12 @@ var HelpMode = &Mode{
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
-			m.CurrentMode = m.ListMode
+			// Return to previous mode
+			if m.PreviousMode != nil {
+				m.CurrentMode = m.PreviousMode
+			} else {
+				m.CurrentMode = m.ListMode
+			}
 			return m, nil
 		}
 		return m, nil
@@ -31,8 +36,12 @@ var HelpMode = &Mode{
 		keyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true)
 		descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
 
-		// Show all mode keybindings
-		for _, binding := range m.CurrentMode.KeyBindings {
+		// Show keybindings for the previous mode
+		mode := m.PreviousMode
+		if mode == nil {
+			return ""
+		}
+		for _, binding := range mode.KeyBindings {
 			content.WriteString(keyStyle.Render(binding.Keys) + " " + descStyle.Render(binding.Description) + "\n")
 		}
 

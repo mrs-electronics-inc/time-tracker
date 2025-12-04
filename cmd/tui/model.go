@@ -1,21 +1,14 @@
 package tui
 
 import (
-	"fmt"
-	"time"
+	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
+	tea "github.com/charmbracelet/bubbletea"
+	"time-tracker/cmd/tui/modes"
 	"time-tracker/models"
 	"time-tracker/utils"
-)
-
-// Mode constants define the different TUI modes
-const (
-	ModeList  = "list"
-	ModeStart = "start"
-	ModeHelp  = "help"
 )
 
 // OperationCompleteMsg is sent when an async operation completes
@@ -23,100 +16,9 @@ type OperationCompleteMsg struct {
 	Error error
 }
 
-// ContentRenderer is a function type for rendering content for a specific mode
-type ContentRenderer func(availableHeight int) string
-
-// keyMap defines keybindings for the TUI
-type keyMap struct {
-	Help       key.Binding
-	Toggle     key.Binding
-	Quit       key.Binding
-	Up         key.Binding
-	Down       key.Binding
-	JumpBottom key.Binding
-}
-
-// ShortHelp returns keybindings shown in the mini help view
-func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.JumpBottom, k.Toggle, k.Help, k.Quit}
-}
-
-// FullHelp returns all keybindings
-func (k keyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Up, k.Down, k.JumpBottom},
-		{k.Toggle, k.Help, k.Quit},
-	}
-}
-
-// keys defines the default keybindings
-var keys = keyMap{
-	Help: key.NewBinding(
-		key.WithKeys("?"),
-		key.WithHelp("?", "toggle help"),
-	),
-	Toggle: key.NewBinding(
-		key.WithKeys("s"),
-		key.WithHelp("s", "toggle start/stop"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("q", "esc", "ctrl+c"),
-		key.WithHelp("q/esc", "quit"),
-	),
-	Up: key.NewBinding(
-		key.WithKeys("k", "up"),
-		key.WithHelp("k/↑", "up"),
-	),
-	Down: key.NewBinding(
-		key.WithKeys("j", "down"),
-		key.WithHelp("j/↓", "down"),
-	),
-	JumpBottom: key.NewBinding(
-		key.WithKeys("G"),
-		key.WithHelp("G", "jump to bottom"),
-	),
-}
-
-// Model represents the state of the TUI application
+// Model wraps the modes.Model and adds TUI-specific state
 type Model struct {
-	storage     models.Storage     // Persistent storage backend
-	taskManager *utils.TaskManager // Task management operations
-	entries     []models.TimeEntry // Loaded time entries
-	selectedIdx int                // Index of currently selected entry
-	viewportTop int                // Index of first visible row
-	err         error              // Error state
-	status      string             // Status message from last action
-	keys        keyMap             // Keybindings
-	styles      styles             // UI styling
-	width       int                // Terminal width
-	height      int                // Terminal height
-
-	// Mode state
-	mode        string                // Current TUI mode (list, start, etc.)
-	inputs      []textinput.Model     // Text inputs for project, title, hour, minute
-	focusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
-
-	// Loading state
-	loading     bool                  // Whether we're waiting for a data operation
-
-	// Navigation history
-	prevMode    string                // Previous view mode (for back navigation)
-}
-
-// styles defines the visual styling for different UI elements
-type styles struct {
-	header        lipgloss.Style // Header row style
-	footer        lipgloss.Style // Footer style
-	selected      lipgloss.Style // Selected row style
-	unselected    lipgloss.Style // Unselected row style
-	running       lipgloss.Style // Running entry style
-	gap           lipgloss.Style // Gap/blank entry style
-	inputFocused  lipgloss.Style // Focused input style
-	inputBlurred  lipgloss.Style // Blurred input style
-	title         lipgloss.Style // Screen title style
-	label         lipgloss.Style // Input label style
-	statusError   lipgloss.Style // Status error message style
-	statusSuccess lipgloss.Style // Status success message style
+	*modes.Model
 }
 
 // NewModel creates a new TUI model
@@ -156,119 +58,186 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[3].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[3].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
-	return &Model{
-		storage:     storage,
-		taskManager: taskManager,
-		entries:     []models.TimeEntry{},
-		selectedIdx: 0,
-		keys:        keys,
-		mode:        ModeList,
-		inputs:      inputs,
-		focusIndex:  0,
-		loading:     false,
-		prevMode:    ModeList,
-		styles: styles{
-			header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
-			footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
-			selected:      lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true),
-			unselected:    lipgloss.NewStyle().Foreground(lipgloss.Color("7")),
-			running:       lipgloss.NewStyle().Foreground(lipgloss.Color("11")),
-			gap:           lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true),
-			inputFocused:  lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
-			inputBlurred:  lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
-			title:         lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
-			label:         lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
-			statusError:   lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true),
-			statusSuccess: lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true),
+	modesModel := &modes.Model{
+		Storage:     storage,
+		TaskManager: taskManager,
+		Entries:     []models.TimeEntry{},
+		SelectedIdx: 0,
+		Inputs:      inputs,
+		FocusIndex:  0,
+		Loading:     false,
+		Styles: modes.Styles{
+			Header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
+			Footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
+			Selected:      lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true),
+			Unselected:    lipgloss.NewStyle().Foreground(lipgloss.Color("7")),
+			Running:       lipgloss.NewStyle().Foreground(lipgloss.Color("11")),
+			Gap:           lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true),
+			InputFocused:  lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
+			InputBlurred:  lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+			Title:         lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
+			Label:         lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
+			StatusError:   lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true),
+			StatusSuccess: lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true),
 		},
 	}
+
+	// Initialize modes
+	modesModel.ListMode = modes.ListMode
+	modesModel.StartMode = modes.StartMode
+	modesModel.HelpMode = modes.HelpMode
+	modesModel.CurrentMode = modesModel.ListMode
+
+	return &Model{Model: modesModel}
 }
 
-// LoadEntries loads time entries from storage
-func (m *Model) LoadEntries() error {
-	entries, err := m.storage.Load()
-	if err != nil {
-		return err
-	}
-
-	m.entries = entries
-
-	// Select most recent entry (last item)
-	if len(m.entries) > 0 {
-		m.selectedIdx = len(m.entries) - 1
-	} else {
-		m.selectedIdx = 0
-	}
-
+// Init initializes the model
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-// getColumnWidths calculates the width of each column based on content
-func (m *Model) getColumnWidths() (int, int, int, int, int) {
-	// Minimum widths for headers
-	startWidth := len("Start")
-	endWidth := len("End")
-	projectWidth := len("Project")
-	titleWidth := len("Title")
-	durationWidth := len("Duration")
+// Update handles messages and updates the model
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.Width = msg.Width
+		m.Height = msg.Height
 
-	// Measure content
-	for _, entry := range m.entries {
-		startStr := entry.Start.Format("2006-01-02 15:04")
-		if len(startStr) > startWidth {
-			startWidth = len(startStr)
+	case OperationCompleteMsg:
+		m.Loading = false
+		if msg.Error != nil {
+			m.Status = "Error: " + msg.Error.Error()
 		}
+		return m, nil
 
-		endStr := "running"
-		if entry.End != nil {
-			endStr = entry.End.Format("2006-01-02 15:04")
-		}
-		if len(endStr) > endWidth {
-			endWidth = len(endStr)
-		}
-
-		if len(entry.Project) > projectWidth {
-			projectWidth = len(entry.Project)
-		}
-
-		if len(entry.Title) > titleWidth {
-			titleWidth = len(entry.Title)
-		}
-
-		duration := formatDuration(entry.Duration())
-		if len(duration) > durationWidth {
-			durationWidth = len(duration)
+	case tea.KeyMsg:
+		// Delegate to current mode's key handler
+		if m.CurrentMode.HandleKeyMsg != nil {
+			model, cmd := m.CurrentMode.HandleKeyMsg(m.Model, msg)
+			return &Model{Model: model}, cmd
 		}
 	}
 
-	return startWidth, endWidth, projectWidth, titleWidth, durationWidth
+	return m, nil
 }
 
-// formatDuration converts a time.Duration to a human-readable string (e.g., "2h 15m")
-func formatDuration(d time.Duration) string {
-	hours := int(d.Hours())
-	minutes := int(d.Minutes()) % 60
-	if hours > 0 {
-		return fmt.Sprintf("%dh %dm", hours, minutes)
+// View renders the UI
+func (m *Model) View() string {
+	if m.Err != nil {
+		return "Error: " + m.Err.Error() + "\n"
 	}
-	return fmt.Sprintf("%dm", minutes)
+
+	// Calculate available height (status bar is always 1 line)
+	statusBarHeight := 1
+	availableHeight := max(m.Height-statusBarHeight, 1)
+
+	// Render mode-specific content
+	content := m.CurrentMode.RenderContent(m.Model, availableHeight)
+
+	// Add status bar
+	statusBar := m.renderStatusBar()
+	contentLines := countNewlines(content)
+	spacerLines := m.Height - contentLines - statusBarHeight
+	spacerLines = max(spacerLines, 0)
+	var result strings.Builder
+	result.WriteString(content)
+	if spacerLines > 0 {
+		result.WriteString(strings.Repeat("\n", spacerLines))
+	}
+	result.WriteString(statusBar)
+	return result.String()
 }
 
-// ensureSelectionVisible adjusts viewport so selected item is visible
-func (m *Model) ensureSelectionVisible(maxVisibleRows int) {
-	if m.selectedIdx < m.viewportTop {
-		// Selected item is above viewport, scroll up
-		m.viewportTop = m.selectedIdx
-	} else if m.selectedIdx >= m.viewportTop+maxVisibleRows {
-		// Selected item is below viewport, scroll down
-		m.viewportTop = m.selectedIdx - maxVisibleRows + 1
+// renderStatusBar renders a zellij-style status bar with mode and keybindings
+func (m *Model) renderStatusBar() string {
+	// Colors
+	black := lipgloss.Color("0")
+	magenta := lipgloss.Color("5")
+	gray := lipgloss.Color("8")
+	green := lipgloss.Color("10")
+
+	// Styles
+	modeStyle := lipgloss.NewStyle().
+		Background(green).
+		Foreground(black).
+		Bold(true).
+		Padding(0, 1)
+
+	keyStyle := lipgloss.NewStyle().
+		Background(black).
+		Foreground(magenta).
+		Padding(0, 1)
+
+	labelStyle := lipgloss.NewStyle().
+		Background(gray).
+		Foreground(black).
+		Bold(true).
+		Padding(0, 1)
+
+	// Separators
+	powerlineSeparator := "\uE0B0"
+
+	modeSep := lipgloss.NewStyle().
+		Background(black).
+		Foreground(green).
+		Render(powerlineSeparator)
+
+	keySep := lipgloss.NewStyle().
+		Background(gray).
+		Foreground(black).
+		Render(powerlineSeparator)
+
+	labelSep := lipgloss.NewStyle().
+		Background(black).
+		Foreground(gray).
+		Render(powerlineSeparator)
+
+	// Helper to render a key-label pair with powerline separators
+	renderPair := func(key, label string) string {
+		return keyStyle.Render(key) + keySep + labelStyle.Render(label) + labelSep
 	}
 
-	// Ensure viewport doesn't go past the end
-	if m.viewportTop > len(m.entries)-maxVisibleRows {
-		m.viewportTop = len(m.entries) - maxVisibleRows
+	var parts []string
+
+	// Mode indicator
+	parts = append(parts, modeStyle.Render(strings.ToUpper(m.CurrentMode.Name))+modeSep)
+
+	// Add keybindings from current mode
+	for _, binding := range m.CurrentMode.StatusBarKeys {
+		parts = append(parts, renderPair(binding.Key, binding.Label))
 	}
-	if m.viewportTop < 0 {
-		m.viewportTop = 0
+
+	// Build left side of status bar
+	leftSide := strings.Join(parts, "")
+
+	// Add status message on the right side if present
+	if m.Status != "" {
+		statusStyle := lipgloss.NewStyle().
+			Foreground(magenta).
+			Padding(0, 1)
+		rightSide := statusStyle.Render(m.Status)
+
+		// Calculate padding to right-align status
+		leftWidth := lipgloss.Width(leftSide)
+		rightWidth := lipgloss.Width(rightSide)
+		totalWidth := leftWidth + rightWidth
+		paddingWidth := max(m.Width-totalWidth, 0)
+
+		padding := strings.Repeat(" ", paddingWidth)
+		return leftSide + padding + rightSide
 	}
+
+	return leftSide
+}
+
+// Helper functions
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func countNewlines(s string) int {
+	return strings.Count(s, "\n")
 }

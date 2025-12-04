@@ -79,11 +79,11 @@ Add a TUI to improve the user experience.
 
 ### Clean up & Testing
 
-- [ ] Add Mode struct
+- [x] Add Mode struct
   - Title
   - Key bindings
   - Render function
-- [ ] Use Mode values to reduce duplicate code for handling key bindings and other things related to modes
+- [x] Use Mode values to reduce duplicate code for handling key bindings and other things related to modes
 - [ ] Add unit tests for model state transitions (sending messages and verifying state changes)
 - [ ] Add integration tests for TUI data operations:
   - Start entry via TUI and verify data file

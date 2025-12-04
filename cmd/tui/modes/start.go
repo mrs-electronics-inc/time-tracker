@@ -12,103 +12,119 @@ import (
 
 // StartMode is the entry creation/editing mode
 var StartMode = &Mode{
-	Name:          "start",
-	HandleKeyMsg:  handleStartKeyMsg,
-	RenderContent: renderStartContent,
-	StatusBarKeys: []StatusBarKeyBinding{
-		{Key: "Tab", Label: "NEXT"},
-		{Key: "Enter", Label: "SUBMIT"},
-		{Key: "Esc", Label: "CANCEL"},
+	Name: "start",
+	KeyBindings: []KeyBinding{
+		{Keys: "Tab", Label: "NEXT", Description: "Next field"},
+		{Keys: "Shift+Tab", Label: "PREV", Description: "Previous field"},
+		{Keys: "Enter", Label: "SUBMIT", Description: "Submit entry"},
+		{Keys: "Esc", Label: "CANCEL", Description: "Cancel"},
 	},
-	Help: []HelpEntry{
-		{Keys: "Tab / ↓", Desc: "Next field"},
-		{Keys: "Shift+Tab / ↑", Desc: "Previous field"},
-		{Keys: "Enter", Desc: "Submit entry"},
-		{Keys: "Esc", Desc: "Cancel"},
+	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
+		switch msg.String() {
+		case "esc":
+			m.CurrentMode = m.ListMode
+			return m, nil
+
+		case "tab", "down":
+			m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
+			updateInputFocus(m)
+			return m, nil
+
+		case "shift+tab", "up":
+			m.FocusIndex--
+			if m.FocusIndex < 0 {
+				m.FocusIndex = len(m.Inputs) - 1
+			}
+			updateInputFocus(m)
+			return m, nil
+
+		case "enter":
+			project := m.Inputs[0].Value()
+			title := m.Inputs[1].Value()
+			hourStr := m.Inputs[2].Value()
+			minuteStr := m.Inputs[3].Value()
+
+			if project == "" || title == "" {
+				m.Status = "Project and title are required"
+				return m, nil
+			}
+
+			if hourStr == "" {
+				hourStr = "00"
+			}
+			if minuteStr == "" {
+				minuteStr = "00"
+			}
+
+			var hour, minute int
+			if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
+				m.Status = "Invalid hour (0-23)"
+				return m, nil
+			}
+			if n, err := fmt.Sscanf(minuteStr, "%d", &minute); err != nil || n != 1 || minute < 0 || minute > 59 {
+				m.Status = "Invalid minute (0-59)"
+				return m, nil
+			}
+
+			now := time.Now()
+			date := now
+
+			if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
+				date = now.AddDate(0, 0, -1)
+			}
+
+			startTime := time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location())
+
+			if _, err := m.TaskManager.StartEntryAt(project, title, startTime); err != nil {
+				m.Status = "Error starting entry: " + err.Error()
+			} else {
+				m.Status = "Entry started: " + project
+			}
+
+			if err := m.LoadEntries(); err != nil {
+				m.Err = err
+			}
+			m.CurrentMode = m.ListMode
+			return m, nil
+		}
+
+		cmds := make([]tea.Cmd, len(m.Inputs))
+		for i := range m.Inputs {
+			m.Inputs[i], cmds[i] = m.Inputs[i].Update(msg)
+		}
+		return m, tea.Batch(cmds...)
 	},
-}
+	RenderContent: func(m *Model, availableHeight int) string {
+		_ = availableHeight
 
-// handleStartKeyMsg handles key messages while in start mode
-func handleStartKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
-	switch msg.String() {
-	case "esc":
-		m.CurrentMode = m.ListMode
-		return m, nil
+		title := "Start New Entry"
+		projectLabel := m.Styles.Label.Render("Project:")
+		projectInput := m.Inputs[0].View()
+		titleLabel := m.Styles.Label.Render("Title:")
+		titleInput := m.Inputs[1].View()
+		timeLabel := m.Styles.Label.Render("Time (HH:MM):")
+		hourInput := m.Inputs[2].View()
+		minuteInput := m.Inputs[3].View()
 
-	case "tab", "down":
-		m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
-		updateInputFocus(m)
-		return m, nil
+		var content strings.Builder
+		content.WriteString(m.Styles.Title.Render(title) + "\n\n")
+		content.WriteString(projectLabel + "\n")
+		content.WriteString(projectInput + "\n\n")
+		content.WriteString(titleLabel + "\n")
+		content.WriteString(titleInput + "\n\n")
+		content.WriteString(timeLabel + "\n")
+		content.WriteString(hourInput + " : " + minuteInput + "\n\n")
 
-	case "shift+tab", "up":
-		m.FocusIndex--
-		if m.FocusIndex < 0 {
-			m.FocusIndex = len(m.Inputs) - 1
-		}
-		updateInputFocus(m)
-		return m, nil
-
-	case "enter":
-		project := m.Inputs[0].Value()
-		title := m.Inputs[1].Value()
-		hourStr := m.Inputs[2].Value()
-		minuteStr := m.Inputs[3].Value()
-
-		if project == "" || title == "" {
-			m.Status = "Project and title are required"
-			return m, nil
+		if m.Status != "" {
+			if strings.Contains(strings.ToLower(m.Status), "error") {
+				content.WriteString(m.Styles.StatusError.Render(m.Status) + "\n\n")
+			} else {
+				content.WriteString(m.Styles.StatusSuccess.Render(m.Status) + "\n\n")
+			}
 		}
 
-		// Validate and parse time
-		if hourStr == "" {
-			hourStr = "00"
-		}
-		if minuteStr == "" {
-			minuteStr = "00"
-		}
-
-		var hour, minute int
-		if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
-			m.Status = "Invalid hour (0-23)"
-			return m, nil
-		}
-		if n, err := fmt.Sscanf(minuteStr, "%d", &minute); err != nil || n != 1 || minute < 0 || minute > 59 {
-			m.Status = "Invalid minute (0-59)"
-			return m, nil
-		}
-
-		// Build the start time
-		now := time.Now()
-		date := now
-
-		// If entered time is later than current time, use yesterday's date
-		if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
-			date = now.AddDate(0, 0, -1)
-		}
-
-		startTime := time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location())
-
-		// Start the entry with specified time
-		if _, err := m.TaskManager.StartEntryAt(project, title, startTime); err != nil {
-			m.Status = "Error starting entry: " + err.Error()
-		} else {
-			m.Status = "Entry started: " + project
-		}
-
-		// Reload entries and return to list
-		if err := m.LoadEntries(); err != nil {
-			m.Err = err
-		}
-		m.CurrentMode = m.ListMode
-		return m, nil
-	}
-
-	// Route other key messages to the focused input
-	cmds := make([]tea.Cmd, len(m.Inputs))
-	for i := range m.Inputs {
-		m.Inputs[i], cmds[i] = m.Inputs[i].Update(msg)
-	}
-	return m, tea.Batch(cmds...)
+		return content.String()
+	},
 }
 
 // openStartMode opens start mode with pre-filled values from an entry

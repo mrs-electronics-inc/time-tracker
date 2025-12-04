@@ -11,25 +11,19 @@ import (
 	"time-tracker/utils"
 )
 
-// HelpEntry represents a single help line (key binding + description)
-type HelpEntry struct {
-	Keys string // e.g., "j / ↓"
-	Desc string // e.g., "Move down"
+// KeyBinding represents a single key binding with its display and description
+type KeyBinding struct {
+	Keys        string //
+	Label       string // Shown in the status bar
+	Description string // Shown in the help page
 }
 
-// StatusBarKeyBinding represents a key-label pair for status bar display
-type StatusBarKeyBinding struct {
-	Key   string // e.g., "j/k"
-	Label string // e.g., "NAVIGATE"
-}
-
-// Mode represents a TUI mode with its handlers, renderers, and help info
+// Mode represents a TUI mode with its keybindings and renderer
 type Mode struct {
 	Name          string
+	KeyBindings   []KeyBinding
 	HandleKeyMsg  func(*Model, tea.KeyMsg) (*Model, tea.Cmd)
 	RenderContent func(*Model, int) string
-	StatusBarKeys []StatusBarKeyBinding
-	Help          []HelpEntry
 }
 
 // Styles defines the visual styling for different UI elements
@@ -62,17 +56,17 @@ type Model struct {
 	Height      int                // Terminal height
 
 	// Mode state
-	CurrentMode *Mode                 // Current TUI mode
-	Inputs      []textinput.Model     // Text inputs for project, title, hour, minute
-	FocusIndex  int                   // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	CurrentMode *Mode             // Current TUI mode
+	Inputs      []textinput.Model // Text inputs for project, title, hour, minute
+	FocusIndex  int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
 
 	// Loading state
 	Loading bool // Whether we're waiting for a data operation
 
 	// Mode references for navigation
-	ListMode *Mode
+	ListMode  *Mode
 	StartMode *Mode
-	HelpMode *Mode
+	HelpMode  *Mode
 }
 
 // LoadEntries loads time entries from storage

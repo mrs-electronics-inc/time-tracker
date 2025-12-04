@@ -203,8 +203,8 @@ func (m *Model) renderStatusBar() string {
 	parts = append(parts, modeStyle.Render(strings.ToUpper(m.CurrentMode.Name))+modeSep)
 
 	// Add keybindings from current mode
-	for _, binding := range m.CurrentMode.StatusBarKeys {
-		parts = append(parts, renderPair(binding.Key, binding.Label))
+	for _, binding := range m.CurrentMode.KeyBindings {
+		parts = append(parts, renderPair(binding.Keys, binding.Label))
 	}
 
 	// Build left side of status bar

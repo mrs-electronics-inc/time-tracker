@@ -11,109 +11,82 @@ import (
 
 // ListMode is the list view mode
 var ListMode = &Mode{
-	Name:          "list",
-	HandleKeyMsg:  handleListKeyMsg,
-	RenderContent: renderListContent,
-	StatusBarKeys: []StatusBarKeyBinding{
-		{Key: "j/k", Label: "NAVIGATE"},
-		{Key: "G", Label: "GO TO CURRENT"},
-		{Key: "s", Label: "START/STOP"},
-		{Key: "?", Label: "HELP"},
-		{Key: "Esc", Label: "QUIT"},
+	Name: "list",
+	KeyBindings: []KeyBinding{
+		{Keys: "j/k", Label: "NAVIGATE", Description: "Move up/down"},
+		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
+		{Keys: "s", Label: "START/STOP", Description: "Start/stop entry"},
+		{Keys: "?", Label: "HELP", Description: "Toggle help"},
+		{Keys: "Esc", Label: "QUIT", Description: "Quit"},
 	},
-	Help: []HelpEntry{
-		{Keys: "j / ↓", Desc: "Move down"},
-		{Keys: "k / ↑", Desc: "Move up"},
-		{Keys: "G", Desc: "Go to current"},
-		{Keys: "s", Desc: "Start/stop entry"},
-		{Keys: "?", Desc: "Toggle help"},
-		{Keys: "q / Esc", Desc: "Quit"},
-	},
-}
+	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
+		switch msg.String() {
+		case "?":
+			m.CurrentMode = m.HelpMode
+			return m, nil
 
-// handleListKeyMsg handles key messages while in list mode
-func handleListKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
-	switch msg.String() {
-	case "?":
-		m.CurrentMode = m.HelpMode
-		return m, nil
+		case "q", "esc":
+			return m, tea.Quit
 
-	case "q", "esc", "ctrl+c":
-		return m, tea.Quit
+		case "k", "up":
+			if m.SelectedIdx > 0 {
+				m.SelectedIdx--
+			}
+			m.Status = ""
+			return m, nil
 
-	case "k", "up":
-		if m.SelectedIdx > 0 {
-			m.SelectedIdx--
-		}
-		m.Status = ""
-		return m, nil
+		case "j", "down":
+			if m.SelectedIdx < len(m.Entries)-1 {
+				m.SelectedIdx++
+			}
+			m.Status = ""
+			return m, nil
 
-	case "j", "down":
-		if m.SelectedIdx < len(m.Entries)-1 {
-			m.SelectedIdx++
-		}
-		m.Status = ""
-		return m, nil
+		case "G":
+			if len(m.Entries) > 0 {
+				m.SelectedIdx = len(m.Entries) - 1
+			}
+			m.Status = ""
+			return m, nil
 
-	case "G":
-		if len(m.Entries) > 0 {
-			m.SelectedIdx = len(m.Entries) - 1
-		}
-		m.Status = ""
-		return m, nil
-
-	case "s":
-		if len(m.Entries) == 0 {
-			openStartModeBlank(m)
-		} else if m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
-			entry := m.Entries[m.SelectedIdx]
-			if entry.IsRunning() {
-				// Stop entry
-				if _, err := m.TaskManager.StopEntry(); err != nil {
-					m.Status = "Error stopping entry: " + err.Error()
-				} else {
-					m.Status = "Entry stopped"
-				}
-			} else if !entry.IsBlank() {
-				// Start new entry based on selected
-				openStartMode(m, entry)
-			} else {
-				// Blank entry - open blank start mode
+		case "s":
+			if len(m.Entries) == 0 {
 				openStartModeBlank(m)
+			} else if m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
+				entry := m.Entries[m.SelectedIdx]
+				if entry.IsRunning() {
+					if _, err := m.TaskManager.StopEntry(); err != nil {
+						m.Status = "Error stopping entry: " + err.Error()
+					} else {
+						m.Status = "Entry stopped"
+					}
+				} else if !entry.IsBlank() {
+					openStartMode(m, entry)
+				} else {
+					openStartModeBlank(m)
+				}
+				if err := m.LoadEntries(); err != nil {
+					m.Err = err
+				}
 			}
-			// Reload entries to update display
-			if err := m.LoadEntries(); err != nil {
-				m.Err = err
-			}
+			return m, nil
 		}
 		return m, nil
-	}
+	},
+	RenderContent: func(m *Model, availableHeight int) string {
+		if m.Loading {
+			return renderLoading()
+		}
 
-	return m, nil
-}
+		headerHeight := 2
+		listRowHeight := max(availableHeight-headerHeight, 1)
+		m.EnsureSelectionVisible(listRowHeight)
 
-// renderListContent renders the list mode content
-func renderListContent(m *Model, availableHeight int) string {
-	// Show loading indicator if operation in progress
-	if m.Loading {
-		return renderLoading()
-	}
+		header := renderTableHeader(m)
+		rows := renderTableRows(m, listRowHeight)
 
-	// Header takes 2 lines (header + separator)
-	headerHeight := 2
-
-	// Available height for list rows
-	listRowHeight := max(availableHeight-headerHeight, 1)
-
-	// Ensure selection is visible
-	m.EnsureSelectionVisible(listRowHeight)
-
-	// Render header and rows separately
-	header := renderTableHeader(m)
-	rows := renderTableRows(m, listRowHeight)
-
-	// Combine header and rows
-	return header + rows
+		return header + rows
+	},
 }
 
 // renderLoading renders a loading indicator

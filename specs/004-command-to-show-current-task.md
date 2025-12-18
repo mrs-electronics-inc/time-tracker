@@ -9,7 +9,7 @@ The command could be `curr`, alias `c`.
 - [ ] Create convenience function to return current running task
 - [ ] Output something like:
 
-    ```
+    ```text
     mrs-sdk-qt review #46, duration 18m
     ```
 

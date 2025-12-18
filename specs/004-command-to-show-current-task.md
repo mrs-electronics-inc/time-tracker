@@ -2,7 +2,7 @@
 
 It would be great to have a subcommand, available directly from command-line without the TUI, that outputs the currently running task.
 
-The command could be `curr`, alias `c`.
+The command could be `current`, aliases `curr` and `c`.
 
 # Task List
 

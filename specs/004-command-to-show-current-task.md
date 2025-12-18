@@ -9,8 +9,8 @@ The command could be `curr`, alias `c`.
 - [ ] Create convenience function to return current running task
 - [ ] Output something like:
 
-```
-mrs-sdk-qt review #46, duration 18m
-```
+    ```
+    mrs-sdk-qt review #46, duration 18m
+    ```
 
 - [ ] Show nothing if no task is running

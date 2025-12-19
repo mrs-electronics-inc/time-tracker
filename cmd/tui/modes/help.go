@@ -1,6 +1,7 @@
 package modes
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -41,8 +42,18 @@ var HelpMode = &Mode{
 		if mode == nil {
 			return ""
 		}
+
+		// Calculate max key width for alignment
+		maxKeyWidth := len("Keys")
 		for _, binding := range mode.KeyBindings {
-			content.WriteString(keyStyle.Render(binding.Keys) + " " + descStyle.Render(binding.Description) + "\n")
+			if len(binding.Keys) > maxKeyWidth {
+				maxKeyWidth = len(binding.Keys)
+			}
+		}
+
+		for _, binding := range mode.KeyBindings {
+			paddedKeys := fmt.Sprintf("%-*s", maxKeyWidth, binding.Keys)
+			content.WriteString(keyStyle.Render(paddedKeys) + "  " + descStyle.Render(binding.Description) + "\n")
 		}
 
 		return content.String()

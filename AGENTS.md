@@ -12,14 +12,14 @@ just test
 just build
 
 # Run dev time-tracker with any subcommand and flags
-just run start "project-name" "task-name"
-just run stop
-just run list
-just run list --all
-just run edit
-just run stats
-just run stats --weekly
-just run stats --rows 7
+just run-dev start "project-name" "task-name"
+just run-dev stop
+just run-dev list
+just run-dev list --all
+just run-dev edit
+just run-dev stats
+just run-dev stats --weekly
+just run-dev stats --rows 7
 
 # View the dev data file from the volume (for debugging)
 just inspect-data

@@ -1,4 +1,8 @@
 # Just file for common development tasks
+ 
+# List recipes
+default:
+    @just --list
 
 # Run all Go tests
 test:
@@ -9,7 +13,7 @@ build:
     docker compose build
 
 # Run dev time-tracker with any subcommand and flags
-run *args:
+run-dev *args:
     docker compose run --remove-orphans time-tracker {{ args }}
 
 # View the dev data file from the volume (for debugging)

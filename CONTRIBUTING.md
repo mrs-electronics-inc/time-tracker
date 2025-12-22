@@ -1,4 +1,67 @@
-# Contributing Guidelines
+# Contributing to time-tracker
+
+## Setup
+
+### With Nix
+
+If you have Nix installed, run:
+
+```bash
+nix shell .#default
+```
+
+This drops you into a shell with all development dependencies pre-installed, including Go, just, and Docker. After making changes, rebuild the CLI with `just build` to test them.
+
+### Without Nix
+
+Install dependencies and set up pre-commit hooks:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+This ensures code passes all checks (formatting, linting, tests) before committing.
+
+## Development
+
+Use `just` to run development tasks. Run `just --list` to see available recipes.
+
+### Common tasks
+
+```bash
+# Run all Go tests
+just test
+
+# Build the binary
+just build
+
+# Run the CLI in Docker sandbox (isolated from your actual data)
+just run-docker start "project-name" "task-name"
+just run-docker stop
+just run-docker list
+just run-docker stats
+```
+
+### Running against your actual data
+
+After building with `just build`, you can run the compiled binary directly to interact with your actual data file:
+
+```bash
+./time-tracker start "project-name" "task-name"
+```
+
+### Building the Docker image
+
+To build the Docker image (used by `just run-docker`):
+
+```bash
+just build-docker
+```
+
+**Note:** `just run-docker` runs the CLI in a Docker sandbox with isolated test data, while running the compiled binary directly has direct access to your user's actual data file.
+
+See `justfile` in the repo root for all available recipes.
 
 ## GitHub Issues
 
@@ -6,16 +69,4 @@ GitHub issues should be used for bug reports only. Feature requests and refactor
 
 ## Specs
 
-Specs are stored in the `specs/` directory.
-
-Each spec should be a markdown file with a numeric prefix - for example, `000-mvp.md`.
-
-Each spec file should contain the following:
-
-- Title
-- Description
-  - A few sentences describing why this change will be useful.
-- Design Decisions (optional)
-  - A list of design decisions that were made, with pros and cons for the different options considered.
-- Task List
-  - A checklist of tasks for the implementing the change.
+See [specs/README.md](specs/README.md) for complete guidelines on contributing specs using the Specture System.

@@ -79,15 +79,15 @@ Add a TUI to improve the user experience.
 
 ### Clean up & Testing
 
-- [ ] Add Mode struct
+- [x] Add Mode struct
   - Title
   - Key bindings
   - Render function
-- [ ] Use Mode values to reduce duplicate code for handling key bindings and other things related to modes
-- [ ] Add unit tests for model state transitions (sending messages and verifying state changes)
-- [ ] Add integration tests for TUI data operations:
+- [x] Use Mode values to reduce duplicate code for handling key bindings and other things related to modes
+- [x] Add unit tests for model state transitions (sending messages and verifying state changes)
+- [x] Add integration tests for TUI data operations:
   - Start entry via TUI and verify data file
   - Stop entry via TUI and verify data file
   - Load recent entries and verify they match CLI list output
-- [ ] Verify data consistency between CLI and TUI operations
-- [ ] Test edge cases (no data, invalid input, concurrent operations)
+- [x] Verify data consistency between CLI and TUI operations
+- [x] Test edge cases (no data, invalid input, concurrent operations)

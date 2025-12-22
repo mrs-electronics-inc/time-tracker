@@ -2,15 +2,22 @@ name: Code Review Bot
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
-
-concurrency:
-  group: code-review
-  cancel-in-progress: true
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+      branch:
+        description: 'Branch to run on'
+        required: true
 
 jobs:
   run_code_review_bot:
     runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/mrs-electronics-inc/bots/code-review:latest
 
     permissions:
       pull-requests: write
@@ -19,25 +26,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch || github.head_ref }}
 
-      - name: Run AI Code Review
-        uses: Nikita-Filonov/ai-review@v0.43.0
-        with:
-          review-command: run
+      - name: Run Code Review Bot
         env:
-          # LLM configuration (using OpenRouter)
-          LLM__PROVIDER: OPENROUTER
-          LLM__META__MODEL: openai/gpt-5.1-codex-mini
-          LLM__META__MAX_TOKENS: 4000
-          LLM__META__TEMPERATURE: "0.3"
-          LLM__HTTP_CLIENT__API_URL: https://openrouter.ai/api/v1
-          LLM__HTTP_CLIENT__API_TOKEN: ${{ secrets.API_KEY_CODE_REVIEW_BOT }}
+          OPENROUTER_KEY: ${{ secrets.API_KEY_CODE_REVIEW_BOT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ github.event.inputs.pr_number || github.event.pull_request.number }}
+        run: github_code_review.sh
 
-          # GitHub integration
-          VCS__PROVIDER: GITHUB
-          VCS__PIPELINE__OWNER: ${{ github.repository_owner }}
-          VCS__PIPELINE__REPO: ${{ github.event.repository.name }}
-          VCS__PIPELINE__PULL_NUMBER: ${{ github.event.pull_request.number }}
-          VCS__HTTP_CLIENT__API_URL: https://api.github.com
-          VCS__HTTP_CLIENT__API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact including hidden files
+        uses: actions/upload-artifact@v4
+        with:
+          name: bots-directory
+          path: .bots/
+          include-hidden-files: true

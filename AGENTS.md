@@ -8,18 +8,21 @@ You MUST use the `just` tool for all local development tasks:
 # Run all Go tests
 just test
 
-# Build the Docker image
+# Build the binary
 just build
 
-# Run dev time-tracker with any subcommand and flags
-just run start "project-name" "task-name"
-just run stop
-just run list
-just run list --all
-just run edit
-just run stats
-just run stats --weekly
-just run stats --rows 7
+# Run time-tracker in Docker sandbox with any subcommand and flags
+just run-docker start "project-name" "task-name"
+just run-docker stop
+just run-docker list
+just run-docker list --all
+just run-docker edit
+just run-docker stats
+just run-docker stats --weekly
+just run-docker stats --rows 7
+
+# Build the Docker image
+just build-docker
 
 # View the dev data file from the volume (for debugging)
 just inspect-data
@@ -31,7 +34,7 @@ just import-data < data.json
 
 See `justfile` in the repo root for all available recipes.
 
-**IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing.
+**IMPORTANT**: Agents must always run time-tracker using `just run-docker`. This runs the CLI in a Docker sandbox with isolated test data. Never run the binary directly on the host system.
 
 Vendor directory is gitignored; dependencies are fetched from the network during builds.
 
@@ -59,15 +62,38 @@ Vendor directory is gitignored; dependencies are fetched from the network during
 - **Creating PRs**: Use the GitHub CLI: `gh pr create --title "..." --body "..."`
 - **PR titles MUST follow conventional commit format** (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, etc.). Since PRs are squashed on merge to main, the PR title becomes the commit message.
 
-## Spec Editing Safety
+## Specture System
+
+This project uses the [Specture System](https://github.com/specture-system/specture) for managing specifications and design documents. Each spec file (specs/NNN-name.md) contains:
+
+- Design rationale and decisions (why)
+- Task lists for implementation (what)
+- Requirements and acceptance criteria (how)
+
+### When to refer to specs
+
+When the user asks about planned features, architectural decisions, or implementation details, refer to the specs/ directory. Specs provide the complete context for understanding the project's design.
+
+### Implementing specs
+
+When implementing a spec, follow this workflow for each task:
+
+1. Complete a single task from the task list
+2. Update the spec file by changing `- [ ]` to `- [x]` for that task
+3. Commit both the implementation and spec update together with a conventional commit message (e.g., `feat: implement feature X`)
+4. Push the changes
+
+This keeps the spec file as a living document that tracks implementation progress, with each task corresponding to one commit.
+
+### Spec editing safety
 
 - Rule: Spec files under `specs/` are long-term design documents. Do NOT record ephemeral or per-session choices (e.g., "user chose 1B") directly inside `specs/` files.
 
-- Rule: Before editing any `specs/` file the agent MUST ask for confirmation. The prompt should state the exact file path and the change summary. Example prompt:
+- Rule: Before editing any `specs/` file the agent MUST ask for confirmation. State the exact file path and the change summary. Example prompt:
   - I plan to update `specs/001-new-data-format` to change the 'Blank entries representation' line to 'decision pending'. Reply 'yes' to apply.
 
-- Rule: After receiving approval to edit a `specs/` file, the agent MUST present the staged files and a one-line commit message for explicit confirmation BEFORE committing. Do not proceed to commit without this second confirmation.
-
-- Rule: The agent MUST NOT commit changes to `specs/` files without explicit user approval. If a commit is requested, the agent should present the staged files and a one-line commit message for confirmation.
+- Rule: After receiving approval to edit a `specs/` file, present the staged files and a one-line commit message for explicit confirmation BEFORE committing. Do not proceed without this second confirmation.
 
 - Rule: When in doubt about whether something is a transient implementation choice or a long-term spec decision, ask the user.
+
+See specs/README.md for complete guidelines on the Specture System.

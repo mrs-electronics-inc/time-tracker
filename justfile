@@ -16,12 +16,16 @@ fmt:
 lint:
     go vet ./...
 
-# Build the Docker image
+# Build the binary for direct use
 build:
+    go build -o time-tracker
+
+# Build the Docker image
+build-docker:
     docker compose build
 
-# Run dev time-tracker with any subcommand and flags
-run-dev *args:
+# Run time-tracker in Docker sandbox with any subcommand and flags
+run-docker *args:
     docker compose run --remove-orphans time-tracker {{ args }}
 
 # View the dev data file from the volume (for debugging)

@@ -33,14 +33,14 @@ Use `just` to run development tasks. Run `just --list` to see available recipes.
 # Run all Go tests
 just test
 
-# Build the Docker image
+# Build the binary
 just build
 
 # Run the CLI in Docker sandbox (isolated from your actual data)
-just run-dev start "project-name" "task-name"
-just run-dev stop
-just run-dev list
-just run-dev stats
+just run-docker start "project-name" "task-name"
+just run-docker stop
+just run-docker list
+just run-docker stats
 ```
 
 ### Running against your actual data
@@ -51,7 +51,15 @@ After building with `just build`, you can run the compiled binary directly to in
 ./time-tracker start "project-name" "task-name"
 ```
 
-**Note:** `just run-dev` runs the CLI in a Docker sandbox with isolated test data, while running the compiled binary directly has direct access to your user's actual data file.
+### Building the Docker image
+
+To build the Docker image (used by `just run-docker`):
+
+```bash
+just build-docker
+```
+
+**Note:** `just run-docker` runs the CLI in a Docker sandbox with isolated test data, while running the compiled binary directly has direct access to your user's actual data file.
 
 See `justfile` in the repo root for all available recipes.
 

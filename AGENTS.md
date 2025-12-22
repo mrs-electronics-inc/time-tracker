@@ -8,18 +8,21 @@ You MUST use the `just` tool for all local development tasks:
 # Run all Go tests
 just test
 
-# Build the Docker image
+# Build the binary
 just build
 
-# Run dev time-tracker with any subcommand and flags
-just run-dev start "project-name" "task-name"
-just run-dev stop
-just run-dev list
-just run-dev list --all
-just run-dev edit
-just run-dev stats
-just run-dev stats --weekly
-just run-dev stats --rows 7
+# Run time-tracker in Docker sandbox with any subcommand and flags
+just run-docker start "project-name" "task-name"
+just run-docker stop
+just run-docker list
+just run-docker list --all
+just run-docker edit
+just run-docker stats
+just run-docker stats --weekly
+just run-docker stats --rows 7
+
+# Build the Docker image
+just build-docker
 
 # View the dev data file from the volume (for debugging)
 just inspect-data
@@ -31,7 +34,7 @@ just import-data < data.json
 
 See `justfile` in the repo root for all available recipes.
 
-**IMPORTANT**: Never run the binary directly on the host system. Always use `just run` for CLI testing.
+**IMPORTANT**: Agents must always run time-tracker using `just run-docker`. This runs the CLI in a Docker sandbox with isolated test data. Never run the binary directly on the host system.
 
 Vendor directory is gitignored; dependencies are fetched from the network during builds.
 

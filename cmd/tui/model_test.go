@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -196,12 +198,15 @@ func TestOperationCompleteWithError(t *testing.T) {
 	m.Loading = true
 
 	// Send operation complete with error
-	msg := OperationCompleteMsg{Error: nil}
+	msg := OperationCompleteMsg{Error: fmt.Errorf("test error")}
 	updated, _ := m.Update(msg)
 	model := updated.(*Model)
 
 	if model.Loading {
 		t.Error("Expected loading flag to be cleared")
+	}
+	if model.Status == "" {
+		t.Error("Expected status message to be set for error")
 	}
 }
 
@@ -365,8 +370,8 @@ func TestStatusMessageDisplay(t *testing.T) {
 		t.Error("Expected non-empty view output")
 	}
 
-	// Status should be in the view (in the status bar)
-	if len(view) == 0 {
-		t.Error("Expected view to contain status message")
+	// Status should be visible in the rendered view
+	if !strings.Contains(view, "Test message") {
+		t.Error("Expected view to contain the status message")
 	}
 }

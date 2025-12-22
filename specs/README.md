@@ -155,9 +155,17 @@ It is up to the project maintainers to determine when they are ready to merge a 
 ### In-Progress
 
 1. Implementation begins once a spec is `approved`
-2. Work through the task list, checking off items as completed
+2. For each task, follow this workflow:
+   - Complete a single task from the task list
+   - Update the spec file by changing `- [ ]` to `- [x]` for that task
+   - Commit both the implementation and spec update together with a conventional commit message (e.g., `feat: implement feature X`)
+   - Push the changes
 3. Keep the spec updated as implementation reveals new details
+   - Add tasks or task sections as needed
+   - Remove or update existing tasks as needed
 4. When all tasks are completed, move to `completed` status
+
+This workflow keeps the spec file as a living document that tracks implementation progress, with each task corresponding to one commit.
 
 ### Completed
 

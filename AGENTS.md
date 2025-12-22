@@ -61,27 +61,36 @@ Vendor directory is gitignored; dependencies are fetched from the network during
 
 ## Specture System
 
-This project uses the Specture System for managing specifications and design documents. When the user asks about planned features, architectural decisions, or implementation details, refer to the specs/ directory in the repository. Each spec file (specs/NNN-name.md) contains:
+This project uses the [Specture System](https://github.com/specture-system/specture) for managing specifications and design documents. Each spec file (specs/NNN-name.md) contains:
 
-- Design rationale and decisions
-- Task lists for implementation
-- Requirements and acceptance criteria
+- Design rationale and decisions (why)
+- Task lists for implementation (what)
+- Requirements and acceptance criteria (how)
 
-The specs/ directory also contains README.md with complete guidelines on how the spec system works.
+### When to refer to specs
 
-Be sure to prompt the user for explicit permission before editing the design in any spec file.
+When the user asks about planned features, architectural decisions, or implementation details, refer to the specs/ directory. Specs provide the complete context for understanding the project's design.
 
-When implementing a spec, check off each item in the task list as you go.
+### Implementing specs
 
-## Spec Editing Safety
+When implementing a spec, follow this workflow for each task:
+
+1. Complete a single task from the task list
+2. Update the spec file by changing `- [ ]` to `- [x]` for that task
+3. Commit both the implementation and spec update together with a conventional commit message (e.g., `feat: implement feature X`)
+4. Push the changes
+
+This keeps the spec file as a living document that tracks implementation progress, with each task corresponding to one commit.
+
+### Spec editing safety
 
 - Rule: Spec files under `specs/` are long-term design documents. Do NOT record ephemeral or per-session choices (e.g., "user chose 1B") directly inside `specs/` files.
 
-- Rule: Before editing any `specs/` file the agent MUST ask for confirmation. The prompt should state the exact file path and the change summary. Example prompt:
+- Rule: Before editing any `specs/` file the agent MUST ask for confirmation. State the exact file path and the change summary. Example prompt:
   - I plan to update `specs/001-new-data-format` to change the 'Blank entries representation' line to 'decision pending'. Reply 'yes' to apply.
 
-- Rule: After receiving approval to edit a `specs/` file, the agent MUST present the staged files and a one-line commit message for explicit confirmation BEFORE committing. Do not proceed to commit without this second confirmation.
-
-- Rule: The agent MUST NOT commit changes to `specs/` files without explicit user approval. If a commit is requested, the agent should present the staged files and a one-line commit message for confirmation.
+- Rule: After receiving approval to edit a `specs/` file, present the staged files and a one-line commit message for explicit confirmation BEFORE committing. Do not proceed without this second confirmation.
 
 - Rule: When in doubt about whether something is a transient implementation choice or a long-term spec decision, ask the user.
+
+See specs/README.md for complete guidelines on the Specture System.

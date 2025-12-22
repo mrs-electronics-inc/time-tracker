@@ -13,7 +13,7 @@ import (
 
 // KeyBinding represents a single key binding with its display and description
 type KeyBinding struct {
-	Keys        string //
+	Keys        string // Key sequence (e.g., "q", "ctrl+c")
 	Label       string // Shown in the status bar
 	Description string // Shown in the help page
 }
@@ -157,19 +157,4 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%dh %dm", hours, minutes)
 	}
 	return fmt.Sprintf("%dm", minutes)
-}
-
-// Helper functions
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

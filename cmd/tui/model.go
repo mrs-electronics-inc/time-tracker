@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/lipgloss"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"time-tracker/cmd/tui/modes"
 	"time-tracker/models"
 	"time-tracker/utils"
@@ -136,7 +136,7 @@ func (m *Model) View() string {
 
 	// Add status bar
 	statusBar := m.renderStatusBar()
-	contentLines := countNewlines(content)
+	contentLines := strings.Count(content, "\n")
 	spacerLines := m.Height - contentLines - statusBarHeight
 	spacerLines = max(spacerLines, 0)
 	var result strings.Builder
@@ -228,16 +228,4 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	return leftSide
-}
-
-// Helper functions
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func countNewlines(s string) int {
-	return strings.Count(s, "\n")
 }

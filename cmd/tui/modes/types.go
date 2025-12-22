@@ -1,9 +1,6 @@
 package modes
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -121,7 +118,7 @@ func (m *Model) GetColumnWidths() (int, int, int, int, int) {
 			titleWidth = len(entry.Title)
 		}
 
-		duration := formatDuration(entry.Duration())
+		duration := utils.FormatDuration(entry.Duration())
 		if len(duration) > durationWidth {
 			durationWidth = len(duration)
 		}
@@ -147,14 +144,4 @@ func (m *Model) EnsureSelectionVisible(maxVisibleRows int) {
 	if m.ViewportTop < 0 {
 		m.ViewportTop = 0
 	}
-}
-
-// formatDuration converts a time.Duration to a human-readable string (e.g., "2h 15m")
-func formatDuration(d time.Duration) string {
-	hours := int(d.Hours())
-	minutes := int(d.Minutes()) % 60
-	if hours > 0 {
-		return fmt.Sprintf("%dh %dm", hours, minutes)
-	}
-	return fmt.Sprintf("%dm", minutes)
 }

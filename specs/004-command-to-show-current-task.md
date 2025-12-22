@@ -1,3 +1,9 @@
+---
+status: draft
+author: Bennett Moore
+creation_date: 2025-12-18
+---
+
 # Command to View the Current Task
 
 It would be great to have a subcommand, available directly from command-line without the TUI, that outputs the currently running task.

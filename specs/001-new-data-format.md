@@ -1,3 +1,9 @@
+---
+status: completed
+author: Addison Emig
+creation_date: 2025-11-26
+---
+
 # New Data Format
 
 We need to improve the format of our data files to make it easier to implement future features.

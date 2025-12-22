@@ -1,3 +1,9 @@
+---
+status: draft
+author: Addison Emig, Bennett Moore, Jason Luke
+creation_date: 2025-12-18
+---
+
 # Improve TUI Shortcuts
 
 The current start/stop shortcut in the TUI is confusing. It does different things based on the context. We should improve the list mode shortcuts.

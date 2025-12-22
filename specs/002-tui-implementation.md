@@ -1,3 +1,9 @@
+---
+status: completed
+author: Addison Emig
+creation_date: 2025-12-22
+---
+
 # TUI Implementation
 
 Add a TUI to improve the user experience.

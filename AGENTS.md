@@ -59,6 +59,20 @@ Vendor directory is gitignored; dependencies are fetched from the network during
 - **Creating PRs**: Use the GitHub CLI: `gh pr create --title "..." --body "..."`
 - **PR titles MUST follow conventional commit format** (e.g., `feat:`, `fix:`, `refactor:`, `docs:`, etc.). Since PRs are squashed on merge to main, the PR title becomes the commit message.
 
+## Specture System
+
+This project uses the Specture System for managing specifications and design documents. When the user asks about planned features, architectural decisions, or implementation details, refer to the specs/ directory in the repository. Each spec file (specs/NNN-name.md) contains:
+
+- Design rationale and decisions
+- Task lists for implementation
+- Requirements and acceptance criteria
+
+The specs/ directory also contains README.md with complete guidelines on how the spec system works.
+
+Be sure to prompt the user for explicit permission before editing the design in any spec file.
+
+When implementing a spec, check off each item in the task list as you go.
+
 ## Spec Editing Safety
 
 - Rule: Spec files under `specs/` are long-term design documents. Do NOT record ephemeral or per-session choices (e.g., "user chose 1B") directly inside `specs/` files.

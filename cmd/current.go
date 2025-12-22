@@ -27,6 +27,7 @@ var currentCmd = &cobra.Command{
 
 		// Find the last entry
 		if len(entries) == 0 {
+			fmt.Println("No active task")
 			return nil
 		}
 
@@ -34,18 +35,12 @@ var currentCmd = &cobra.Command{
 
 		// Check if it's running and not blank
 		if !lastEntry.IsRunning() || lastEntry.IsBlank() {
+			fmt.Println("No active task")
 			return nil
 		}
 
-		// Format duration
-		duration := lastEntry.Duration()
-		hours := int(duration.Hours())
-		minutes := int(duration.Minutes()) % 60
-		durationStr := fmt.Sprintf("%dh %dm", hours, minutes)
-		if hours == 0 {
-			durationStr = fmt.Sprintf("%dm", minutes)
-		}
-
+		// Format and print duration
+		durationStr := utils.FormatDuration(lastEntry.Duration())
 		fmt.Printf("%s %s, duration %s\n", lastEntry.Project, lastEntry.Title, durationStr)
 		return nil
 	},

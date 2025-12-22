@@ -2,6 +2,8 @@
 status: draft
 author: Bennett Moore
 creation_date: 2025-12-18
+approved_by: Addison Emig
+approval_date: 2025-12-18
 ---
 
 # Command to View the Current Task

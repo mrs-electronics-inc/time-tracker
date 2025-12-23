@@ -51,6 +51,12 @@ Each row represents a single time entry (blank entries are filtered out).
   - Call `Flush()` after writing all records to ensure proper output
 - **Testing Requirements**: All escaping tests must verify that fields with tabs, newlines, and quotes are properly quoted/escaped and can be read back correctly
 
+### Handling Running and Incomplete Entries
+
+- **Decision**: Exclude running entries (entries without End time) from both daily-projects and raw exports
+- **Rationale**: Exports should contain only completed, finalized data. Running entries are transient state and will be included once they are completed. This avoids ambiguity about duration calculations and keeps exports deterministic.
+- **Implementation**: Filter out entries where `End == nil` before processing for export
+
 ## Task List
 
 ### Daily-Projects Export
@@ -61,6 +67,7 @@ Each row represents a single time entry (blank entries are filtered out).
 - [ ] Test: `ExportDailyProjects` uses `encoding/csv` with `Comma: '\t'` for proper escaping
 - [ ] Test: Description column joins task titles with comma-space separator (`, `) for single-line TSV format
 - [ ] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
+- [ ] Test: `ExportDailyProjects` excludes running entries (entries without End time)
 - [ ] Test: `ExportDailyProjects` converts durations to minutes
 - [ ] Implement: `ExportDailyProjects` function in `utils/` that takes `ProjectDateEntry` slice and returns TSV string
 - [ ] Test: Export command writes TSV to stdout and to file
@@ -72,8 +79,9 @@ Each row represents a single time entry (blank entries are filtered out).
 - [ ] Test: `ExportRaw` writes TSV with header row and correct columns (Project, Task, Start, End, Duration)
 - [ ] Test: `ExportRaw` uses `encoding/csv` with `Comma: '\t'` for proper escaping
 - [ ] Test: `ExportRaw` filters out blank entries
+- [ ] Test: `ExportRaw` excludes running entries (entries without End time)
 - [ ] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
 - [ ] Test: `ExportRaw` converts durations to minutes
 - [ ] Implement: `ExportRaw` function in `utils/` that takes `TimeEntry` slice and returns TSV string
 - [ ] Implement: Add `--format raw` option to export command
-- [ ] Test: End-to-end: load sample data, export raw format, verify TSV contains all non-blank entries
+- [ ] Test: End-to-end: load sample data, export raw format, verify TSV contains all completed entries (excluding blank and running)

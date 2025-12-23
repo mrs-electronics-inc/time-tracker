@@ -360,7 +360,7 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int, projectCo
 			// Render regular data row
 			durationFormatted := formatDurationMinutes(row.DurationMinutes)
 
-			// First line: project, date, spacer, duration
+			// First line: project (white), date, spacer, duration
 			firstLineText := fmt.Sprintf(
 				"%-*s %-*s %-*s %*s",
 				projectCol, row.Project,
@@ -369,18 +369,19 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int, projectCo
 				durationCol, durationFormatted,
 			)
 
-			styledRow := m.Styles.Unselected.Render(firstLineText)
+			styledRow := lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Render(firstLineText)
 			output.WriteString(styledRow)
 			renderedLines++
 
-			// Add tasks as separate lines
+			// Add tasks as separate lines (gray)
 			if len(row.Tasks) > 0 {
+				taskStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
 				for _, task := range row.Tasks {
 					if renderedLines >= maxHeight {
 						break
 					}
 					output.WriteString("\n  ")
-					output.WriteString("• " + task)
+					output.WriteString(taskStyle.Render("• " + task))
 					renderedLines++
 				}
 			}

@@ -6,6 +6,10 @@ import (
 	"time-tracker/models"
 )
 
+// Now is a function variable that returns the current time.
+// It can be overridden in tests to provide deterministic times.
+var Now = time.Now
+
 // ProjectDateEntry represents an aggregated group of time entries for a (project, date) combination
 type ProjectDateEntry struct {
 	Project     string
@@ -31,7 +35,7 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 		// For running entries, use current time as end time for duration calculation
 		endTime := entry.End
 		if entry.IsRunning() {
-			now := time.Now()
+			now := Now()
 			endTime = &now
 		}
 
@@ -80,12 +84,12 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 		result = append(result, *entry)
 	}
 
-	// Sort by date (descending), then project name (ascending)
+	// Sort by date (ascending), then project name (ascending)
 	sort.Slice(result, func(i, j int) bool {
 		dateI := result[i].Date.Truncate(24 * time.Hour)
 		dateJ := result[j].Date.Truncate(24 * time.Hour)
 		if !dateI.Equal(dateJ) {
-			return dateI.After(dateJ)
+			return dateI.Before(dateJ)
 		}
 		return result[i].Project < result[j].Project
 	})

@@ -137,26 +137,30 @@ func TestAggregateByProjectDate(t *testing.T) {
 		if len(result) != 3 {
 			t.Fatalf("expected 3 entries, got %d", len(result))
 		}
-		// Newest date first (2025-01-02), then 2025-01-01 entries (sorted by project name)
-		if !result[0].Date.Equal(date3.Truncate(24 * time.Hour)) {
-			t.Errorf("expected first entry date 2025-01-02, got %v", result[0].Date)
+		// Oldest date first (2025-01-01), then 2025-01-02 entries (sorted by project name)
+		if !result[0].Date.Equal(date1.Truncate(24 * time.Hour)) {
+			t.Errorf("expected first entry date 2025-01-01, got %v", result[0].Date)
 		}
-		if !result[1].Date.Equal(date2.Truncate(24 * time.Hour)) {
-			t.Errorf("expected second entry date 2025-01-01, got %v", result[1].Date)
+		if result[0].Project != "PA" {
+			t.Errorf("expected first entry project PA, got %s", result[0].Project)
 		}
-		if result[1].Project != "PA" {
-			t.Errorf("expected second entry project PA, got %s", result[1].Project)
+		if result[1].Project != "PB" {
+			t.Errorf("expected second entry project PB, got %s", result[1].Project)
 		}
-		if result[2].Project != "PB" {
-			t.Errorf("expected third entry project PB, got %s", result[2].Project)
+		if !result[2].Date.Equal(date3.Truncate(24 * time.Hour)) {
+			t.Errorf("expected third entry date 2025-01-02, got %v", result[2].Date)
 		}
 	})
 
 	t.Run("skip running entries for duration but include in list", func(t *testing.T) {
-		// Running entries should not include current time duration, or should they?
-		// Based on the task description, running entries are handled. Let's verify they're included
-		// but with a computed duration up to "now"
+		// Override Now() to return a fixed time for deterministic testing
+		originalNow := Now
+		defer func() { Now = originalNow }()
+
 		start := time.Date(2025, 1, 1, 9, 0, 0, 0, time.UTC)
+		fixedNow := time.Date(2025, 1, 1, 10, 30, 0, 0, time.UTC)
+		Now = func() time.Time { return fixedNow }
+
 		entries := []models.TimeEntry{
 			{Start: start, End: nil, Project: "P", Title: "Running Task"},
 		}
@@ -164,9 +168,10 @@ func TestAggregateByProjectDate(t *testing.T) {
 		if len(result) != 1 {
 			t.Fatalf("expected 1 entry, got %d", len(result))
 		}
-		// Running entry should have a non-zero duration (time.Now() - start)
-		if result[0].Duration <= 0 {
-			t.Errorf("expected positive duration for running entry, got %v", result[0].Duration)
+		// Running entry should have a duration of 1.5 hours (10:30 - 9:00)
+		expectedDuration := 1*time.Hour + 30*time.Minute
+		if result[0].Duration != expectedDuration {
+			t.Errorf("expected %v duration for running entry, got %v", expectedDuration, result[0].Duration)
 		}
 	})
 

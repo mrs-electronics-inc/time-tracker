@@ -88,7 +88,11 @@ func TestStatsRowIsWeeklySeparator(t *testing.T) {
 
 func TestStatsRenderTableHeader(t *testing.T) {
 	t.Run("renders header with correct columns", func(t *testing.T) {
-		header := renderStatsTableHeader(80)
+		m := &Model{
+			Width:  80,
+			Height: 20,
+		}
+		header := renderStatsTableHeader(m)
 		if header == "" {
 			t.Errorf("expected non-empty header")
 		}

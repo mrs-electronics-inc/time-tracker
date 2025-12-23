@@ -30,7 +30,7 @@ func TestModelInitialization(t *testing.T) {
 		t.Error("Expected status to be empty initially")
 	}
 	if m.SelectedIdx != 0 {
-		t.Error("Expected selected index to be 0")
+		t.Error("Expected scroll offset to be 0")
 	}
 }
 
@@ -355,7 +355,7 @@ func TestEmptyListState(t *testing.T) {
 	}
 
 	if m.SelectedIdx != 0 {
-		t.Error("Expected selected index to be 0 for empty list")
+		t.Error("Expected scroll offset to be 0 for empty list")
 	}
 }
 

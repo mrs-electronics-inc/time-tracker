@@ -75,14 +75,14 @@ func getStatsRowCount(aggregated []utils.ProjectDateEntry) int {
 		separatorSet[sep] = true
 	}
 
-	// Count rows (data rows + daily separators + week separators)
+	// Count rows (data rows + daily separators + week separators + separator lines)
 	rowCount := 0
 	var currentDate time.Time
 
 	for i, entry := range aggregated {
 		// Count week separator before this index if needed
 		if separatorSet[i] && rowCount > 0 {
-			rowCount++ // week separator
+			rowCount += 2 // week separator + separator line
 		}
 
 		// Check if we're moving to a new day
@@ -104,7 +104,7 @@ func getStatsRowCount(aggregated []utils.ProjectDateEntry) int {
 
 	// Count final week separator if there are entries
 	if len(aggregated) > 0 {
-		rowCount++ // final week separator
+		rowCount += 2 // final week separator + separator line
 	}
 
 	return rowCount
@@ -135,25 +135,19 @@ var StatsMode = &Mode{
 			return m, tea.Quit
 
 		case "tab":
-			m.CurrentMode = m.ListMode
-			m.SelectedIdx = 0
-			m.ViewportTop = 0
-			m.Status = ""
+			m.SwitchMode(m.ListMode)
 			return m, nil
 
 		case "k", "up":
-			if m.SelectedIdx > 0 {
-				m.SelectedIdx--
+			if m.ViewportTop > 0 {
+				m.ViewportTop--
 			}
 			m.Status = ""
 			return m, nil
 
 		case "j", "down":
-			if rowCount > 0 {
-				m.SelectedIdx++
-				if m.SelectedIdx >= rowCount {
-					m.SelectedIdx = rowCount - 1
-				}
+			if rowCount > 0 && m.ViewportTop < rowCount-1 {
+				m.ViewportTop++
 			}
 			m.Status = ""
 			return m, nil
@@ -183,17 +177,23 @@ func renderStatsContent(m *Model, availableHeight int) string {
 	// Convert to StatsRows with weekly separators
 	rows := buildStatsRows(aggregated)
 
-	// Clamp selection to valid rows
-	if m.SelectedIdx >= len(rows) {
-		m.SelectedIdx = max(len(rows)-1, 0)
-	}
+	// Calculate column widths based on content
+	projectCol, dateCol, durationCol := getStatsColumnWidths(rows)
 
 	headerHeight := 2
-	availableRowHeight := max(availableHeight-headerHeight, 1)
-	m.EnsureSelectionVisible(availableRowHeight)
+	contentHeight := max(availableHeight-headerHeight, 1)
 
-	header := renderStatsTableHeader(m)
-	content := renderStatsTableContent(m, rows, availableRowHeight)
+	// Clamp viewport top (viewport position) to valid range
+	maxViewportTop := max(len(rows)-contentHeight, 0)
+	if m.ViewportTop > maxViewportTop {
+		m.ViewportTop = maxViewportTop
+	}
+	if m.ViewportTop < 0 {
+		m.ViewportTop = 0
+	}
+
+	header := renderStatsTableHeader(m, projectCol, dateCol, durationCol)
+	content := renderStatsTableContent(m, rows, contentHeight, projectCol, dateCol, durationCol)
 
 	return header + content
 }
@@ -271,20 +271,39 @@ func formatDurationMinutes(minutes int) string {
 	return fmt.Sprintf("%dm", mins)
 }
 
-// renderStatsTableHeader renders the stats table header
-func renderStatsTableHeader(m *Model) string {
-	// Column layout: Project | Date | Spacer | Duration
-	// Duration is right-aligned at the end
-
-	// Get minimum column widths
+// getStatsColumnWidths calculates column widths based on content
+func getStatsColumnWidths(rows []StatsRow) (int, int, int) {
 	projectCol := len("Project")
 	dateCol := len("Date")
 	durationCol := len("Duration")
 
+	for _, row := range rows {
+		if len(row.Project) > projectCol {
+			projectCol = len(row.Project)
+		}
+		if len(row.Date) > dateCol {
+			dateCol = len(row.Date)
+		}
+		if len(row.WeekStartDate) > dateCol {
+			dateCol = len(row.WeekStartDate)
+		}
+		if len(row.DayTotalDate) > dateCol {
+			dateCol = len(row.DayTotalDate)
+		}
+		durationStr := formatDurationMinutes(row.DurationMinutes)
+		if len(durationStr) > durationCol {
+			durationCol = len(durationStr)
+		}
+	}
+
 	padding := 1
-	projectCol += padding
-	dateCol += padding
-	durationCol += padding
+	return projectCol + padding, dateCol + padding, durationCol + padding
+}
+
+// renderStatsTableHeader renders the stats table header
+func renderStatsTableHeader(m *Model, projectCol, dateCol, durationCol int) string {
+	// Column layout: Project | Date | Spacer | Duration
+	// Duration is right-aligned at the end
 
 	// Calculate available width for spacer column
 	fixedWidth := projectCol + dateCol + durationCol + 3 // 3 for column separators
@@ -308,30 +327,20 @@ func renderStatsTableHeader(m *Model) string {
 }
 
 // renderStatsTableContent renders the stats table rows with viewport scrolling
-func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
+func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int, projectCol, dateCol, durationCol int) string {
 	if len(rows) == 0 {
 		return ""
 	}
-
-	projectCol := 15
-	dateCol := 12
-	durationCol := 12
-
-	padding := 1
-	projectCol += padding
-	dateCol += padding
-	durationCol += padding
 
 	// Calculate available width for spacer column
 	fixedWidth := projectCol + dateCol + durationCol + 3 // 3 for column separators
 	spacerWidth := max(m.Width-fixedWidth, 0)
 
 	var output strings.Builder
+	renderedLines := 0
 
-	// Render visible rows
-	endIdx := min(m.ViewportTop+maxHeight, len(rows))
-
-	for i := m.ViewportTop; i < endIdx; i++ {
+	// Render visible rows, stopping when we exceed maxHeight
+	for i := m.ViewportTop; i < len(rows) && renderedLines < maxHeight; i++ {
 		row := rows[i]
 
 		if row.IsWeeklySeparator() {
@@ -348,6 +357,12 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 				Bold(true).
 				Render(separatorText)
 			output.WriteString(styledRow + "\n")
+
+			// Add separator line below week header
+			separatorLine := strings.Repeat("─", min(m.Width, m.Width))
+			styledLine := lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Render(separatorLine)
+			output.WriteString(styledLine + "\n")
+			renderedLines += 2
 		} else if row.IsDailySeparator() {
 			// Render daily separator with blue foreground
 			separatorText := fmt.Sprintf(
@@ -362,6 +377,7 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 				Bold(true).
 				Render(separatorText)
 			output.WriteString(styledRow + "\n")
+			renderedLines++
 		} else {
 			// Render regular data row
 			durationFormatted := formatDurationMinutes(row.DurationMinutes)
@@ -377,16 +393,17 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 
 			styledRow := m.Styles.Unselected.Render(firstLineText)
 			output.WriteString(styledRow)
+			renderedLines++
 
 			// Add tasks as separate lines
 			if len(row.Tasks) > 0 {
-				for j, task := range row.Tasks {
-					output.WriteString("\n  ")
-					if j == 0 {
-						output.WriteString("• " + task)
-					} else {
-						output.WriteString("• " + task)
+				for _, task := range row.Tasks {
+					if renderedLines >= maxHeight {
+						break
 					}
+					output.WriteString("\n  ")
+					output.WriteString("• " + task)
+					renderedLines++
 				}
 			}
 			output.WriteString("\n")

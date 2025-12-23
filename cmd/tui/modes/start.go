@@ -85,6 +85,7 @@ var StartMode = &Mode{
 				m.Err = err
 			}
 			m.CurrentMode = m.ListMode
+			m.SelectMostRecentEntry()
 			return m, nil
 		}
 

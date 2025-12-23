@@ -75,11 +75,7 @@ var ListMode = &Mode{
 			return m, nil
 
 		case "tab":
-			m.PreviousMode = m.CurrentMode
-			m.CurrentMode = m.StatsMode
-			m.SelectedIdx = 0 // Reset selection for stats mode
-			m.ViewportTop = 0
-			m.Status = ""
+			m.SwitchMode(m.StatsMode)
 			return m, nil
 		}
 		return m, nil

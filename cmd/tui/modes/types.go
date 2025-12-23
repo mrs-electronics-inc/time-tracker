@@ -47,8 +47,8 @@ type Model struct {
 	Storage     models.Storage     // Persistent storage backend
 	TaskManager *utils.TaskManager // Task management operations
 	Entries     []models.TimeEntry // Loaded time entries
-	SelectedIdx int                // Index of currently selected entry
-	ViewportTop int                // Index of first visible row
+	SelectedIdx int                // Index of currently selected entry (list mode)
+	ViewportTop int                // Index of first visible row (list mode) or viewport scroll position (stats mode)
 	Err         error              // Error state
 	Status      string             // Status message from last action
 	Styles      Styles             // UI styling
@@ -147,6 +147,34 @@ func (m *Model) EnsureSelectionVisible(maxVisibleRows int) {
 	}
 	if m.ViewportTop < 0 {
 		m.ViewportTop = 0
+	}
+}
+
+// ResetScroll resets scroll position and viewport to top
+func (m *Model) ResetScroll() {
+	m.SelectedIdx = 0
+	m.ViewportTop = 0
+}
+
+// SelectMostRecentEntry sets selection to the most recent entry
+func (m *Model) SelectMostRecentEntry() {
+	if len(m.Entries) > 0 {
+		m.SelectedIdx = len(m.Entries) - 1
+	} else {
+		m.SelectedIdx = 0
+	}
+}
+
+// SwitchMode changes mode, resets scroll, and clears status
+func (m *Model) SwitchMode(newMode *Mode) {
+	m.PreviousMode = m.CurrentMode
+	m.CurrentMode = newMode
+	m.ResetScroll()
+	m.Status = ""
+
+	// When switching to list mode, select most recent entry
+	if newMode.Name == "list" {
+		m.SelectMostRecentEntry()
 	}
 }
 

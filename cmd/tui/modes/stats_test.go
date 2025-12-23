@@ -92,7 +92,7 @@ func TestStatsRenderTableHeader(t *testing.T) {
 			Width:  80,
 			Height: 20,
 		}
-		header := renderStatsTableHeader(m)
+		header := renderStatsTableHeader(m, 15, 12, 12)
 		if header == "" {
 			t.Errorf("expected non-empty header")
 		}

@@ -45,12 +45,13 @@ TSV is not the most amazing file format, but it seems the best option for our us
 **Prerequisite**: Aggregation function from [spec #5](./005-stats-mode.md) (`ProjectDateEntry` and `AggregateByProjectDate`)
 
 - [ ] Test: `ExportDailyProjects` formats aggregated data as TSV with correct columns and headers
-- [ ] Test: `ExportDailyProjects` escapes tabs and newlines in task descriptions correctly
+- [ ] Test: Description column joins task titles with comma-space separator (`, `) for single-line TSV format
+- [ ] Test: `ExportDailyProjects` escapes tabs and newlines in task titles correctly
 - [ ] Test: `ExportDailyProjects` converts durations to minutes
 - [ ] Implement: `ExportDailyProjects` function in `utils/` that takes `ProjectDateEntry` slice and returns TSV string
 - [ ] Test: Export command writes TSV to stdout and to file
 - [ ] Implement: Add `export` CLI command with `--format daily-projects` (default), output to stdout or `--output` file
-- [ ] Test: End-to-end: load sample data, export, verify TSV contents match aggregated stats display
+- [ ] Test: End-to-end: load sample data, export, verify TSV contents match aggregated data
 
 ### Raw Export
 

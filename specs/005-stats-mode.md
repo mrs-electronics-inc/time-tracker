@@ -29,7 +29,7 @@ We also need to insert a different-colored row at the end of each week that aggr
 
 ### Aggregation & Data Model
 
-- [ ] Test: `ProjectDateEntry` struct groups entries by (project, date) with collected task descriptions
+- [ ] Test: `ProjectDateEntry` struct groups entries by (project, date) with collected task titles
 - [ ] Implement: `ProjectDateEntry` struct and `AggregateByProjectDate` function in `utils/`
 - [ ] Test: Verify aggregation handles blank entries, running entries, and task deduplication
 - [ ] Test: Verify weekly grouping for separator calculations
@@ -37,10 +37,11 @@ We also need to insert a different-colored row at the end of each week that aggr
 ### Stats Mode
 
 - [ ] Test: `StatsMode` renders table with Project | Date | Duration (minutes) | Description columns
+- [ ] Test: Description column displays tasks as newline-separated bullet list (one per line)
 - [ ] Test: `StatsMode` renders weekly separator rows with different styling at end of each week
 - [ ] Test: `StatsMode` keyboard navigation (k/j, G, ?, q/esc)
 - [ ] Implement: Create `stats.go` in `cmd/tui/modes/` with `StatsMode` definition, rendering, and navigation
-- [ ] Test: Verify column width calculations and text wrapping for description lists
+- [ ] Test: Verify column width calculations and text wrapping for multi-line descriptions
 - [ ] Test: Verify viewport scrolling when content exceeds available height
 
 ### Integration

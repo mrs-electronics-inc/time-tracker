@@ -150,10 +150,11 @@ func (m *Model) EnsureSelectionVisible(maxVisibleRows int) {
 	}
 }
 
-// ResetScroll resets scroll position and viewport to top
+// ResetScroll resets scroll position and viewport. Use -1 for ViewportTop to signal
+// that stats mode should initialize to the bottom on first render.
 func (m *Model) ResetScroll() {
 	m.SelectedIdx = 0
-	m.ViewportTop = 0
+	m.ViewportTop = -1
 }
 
 // SelectMostRecentEntry sets selection to the most recent entry

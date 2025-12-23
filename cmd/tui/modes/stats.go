@@ -75,7 +75,7 @@ func getStatsRowCount(aggregated []utils.ProjectDateEntry) int {
 		separatorSet[sep] = true
 	}
 
-	// Count rows (data rows + daily separators + week separators + separator lines)
+	// Count rows (data rows + daily separators with lines + week separators with lines)
 	rowCount := 0
 	var currentDate time.Time
 
@@ -89,7 +89,7 @@ func getStatsRowCount(aggregated []utils.ProjectDateEntry) int {
 		if currentDate.IsZero() || !currentDate.Equal(entry.Date) {
 			// Count daily separator for previous day
 			if !currentDate.IsZero() {
-				rowCount++ // day separator
+				rowCount += 2 // day separator + separator line
 			}
 			currentDate = entry.Date
 		}
@@ -99,7 +99,7 @@ func getStatsRowCount(aggregated []utils.ProjectDateEntry) int {
 
 	// Count final day total if there are entries
 	if !currentDate.IsZero() {
-		rowCount++ // final day separator
+		rowCount += 2 // final day separator + separator line
 	}
 
 	// Count final week separator if there are entries
@@ -121,9 +121,9 @@ var StatsMode = &Mode{
 		{Keys: "q / Esc", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
-		// Get the actual number of rendered rows (includes separators)
+		// Get the rows (which include separators)
 		aggregated := utils.AggregateByProjectDate(m.Entries)
-		rowCount := getStatsRowCount(aggregated)
+		rows := buildStatsRows(aggregated)
 
 		switch msg.String() {
 		case "?":
@@ -146,7 +146,7 @@ var StatsMode = &Mode{
 			return m, nil
 
 		case "j", "down":
-			if rowCount > 0 && m.ViewportTop < rowCount-1 {
+			if len(rows) > 0 {
 				m.ViewportTop++
 			}
 			m.Status = ""
@@ -183,10 +183,32 @@ func renderStatsContent(m *Model, availableHeight int) string {
 	headerHeight := 2
 	contentHeight := max(availableHeight-headerHeight, 1)
 
-	// Clamp viewport top (viewport position) to valid range
-	maxViewportTop := max(len(rows)-contentHeight, 0)
-	if m.ViewportTop > maxViewportTop {
-		m.ViewportTop = maxViewportTop
+	// On first render (ViewportTop == -1), start at bottom to show most recent data.
+	// This must be here (not in SwitchMode) because we need row count.
+	if m.ViewportTop == -1 && len(rows) > 0 {
+		// Calculate ViewportTop by working backward from the last row
+		// counting visual lines until we reach contentHeight
+		visualLines := 0
+		for i := len(rows) - 1; i >= 0; i-- {
+			row := rows[i]
+			if row.IsWeeklySeparator() || row.IsDailySeparator() {
+				visualLines += 2 // separator + line
+			} else {
+				visualLines += 1 + len(row.Tasks) // data row + task lines
+			}
+			if visualLines >= contentHeight {
+				m.ViewportTop = i
+				break
+			}
+		}
+		if m.ViewportTop == -1 {
+			m.ViewportTop = 0
+		}
+	}
+
+	// Clamp viewport top to valid range (at least 0, at most last row)
+	if m.ViewportTop > len(rows)-1 {
+		m.ViewportTop = max(len(rows)-1, 0)
 	}
 	if m.ViewportTop < 0 {
 		m.ViewportTop = 0
@@ -377,7 +399,12 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int, projectCo
 				Bold(true).
 				Render(separatorText)
 			output.WriteString(styledRow + "\n")
-			renderedLines++
+
+			// Add separator line below day total
+			separatorLine := strings.Repeat("─", min(m.Width, m.Width))
+			styledLine := lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Render(separatorLine)
+			output.WriteString(styledLine + "\n")
+			renderedLines += 2
 		} else {
 			// Render regular data row
 			durationFormatted := formatDurationMinutes(row.DurationMinutes)

@@ -44,15 +44,19 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 			duration = endTime.Sub(entry.Start)
 		}
 
-		// Create key
+		// Create key and date by parsing the date string to ensure consistency
 		dateStr := entry.Start.Format("2006-01-02")
 		key := dateStr + ":" + entry.Project
+
+		// Parse the date string back to a time.Time to ensure the Date field
+		// uses the same date as the formatted string (avoiding timezone truncation issues)
+		parsedDate, _ := time.Parse("2006-01-02", dateStr)
 
 		// Add to aggregation
 		if aggregated[key] == nil {
 			aggregated[key] = &ProjectDateEntry{
 				Project: entry.Project,
-				Date:    entry.Start.Truncate(24 * time.Hour),
+				Date:    parsedDate,
 				Tasks:   []string{},
 			}
 		}

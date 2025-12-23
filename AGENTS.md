@@ -52,9 +52,24 @@ Vendor directory is gitignored; dependencies are fetched from the network during
 
 ## Data Format
 
-- **Always use latest version**: Check `models/migration_types.go` for the current data format
+- **Current version**: Check `models/storage.go` for `CurrentVersion` constant (currently v3)
+- **JSON structure**: Use `"time-entries"` key (not `"entries"`), with structure:
+  ```json
+  {
+    "version": 3,
+    "time-entries": [
+      {
+        "start": "2025-12-23T09:00:00Z",
+        "project": "ProjectName",
+        "title": "Task description"
+      }
+    ]
+  }
+  ```
 - **Blank entries**: Use empty `project` and `title` strings to mark gaps/end of day. Each workday must end with a blank entry at closing time to prevent overnight durations
 - **Duration calculation**: End times are derived from the next entry's start time
+- **Date selection**: Use recent dates (within last 14 days) for CLI testing since `stats` command shows the last 14 days by default
+- **Version handling**: Older versions (v0-v2) are automatically migrated to v3 on load. Always create new test data with current version only
 
 ## GitHub
 

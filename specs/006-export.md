@@ -38,15 +38,26 @@ TSV is not the most amazing file format, but it seems the best option for our us
 - TSV is superior to CSV because you don't have to add special handling for commas in your data.
 - TSV can easily be imported into spreadsheet software while JSON can not.
 
+### TSV Writing and Escaping
+
+- **Decision**: Use Go's `encoding/csv` package with `Comma: '\t'` to write TSV output
+- **Rationale**: The standard library handles quoting and escaping of tabs and newlines in fields correctly, preventing data corruption and ensuring round-trip safety (export → import → export produces identical output)
+- **Implementation**:
+  - All TSV output must include a header row as the first line
+  - Use `csv.Writer` with `Comma` set to `'\t'`
+  - Call `Flush()` after writing all records to ensure proper output
+- **Testing**: All escaping tests must verify that fields with tabs, newlines, and quotes are properly quoted/escaped and can be read back correctly
+
 ## Task List
 
 ### Daily-Projects Export
 
 **Prerequisite**: Aggregation function from [spec #5](./005-stats-mode.md) (`ProjectDateEntry` and `AggregateByProjectDate`)
 
-- [ ] Test: `ExportDailyProjects` formats aggregated data as TSV with correct columns and headers
+- [ ] Test: `ExportDailyProjects` writes TSV with header row and correct columns (Project, Date, Duration, Description)
+- [ ] Test: `ExportDailyProjects` uses `encoding/csv` with `Comma: '\t'` for proper escaping
 - [ ] Test: Description column joins task titles with comma-space separator (`, `) for single-line TSV format
-- [ ] Test: `ExportDailyProjects` escapes tabs and newlines in task titles correctly
+- [ ] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
 - [ ] Test: `ExportDailyProjects` converts durations to minutes
 - [ ] Implement: `ExportDailyProjects` function in `utils/` that takes `ProjectDateEntry` slice and returns TSV string
 - [ ] Test: Export command writes TSV to stdout and to file
@@ -55,9 +66,10 @@ TSV is not the most amazing file format, but it seems the best option for our us
 
 ### Raw Export
 
-- [ ] Test: `ExportRaw` formats raw time entries as TSV with correct columns (Project, Task, Start, End, Duration) and headers
+- [ ] Test: `ExportRaw` writes TSV with header row and correct columns (Project, Task, Start, End, Duration)
+- [ ] Test: `ExportRaw` uses `encoding/csv` with `Comma: '\t'` for proper escaping
 - [ ] Test: `ExportRaw` filters out blank entries
-- [ ] Test: `ExportRaw` escapes tabs and newlines in project/task names correctly
+- [ ] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
 - [ ] Test: `ExportRaw` converts durations to minutes
 - [ ] Implement: `ExportRaw` function in `utils/` that takes `TimeEntry` slice and returns TSV string
 - [ ] Implement: Add `--format raw` option to export command

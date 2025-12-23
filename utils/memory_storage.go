@@ -6,12 +6,12 @@ import (
 
 // MemoryStorage implements Storage using in-memory storage for testing
 type MemoryStorage struct {
-	data    []models.TimeEntry
+	data []models.TimeEntry
 }
 
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		data:    []models.TimeEntry{},
+		data: []models.TimeEntry{},
 	}
 }
 

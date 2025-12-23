@@ -31,7 +31,7 @@ func TestAutoStopScenario(t *testing.T) {
 	if len(entries) != 2 {
 		t.Errorf("Expected 2 entries, got %d", len(entries))
 	}
-	
+
 	// Verify entries by order (since sorted by start time ascending)
 	if entries[0].Project != "project1" || entries[0].End == nil {
 		t.Errorf("First entry should be project1 and stopped")

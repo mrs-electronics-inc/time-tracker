@@ -29,24 +29,24 @@ We also need to insert a different-colored row at the end of each week that aggr
 
 ### Aggregation & Data Model
 
-- [ ] Test: ProjectDateEntry struct groups entries by (project, date) with collected task descriptions
-- [ ] Implement: ProjectDateEntry struct and AggregateByProjectDate function in utils/
+- [ ] Test: `ProjectDateEntry` struct groups entries by (project, date) with collected task descriptions
+- [ ] Implement: `ProjectDateEntry` struct and `AggregateByProjectDate` function in `utils/`
 - [ ] Test: Verify aggregation handles blank entries, running entries, and task deduplication
 - [ ] Test: Verify weekly grouping for separator calculations
 
 ### Stats Mode
 
-- [ ] Test: StatsMode renders table with Project | Date | Duration (minutes) | Description columns
-- [ ] Test: StatsMode renders weekly separator rows with different styling at end of each week
-- [ ] Test: StatsMode keyboard navigation (k/j, G, ?, q/esc)
-- [ ] Implement: Create stats.go in cmd/tui/modes/ with StatsMode definition, rendering, and navigation
+- [ ] Test: `StatsMode` renders table with Project | Date | Duration (minutes) | Description columns
+- [ ] Test: `StatsMode` renders weekly separator rows with different styling at end of each week
+- [ ] Test: `StatsMode` keyboard navigation (k/j, G, ?, q/esc)
+- [ ] Implement: Create `stats.go` in `cmd/tui/modes/` with `StatsMode` definition, rendering, and navigation
 - [ ] Test: Verify column width calculations and text wrapping for description lists
 - [ ] Test: Verify viewport scrolling when content exceeds available height
 
 ### Integration
 
-- [ ] Test: Tab key in ListMode switches to StatsMode
+- [ ] Test: Tab key in `ListMode` switches to `StatsMode`
 - [ ] Test: Stats mode shows keybinding hints in status bar with Tab to return to list
-- [ ] Implement: Add Tab keybinding to ListMode, add StatsMode to Model, add navigation between modes
+- [ ] Implement: Add Tab keybinding to `ListMode`, add `StatsMode` to `Model`, add navigation between modes
 - [ ] Test: End-to-end: load sample data in TUI list mode, switch to stats, verify aggregation correctness
 - [ ] Test: Verify stats mode handles edge cases (no data, single entry, data spanning multiple weeks)

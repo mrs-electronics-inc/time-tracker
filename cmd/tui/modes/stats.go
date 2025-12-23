@@ -61,55 +61,6 @@ func StatsDailySeparatorRow(date time.Time, totalMinutes int) StatsRow {
 	}
 }
 
-// getStatsRowCount calculates the number of rendered rows (data rows + separators)
-// This must match the row count used in buildStatsRows/renderStatsTableContent
-func getStatsRowCount(aggregated []utils.ProjectDateEntry) int {
-	if len(aggregated) == 0 {
-		return 0
-	}
-
-	// Get week boundaries
-	separators := utils.GetWeekSeparators(aggregated)
-	separatorSet := make(map[int]bool)
-	for _, sep := range separators {
-		separatorSet[sep] = true
-	}
-
-	// Count rows (data rows + daily separators with lines + week separators with lines)
-	rowCount := 0
-	var currentDate time.Time
-
-	for i, entry := range aggregated {
-		// Count week separator before this index if needed
-		if separatorSet[i] && rowCount > 0 {
-			rowCount += 2 // week separator + separator line
-		}
-
-		// Check if we're moving to a new day
-		if currentDate.IsZero() || !currentDate.Equal(entry.Date) {
-			// Count daily separator for previous day
-			if !currentDate.IsZero() {
-				rowCount += 2 // day separator + separator line
-			}
-			currentDate = entry.Date
-		}
-
-		rowCount++ // data row
-	}
-
-	// Count final day total if there are entries
-	if !currentDate.IsZero() {
-		rowCount += 2 // final day separator + separator line
-	}
-
-	// Count final week separator if there are entries
-	if len(aggregated) > 0 {
-		rowCount += 2 // final week separator + separator line
-	}
-
-	return rowCount
-}
-
 // StatsMode is the stats view mode
 var StatsMode = &Mode{
 	Name: "stats",
@@ -342,7 +293,7 @@ func renderStatsTableHeader(m *Model, projectCol, dateCol, durationCol int) stri
 	output := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")).Render(headerText) + "\n"
 
 	// Separator line
-	separatorText := strings.Repeat("─", min(m.Width, m.Width))
+	separatorText := strings.Repeat("─", m.Width)
 	output += lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")).Render(separatorText) + "\n"
 
 	return output
@@ -381,7 +332,7 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int, projectCo
 			output.WriteString(styledRow + "\n")
 
 			// Add separator line below week header
-			separatorLine := strings.Repeat("─", min(m.Width, m.Width))
+			separatorLine := strings.Repeat("─", m.Width)
 			styledLine := lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Render(separatorLine)
 			output.WriteString(styledLine + "\n")
 			renderedLines += 2
@@ -401,7 +352,7 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int, projectCo
 			output.WriteString(styledRow + "\n")
 
 			// Add separator line below day total
-			separatorLine := strings.Repeat("─", min(m.Width, m.Width))
+			separatorLine := strings.Repeat("─", m.Width)
 			styledLine := lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Render(separatorLine)
 			output.WriteString(styledLine + "\n")
 			renderedLines += 2

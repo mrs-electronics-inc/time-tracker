@@ -21,7 +21,7 @@ type ProjectDateEntry struct {
 
 // AggregateByProjectDate groups time entries by (project, date) and collects task descriptions.
 // It handles blank entries, running entries, and task deduplication.
-// Returns a slice sorted by date (descending), then project name.
+// Returns a slice sorted by date (ascending), then project name.
 func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 	// Map key: "YYYY-MM-DD:project"
 	aggregated := make(map[string]*ProjectDateEntry)
@@ -44,13 +44,12 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 			duration = endTime.Sub(entry.Start)
 		}
 
-		// Create key and date by parsing the date string to ensure consistency
+		// Extract date from the start time. We format to a string and parse it back
+		// to ensure ProjectDateEntry.Date matches the date string displayed in stats.
+		// This avoids timezone offset issues when truncating times.
 		dateStr := entry.Start.Format("2006-01-02")
 		key := dateStr + ":" + entry.Project
-
-		// Parse the date string back to a time.Time to ensure the Date field
-		// uses the same date as the formatted string (avoiding timezone truncation issues)
-		parsedDate, _ := time.Parse("2006-01-02", dateStr)
+		parsedDate, _ := time.Parse("2006-01-02", dateStr) // Safe: we just formatted this string
 
 		// Add to aggregation
 		if aggregated[key] == nil {
@@ -90,10 +89,8 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 
 	// Sort by date (ascending), then project name (ascending)
 	sort.Slice(result, func(i, j int) bool {
-		dateI := result[i].Date.Truncate(24 * time.Hour)
-		dateJ := result[j].Date.Truncate(24 * time.Hour)
-		if !dateI.Equal(dateJ) {
-			return dateI.Before(dateJ)
+		if !result[i].Date.Equal(result[j].Date) {
+			return result[i].Date.Before(result[j].Date)
 		}
 		return result[i].Project < result[j].Project
 	})

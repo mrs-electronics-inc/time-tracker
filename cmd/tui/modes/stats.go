@@ -49,11 +49,11 @@ func StatsWeeklySeparatorRow(weekStart time.Time, totalMinutes int) StatsRow {
 var StatsMode = &Mode{
 	Name: "stats",
 	KeyBindings: []KeyBinding{
+		{Keys: "Tab", Label: "LIST", Description: "Switch mode"},
 		{Keys: "k / ↑", Label: "UP", Description: "Move up"},
 		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
-		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
-		{Keys: "q / Esc", Label: "QUIT", Description: "Return to list"},
+		{Keys: "q / Esc", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
@@ -63,7 +63,12 @@ var StatsMode = &Mode{
 			return m, nil
 
 		case "q", "esc":
+			return m, tea.Quit
+
+		case "tab":
 			m.CurrentMode = m.ListMode
+			m.SelectedIdx = 0
+			m.ViewportTop = 0
 			m.Status = ""
 			return m, nil
 
@@ -83,13 +88,6 @@ var StatsMode = &Mode{
 				if m.SelectedIdx >= len(m.Entries) {
 					m.SelectedIdx = len(m.Entries) - 1
 				}
-			}
-			m.Status = ""
-			return m, nil
-
-		case "G":
-			if len(m.Entries) > 0 {
-				m.SelectedIdx = len(m.Entries) - 1
 			}
 			m.Status = ""
 			return m, nil
@@ -163,6 +161,16 @@ func buildStatsRows(aggregated []utils.ProjectDateEntry) []StatsRow {
 	return rows
 }
 
+// formatDurationMinutes converts minutes to hh:mm format
+func formatDurationMinutes(minutes int) string {
+	hours := minutes / 60
+	mins := minutes % 60
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm", hours, mins)
+	}
+	return fmt.Sprintf("%dm", mins)
+}
+
 // renderStatsTableHeader renders the stats table header
 func renderStatsTableHeader(width int) string {
 	// Column layout: Project | Date | Duration (min) | Description
@@ -177,7 +185,7 @@ func renderStatsTableHeader(width int) string {
 		"%-*s %-*s %-*s %s",
 		projectCol, "Project",
 		dateCol, "Date",
-		durationCol, "Duration (m)",
+		durationCol, "Duration",
 		"Description",
 	)
 
@@ -215,10 +223,10 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 				"%-*s %-*s %-*s",
 				projectCol, "WEEK OF",
 				dateCol, row.WeekStartDate,
-				durationCol, fmt.Sprintf("%d min", row.DurationMinutes),
+				durationCol, formatDurationMinutes(row.DurationMinutes),
 			)
 			styledRow := lipgloss.NewStyle().
-				Background(lipgloss.Color("8")).
+				Background(lipgloss.Color("5")).
 				Foreground(lipgloss.Color("0")).
 				Bold(true).
 				Render(separatorText)
@@ -231,31 +239,17 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 				taskDescr = "• " + strings.Join(row.Tasks, "\n  • ")
 			}
 
+			durationFormatted := formatDurationMinutes(row.DurationMinutes)
 			firstLineText := fmt.Sprintf(
-				"%-*s %-*s %-*d %s",
+				"%-*s %-*s %-*s %s",
 				projectCol, row.Project,
 				dateCol, row.Date,
-				durationCol, row.DurationMinutes,
-				"",
+				durationCol, durationFormatted,
+				taskDescr,
 			)
 
-			var styledRow string
-			if i == m.SelectedIdx {
-				styledRow = lipgloss.NewStyle().
-					Bold(true).
-					Reverse(true).
-					Render(firstLineText)
-			} else {
-				styledRow = m.Styles.Unselected.Render(firstLineText)
-			}
-
-			output.WriteString(styledRow)
-
-			// Add task descriptions (indented, not highlighted)
-			if taskDescr != "" {
-				output.WriteString("\n  " + lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Render(taskDescr))
-			}
-			output.WriteString("\n")
+			styledRow := m.Styles.Unselected.Render(firstLineText)
+			output.WriteString(styledRow + "\n")
 		}
 	}
 

@@ -13,11 +13,11 @@ import (
 var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
+		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
 		{Keys: "k / ↑", Label: "UP", Description: "Move up"},
 		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
 		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
 		{Keys: "s", Label: "START/STOP", Description: "Start/stop entry"},
-		{Keys: "Tab", Label: "STATS", Description: "View stats"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
 		{Keys: "q / Esc", Label: "QUIT", Description: "Quit"},
 	},

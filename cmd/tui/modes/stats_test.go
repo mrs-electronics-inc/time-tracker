@@ -102,9 +102,6 @@ func TestStatsRenderTableHeader(t *testing.T) {
 		if !contains(header, "Duration") {
 			t.Errorf("header should contain 'Duration'")
 		}
-		if !contains(header, "Description") {
-			t.Errorf("header should contain 'Description'")
-		}
 	})
 }
 

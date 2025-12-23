@@ -10,19 +10,26 @@ import (
 	"time-tracker/utils"
 )
 
-// StatsRow represents a single row in stats mode (either a data row or a weekly separator)
+// StatsRow represents a single row in stats mode (either a data row or a separator)
 type StatsRow struct {
 	Project         string
 	Date            string
 	DurationMinutes int
 	Tasks           []string
 	IsWeekSeparator bool
+	IsDaySeparator  bool
 	WeekStartDate   string // For weekly separator rows
+	DayTotalDate    string // For daily separator rows
 }
 
 // IsWeeklySeparator returns true if this is a weekly separator row
 func (sr *StatsRow) IsWeeklySeparator() bool {
 	return sr.IsWeekSeparator
+}
+
+// IsDailySeparator returns true if this is a daily separator row
+func (sr *StatsRow) IsDailySeparator() bool {
+	return sr.IsDaySeparator
 }
 
 // StatsRowFromEntry converts a ProjectDateEntry to a StatsRow
@@ -41,6 +48,15 @@ func StatsWeeklySeparatorRow(weekStart time.Time, totalMinutes int) StatsRow {
 	return StatsRow{
 		IsWeekSeparator: true,
 		WeekStartDate:   weekStart.Format("2006-01-02"),
+		DurationMinutes: totalMinutes,
+	}
+}
+
+// StatsDailySeparatorRow creates a separator row for a day
+func StatsDailySeparatorRow(date time.Time, totalMinutes int) StatsRow {
+	return StatsRow{
+		IsDaySeparator:  true,
+		DayTotalDate:    date.Format("2006-01-02"),
 		DurationMinutes: totalMinutes,
 	}
 }
@@ -127,7 +143,7 @@ func renderStatsContent(m *Model, availableHeight int) string {
 	return header + content
 }
 
-// buildStatsRows creates StatsRow entries with weekly separators inserted
+// buildStatsRows creates StatsRow entries with daily and weekly separators inserted
 func buildStatsRows(aggregated []utils.ProjectDateEntry) []StatsRow {
 	var rows []StatsRow
 
@@ -138,17 +154,46 @@ func buildStatsRows(aggregated []utils.ProjectDateEntry) []StatsRow {
 		separatorSet[sep] = true
 	}
 
-	// Build rows with separators
+	// Build rows with daily and weekly separators
+	var currentDate time.Time
+	var dayTotal int
+
 	for i, entry := range aggregated {
-		// Insert separator before this index if needed
+		// Insert week separator before this index if needed
 		if separatorSet[i] && len(rows) > 0 {
-			// Find the week start for previous entry
+			// First, add daily total for the previous day if we have one
+			if !currentDate.IsZero() {
+				rows = append(rows, StatsDailySeparatorRow(currentDate, dayTotal))
+			}
+
+			// Then add week separator
 			prevWeekStart := utils.GetMondayOfWeek(aggregated[i-1].Date)
 			weekTotal := utils.GetWeeklyTotal(aggregated, prevWeekStart)
 			rows = append(rows, StatsWeeklySeparatorRow(prevWeekStart, int(weekTotal.Minutes())))
+
+			// Reset day tracking
+			currentDate = time.Time{}
+			dayTotal = 0
+		}
+
+		// Check if we're moving to a new day
+		if currentDate.IsZero() || !currentDate.Equal(entry.Date) {
+			// If we had a previous day, add its total
+			if !currentDate.IsZero() {
+				rows = append(rows, StatsDailySeparatorRow(currentDate, dayTotal))
+			}
+			// Start tracking the new day
+			currentDate = entry.Date
+			dayTotal = 0
 		}
 
 		rows = append(rows, StatsRowFromEntry(entry))
+		dayTotal += int(entry.Duration.Minutes())
+	}
+
+	// Add final day total if there are entries
+	if !currentDate.IsZero() {
+		rows = append(rows, StatsDailySeparatorRow(currentDate, dayTotal))
 	}
 
 	// Add final week separator if there are entries
@@ -182,11 +227,10 @@ func renderStatsTableHeader(width int) string {
 	descCol := max(width-projectCol-dateCol-durationCol-8, 30) // -8 for separators and padding
 
 	headerText := fmt.Sprintf(
-		"%-*s %-*s %-*s %s",
+		"%-*s %-*s %-*s",
 		projectCol, "Project",
 		dateCol, "Date",
 		durationCol, "Duration",
-		"Description",
 	)
 
 	output := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")).Render(headerText) + "\n"
@@ -208,6 +252,7 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 	projectCol := 15
 	dateCol := 12
 	durationCol := 12
+	descCol := max(m.Width-projectCol-dateCol-durationCol-8, 30) // -8 for separators and padding
 
 	var output strings.Builder
 
@@ -218,38 +263,60 @@ func renderStatsTableContent(m *Model, rows []StatsRow, maxHeight int) string {
 		row := rows[i]
 
 		if row.IsWeeklySeparator() {
-			// Render weekly separator with different styling
+			// Render weekly separator with purple foreground
 			separatorText := fmt.Sprintf(
-				"%-*s %-*s %-*s",
+				"%-*s %-*s %-*s %-*s",
 				projectCol, "WEEK OF",
 				dateCol, row.WeekStartDate,
 				durationCol, formatDurationMinutes(row.DurationMinutes),
+				descCol, "",
 			)
 			styledRow := lipgloss.NewStyle().
-				Background(lipgloss.Color("5")).
-				Foreground(lipgloss.Color("0")).
+				Foreground(lipgloss.Color("5")).
+				Bold(true).
+				Render(separatorText)
+			output.WriteString(styledRow + "\n")
+		} else if row.IsDailySeparator() {
+			// Render daily separator with blue foreground
+			separatorText := fmt.Sprintf(
+				"%-*s %-*s %-*s %-*s",
+				projectCol, "TOTAL",
+				dateCol, row.DayTotalDate,
+				durationCol, formatDurationMinutes(row.DurationMinutes),
+				descCol, "",
+			)
+			styledRow := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("4")).
 				Bold(true).
 				Render(separatorText)
 			output.WriteString(styledRow + "\n")
 		} else {
 			// Render regular data row
-			// Task descriptions as newline-separated bullet points
-			taskDescr := ""
-			if len(row.Tasks) > 0 {
-				taskDescr = "• " + strings.Join(row.Tasks, "\n  • ")
-			}
-
 			durationFormatted := formatDurationMinutes(row.DurationMinutes)
+
+			// First line: project, date, duration, and first task if available
 			firstLineText := fmt.Sprintf(
-				"%-*s %-*s %-*s %s",
+				"%-*s %-*s %-*s",
 				projectCol, row.Project,
 				dateCol, row.Date,
 				durationCol, durationFormatted,
-				taskDescr,
 			)
 
 			styledRow := m.Styles.Unselected.Render(firstLineText)
-			output.WriteString(styledRow + "\n")
+			output.WriteString(styledRow)
+
+			// Add tasks as separate lines
+			if len(row.Tasks) > 0 {
+				for j, task := range row.Tasks {
+					output.WriteString("\n  ")
+					if j == 0 {
+						output.WriteString("• " + task)
+					} else {
+						output.WriteString("• " + task)
+					}
+				}
+			}
+			output.WriteString("\n")
 		}
 	}
 

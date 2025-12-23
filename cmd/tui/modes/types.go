@@ -68,6 +68,7 @@ type Model struct {
 	ListMode  *Mode
 	StartMode *Mode
 	HelpMode  *Mode
+	StatsMode *Mode
 }
 
 // LoadEntries loads time entries from storage

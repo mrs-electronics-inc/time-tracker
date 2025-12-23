@@ -17,6 +17,7 @@ var ListMode = &Mode{
 		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
 		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
 		{Keys: "s", Label: "START/STOP", Description: "Start/stop entry"},
+		{Keys: "Tab", Label: "STATS", Description: "View stats"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
 		{Keys: "q / Esc", Label: "QUIT", Description: "Quit"},
 	},
@@ -71,6 +72,14 @@ var ListMode = &Mode{
 					m.Err = err
 				}
 			}
+			return m, nil
+
+		case "tab":
+			m.PreviousMode = m.CurrentMode
+			m.CurrentMode = m.StatsMode
+			m.SelectedIdx = 0 // Reset selection for stats mode
+			m.ViewportTop = 0
+			m.Status = ""
 			return m, nil
 		}
 		return m, nil

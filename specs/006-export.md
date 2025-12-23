@@ -51,3 +51,13 @@ TSV is not the most amazing file format, but it seems the best option for our us
 - [ ] Test: Export command writes TSV to stdout and to file
 - [ ] Implement: Add `export` CLI command with `--format daily-projects` (default), output to stdout or `--output` file
 - [ ] Test: End-to-end: load sample data, export, verify TSV contents match aggregated stats display
+
+### Raw Export
+
+- [ ] Test: ExportRaw formats raw time entries as TSV with correct columns (Project, Task, Start, End, Duration) and headers
+- [ ] Test: ExportRaw filters out blank entries
+- [ ] Test: ExportRaw escapes tabs and newlines in project/task names correctly
+- [ ] Test: ExportRaw converts durations to minutes
+- [ ] Implement: ExportRaw function in utils/ that takes TimeEntry slice and returns TSV string
+- [ ] Implement: Add `--format raw` option to export command
+- [ ] Test: End-to-end: load sample data, export raw format, verify TSV contains all non-blank entries

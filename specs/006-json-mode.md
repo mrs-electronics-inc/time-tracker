@@ -148,6 +148,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 - [ ] Document --mode flag in README
 - [ ] Add example usage for AI agents
+- [ ] Update AGENTS.md to instruct agents to use --mode json for E2E testing of new features
 
 ## Related Specs
 

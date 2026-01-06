@@ -11,10 +11,12 @@ Add a `--mode json` flag that allows AI agents and automated tests to interact w
 ## Problem
 
 Currently, testing the TUI requires either:
+
 - Manual interaction with a real terminal
 - Unit tests that call model methods directly (which don't verify rendered output)
 
 This makes E2E testing difficult, and AI agents cannot easily verify what the user actually sees because:
+
 - PTY-based approaches require complex terminal emulation
 - ANSI escape sequences are difficult to parse and verify
 - Structured text output loses styling information (colors indicate state)
@@ -22,11 +24,13 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 ## Solution
 
 Run `time-tracker --mode json` to start JSON mode, which:
+
 1. Accepts commands via JSON on stdin
 2. Renders the TUI to a PNG image after each command
 3. Returns the image (base64 encoded) via JSON on stdout
 
 This enables:
+
 - **E2E testing**: Automated tests can verify the actual rendered output
 - **AI agent interaction**: Agents can use vision capabilities to verify the TUI
 - **Visual regression testing**: Compare screenshots across versions
@@ -49,7 +53,7 @@ This enables:
 ### Output Response
 
 ```json
-{"render_path": "/tmp/time-tracker/renders/2026-01-06T10-45-32.123.png"}
+{ "render_path": "/tmp/time-tracker/renders/2026-01-06T10-45-32.123.png" }
 ```
 
 Renders are saved to `/tmp/time-tracker/renders` by default. Use `--render-dir /custom/path` to specify a different directory.
@@ -67,6 +71,7 @@ time-tracker --mode json --keep-renders               # persist renders after ex
 ```
 
 On startup, JSON mode will:
+
 1. Initialize with default terminal size (80x24)
 2. Load existing data (same as normal TUI mode)
 3. Send an initial response with the rendered screen
@@ -77,13 +82,13 @@ On startup, JSON mode will:
 
 We considered several output formats:
 
-| Format | Pros | Cons |
-|--------|------|------|
-| Plain text (ANSI stripped) | Simple | Loses color/styling information |
-| Raw ANSI codes | Lossless | Difficult to parse and verify |
-| Structured cell grid | Precise | Verbose, hard for AI to process |
-| Base64-encoded PNG | Self-contained | Requires decoding, verbose in JSON |
-| **PNG file with path** | AI agents can read directly | Requires filesystem |
+| Format                     | Pros                        | Cons                               |
+| -------------------------- | --------------------------- | ---------------------------------- |
+| Plain text (ANSI stripped) | Simple                      | Loses color/styling information    |
+| Raw ANSI codes             | Lossless                    | Difficult to parse and verify      |
+| Structured cell grid       | Precise                     | Verbose, hard for AI to process    |
+| Base64-encoded PNG         | Self-contained              | Requires decoding, verbose in JSON |
+| **PNG file with path**     | AI agents can read directly | Requires filesystem                |
 
 **Decision**: PNG files with paths returned in JSON. AI agents can use the file path directly with image reading tools. Simpler than base64 decoding, and files are useful for debugging.
 
@@ -94,10 +99,12 @@ The `--render-dir` flag specifies where to save renders. The `--save-renders` fl
 ### Rendering Approach: Use Existing Dependencies
 
 We considered:
+
 - External binary (e.g., `textimg`) - adds deployment complexity
 - Inline rendering with existing deps - ~200-300 lines of new code
 
 **Decision**: Implement rendering using existing dependencies:
+
 - `charmbracelet/x/ansi` for parsing ANSI sequences (already a dependency)
 - `golang.org/x/image/font` for text rendering
 - Embed a suitable open-source monospace font (MIT/OFL licensed)

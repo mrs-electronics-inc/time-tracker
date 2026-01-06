@@ -11,6 +11,7 @@ Add a `--mode web` flag that provides an HTTP-based web interface for time track
 ## Problem
 
 The current TUI requires a terminal. A web interface would enable:
+
 - Access from any device with a browser
 - Easier mobile use
 - Sharing/viewing across machines

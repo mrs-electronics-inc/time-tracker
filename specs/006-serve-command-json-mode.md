@@ -51,14 +51,15 @@ By default, responses contain base64-encoded PNG data:
 {"image": "iVBORw0KGgoAAAANSUhEUgAA..."}
 ```
 
-With `--output-dir`, responses contain file paths instead:
+With `--save-images`, responses contain file paths instead:
 
 ```bash
-time-tracker serve --mode json --output-dir /tmp/tui-screens
+time-tracker serve --mode json --save-images                       # uses /tmp/time-tracker/screens
+time-tracker serve --mode json --save-images /custom/path          # custom directory
 ```
 
 ```json
-{"image_path": "/tmp/tui-screens/2026-01-06T10-45-32.123.png"}
+{"image_path": "/tmp/time-tracker/screens/2026-01-06T10-45-32.123.png"}
 ```
 
 Files are timestamped for easy sorting and debugging. This simplifies agent workflows by avoiding base64 decoding.
@@ -107,7 +108,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Foundation
 
-- [ ] Add `cmd/serve.go` with cobra command structure, `--mode` flag, and `--output-dir` flag
+- [ ] Add `cmd/serve.go` with cobra command structure, `--mode` flag, and `--save-images` flag
 - [ ] Add tests for JSON protocol parsing
 - [ ] Implement JSON protocol parsing (stdin reader)
 - [ ] Add tests for JSON response writing
@@ -130,8 +131,8 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Add tests for image rendering
 - [ ] Implement image renderer (text + colors to PNG)
 - [ ] Base64 encode PNG for JSON response
-- [ ] Add tests for --output-dir file output
-- [ ] Implement --output-dir with timestamped filenames
+- [ ] Add tests for --save-images file output
+- [ ] Implement --save-images with timestamped filenames (default: /tmp/time-tracker/screens)
 
 ### Integration
 

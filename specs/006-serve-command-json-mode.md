@@ -151,4 +151,4 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 The `serve` command is designed to support multiple modes:
 
 - `--mode json` - JSON over stdin/stdout for AI agents (this spec)
-- `--mode web` - HTTP server with web interface (see [spec 007](./007-web-interface.md))
+- `--mode web` - HTTP server with web interface (see [spec 007](./007-serve-command-web-mode.md))

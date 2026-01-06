@@ -45,11 +45,23 @@ This allows AI agents to use vision capabilities to verify the actual rendered T
 
 ### Output Response
 
+By default, responses contain base64-encoded PNG data:
+
 ```json
 {"image": "iVBORw0KGgoAAAANSUhEUgAA..."}
 ```
 
-The `image` field contains a base64-encoded PNG of the rendered TUI.
+With `--output-dir`, responses contain file paths instead:
+
+```bash
+time-tracker serve --mode json --output-dir /tmp/tui-screens
+```
+
+```json
+{"image_path": "/tmp/tui-screens/frame-001.png"}
+```
+
+Files are auto-numbered sequentially. This simplifies agent workflows by avoiding base64 decoding.
 
 ### Initial State
 
@@ -93,7 +105,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Foundation
 
-- [ ] Add `cmd/serve.go` with cobra command structure and `--mode` flag
+- [ ] Add `cmd/serve.go` with cobra command structure, `--mode` flag, and `--output-dir` flag
 - [ ] Add tests for JSON protocol parsing
 - [ ] Implement JSON protocol parsing (stdin reader)
 - [ ] Add tests for JSON response writing

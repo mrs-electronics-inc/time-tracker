@@ -63,6 +63,8 @@ time-tracker serve --mode json --output-dir /tmp/tui-screens
 
 Files are timestamped for easy sorting and debugging. This simplifies agent workflows by avoiding base64 decoding.
 
+When the serve command exits (or is killed), it cleans up all images it created in the output directory.
+
 ### Initial State
 
 On startup, JSON mode will:
@@ -135,6 +137,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Wire up TUI model to serve command loop
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
+- [ ] Implement cleanup of temp images on exit (signal handling)
 
 ### Documentation
 

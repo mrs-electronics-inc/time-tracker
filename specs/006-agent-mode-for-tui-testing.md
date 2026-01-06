@@ -91,27 +91,35 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ## Task List
 
-### Infrastructure
+### Foundation
 
 - [ ] Add `cmd/serve.go` with cobra command structure and `--mode` flag
+- [ ] Add tests for JSON protocol parsing
 - [ ] Implement JSON protocol parsing (stdin reader)
+- [ ] Add tests for JSON response writing
 - [ ] Implement JSON response writing (stdout)
 
 ### Input Handling
 
+- [ ] Add tests for key command conversion
 - [ ] Convert `key` commands to `tea.KeyMsg`
+- [ ] Add tests for type command conversion
 - [ ] Convert `type` commands to sequence of `tea.KeyMsg`
+- [ ] Add tests for resize command handling
 - [ ] Handle `resize` commands via `tea.WindowSizeMsg`
 
 ### Rendering
 
 - [ ] Embed a monospace font (e.g., JetBrains Mono, Source Code Pro)
+- [ ] Add tests for ANSI sequence parsing
 - [ ] Implement ANSI sequence parser to extract text and styles
+- [ ] Add tests for image rendering
 - [ ] Implement image renderer (text + colors to PNG)
 - [ ] Base64 encode PNG for JSON response
 
 ### Integration
 
+- [ ] Add integration tests for serve command
 - [ ] Wire up TUI model to serve command loop
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
@@ -126,4 +134,4 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 The `serve` command is designed to support multiple modes:
 
 - `--mode json` - JSON over stdin/stdout for AI agents (this spec)
-- `--mode web` - HTTP server with web interface (future spec)
+- `--mode web` - HTTP server with web interface (see [spec 007](./007-web-interface.md))

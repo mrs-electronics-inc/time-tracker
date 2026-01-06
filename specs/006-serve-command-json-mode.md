@@ -45,26 +45,15 @@ This allows AI agents to use vision capabilities to verify the actual rendered T
 
 ### Output Response
 
-By default, responses contain base64-encoded PNG data:
-
-```json
-{"image": "iVBORw0KGgoAAAANSUhEUgAA..."}
-```
-
-With `--save-images`, responses contain file paths instead:
-
-```bash
-time-tracker serve --mode json --save-images                       # uses /tmp/time-tracker/screens
-time-tracker serve --mode json --save-images /custom/path          # custom directory
-```
-
 ```json
 {"image_path": "/tmp/time-tracker/screens/2026-01-06T10-45-32.123.png"}
 ```
 
-Files are timestamped for easy sorting and debugging. This simplifies agent workflows by avoiding base64 decoding.
+Images are saved to `/tmp/time-tracker/screens` by default. Use `--save-images /custom/path` to specify a different directory.
 
-When the serve command exits (or is killed), it cleans up all images it created in the output directory.
+Files are timestamped for easy sorting and debugging.
+
+When the serve command exits (or is killed), it cleans up all images it created.
 
 ### Initial State
 
@@ -84,9 +73,10 @@ We considered several output formats:
 | Plain text (ANSI stripped) | Simple | Loses color/styling information |
 | Raw ANSI codes | Lossless | Difficult to parse and verify |
 | Structured cell grid | Precise | Verbose, hard for AI to process |
-| **PNG image** | AI vision processes it naturally | Larger payload |
+| Base64-encoded PNG | Self-contained | Requires decoding, verbose in JSON |
+| **PNG file with path** | AI agents can read directly | Requires filesystem |
 
-**Decision**: PNG image. AI agents are much better at processing image data directly than parsing structured representations. This also tests what the user actually sees.
+**Decision**: PNG files with paths returned in JSON. AI agents can use the file path directly with image reading tools. Simpler than base64 decoding, and files are useful for debugging.
 
 ### Rendering Approach: Use Existing Dependencies
 
@@ -108,7 +98,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Foundation
 
-- [ ] Add `cmd/serve.go` with cobra command structure, `--mode` flag, and `--save-images` flag
+- [ ] Add `cmd/serve.go` with cobra command structure, `--mode` flag, and optional `--save-images` flag for custom path
 - [ ] Add tests for JSON protocol parsing
 - [ ] Implement JSON protocol parsing (stdin reader)
 - [ ] Add tests for JSON response writing
@@ -130,9 +120,9 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Implement ANSI sequence parser to extract text and styles
 - [ ] Add tests for image rendering
 - [ ] Implement image renderer (text + colors to PNG)
-- [ ] Base64 encode PNG for JSON response
-- [ ] Add tests for --save-images file output
-- [ ] Implement --save-images with timestamped filenames (default: /tmp/time-tracker/screens)
+- [ ] Add tests for image file output with timestamped filenames
+- [ ] Implement image file output (default: /tmp/time-tracker/screens)
+- [ ] Support custom path via --save-images flag
 
 ### Integration
 

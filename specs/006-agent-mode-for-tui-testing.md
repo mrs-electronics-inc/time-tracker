@@ -130,6 +130,8 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Add tests for image rendering
 - [ ] Implement image renderer (text + colors to PNG)
 - [ ] Base64 encode PNG for JSON response
+- [ ] Add tests for --output-dir file output
+- [ ] Implement --output-dir with timestamped filenames
 
 ### Integration
 

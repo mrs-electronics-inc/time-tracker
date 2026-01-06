@@ -6,7 +6,7 @@ creation_date: 2026-01-06
 
 # JSON Mode for TUI Testing
 
-Add a `--mode json` flag that allows AI agents to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
+Add a `--mode json` flag that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
 
 ## Problem
 
@@ -14,7 +14,7 @@ Currently, testing the TUI requires either:
 - Manual interaction with a real terminal
 - Unit tests that call model methods directly (which don't verify rendered output)
 
-AI agents cannot easily verify what the user actually sees because:
+This makes E2E testing difficult, and AI agents cannot easily verify what the user actually sees because:
 - PTY-based approaches require complex terminal emulation
 - ANSI escape sequences are difficult to parse and verify
 - Structured text output loses styling information (colors indicate state)
@@ -26,7 +26,10 @@ Run `time-tracker --mode json` to start JSON mode, which:
 2. Renders the TUI to a PNG image after each command
 3. Returns the image (base64 encoded) via JSON on stdout
 
-This allows AI agents to use vision capabilities to verify the actual rendered TUI, including colors, layout, and styling.
+This enables:
+- **E2E testing**: Automated tests can verify the actual rendered output
+- **AI agent interaction**: Agents can use vision capabilities to verify the TUI
+- **Visual regression testing**: Compare screenshots across versions
 
 ## Protocol
 

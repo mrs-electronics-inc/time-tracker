@@ -149,9 +149,10 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Document --mode flag in README
 - [ ] Add example usage for AI agents
 
-## Future Work
+## Related Specs
 
 The `--mode` flag supports multiple modes:
 
-- `--mode json` - JSON over stdin/stdout for AI agents (this spec)
+- `--mode tui` - Interactive terminal UI, the default (see [spec 002](./002-tui-implementation.md))
+- `--mode json` - JSON over stdin/stdout for AI agents and E2E testing (this spec)
 - `--mode web` - HTTP server with web interface (see [spec 007](./007-web-mode.md))

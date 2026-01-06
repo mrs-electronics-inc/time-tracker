@@ -49,21 +49,21 @@ This enables:
 ### Output Response
 
 ```json
-{"image_path": "/tmp/time-tracker/screens/2026-01-06T10-45-32.123.png"}
+{"render_path": "/tmp/time-tracker/renders/2026-01-06T10-45-32.123.png"}
 ```
 
-Images are saved to `/tmp/time-tracker/screens` by default. Use `--save-images /custom/path` to specify a different directory.
+Renders are saved to `/tmp/time-tracker/renders` by default. Use `--render-dir /custom/path` to specify a different directory.
 
 Files are timestamped for easy sorting and debugging.
 
-When time-tracker exits (or is killed), it cleans up all images it created. Use `--keep-images` to persist images for debugging and tracing.
+When time-tracker exits (or is killed), it cleans up all renders it created. Use `--keep-renders` to persist them for debugging and tracing.
 
 ### Initial State
 
 ```bash
-time-tracker --mode json                              # JSON mode with default image path
-time-tracker --mode json --save-images /custom/path   # custom image directory
-time-tracker --mode json --keep-images                # persist images after exit
+time-tracker --mode json                              # JSON mode with default render path
+time-tracker --mode json --render-dir /custom/path    # custom render directory
+time-tracker --mode json --keep-renders               # persist renders after exit
 ```
 
 On startup, JSON mode will:
@@ -87,6 +87,10 @@ We considered several output formats:
 
 **Decision**: PNG files with paths returned in JSON. AI agents can use the file path directly with image reading tools. Simpler than base64 decoding, and files are useful for debugging.
 
+### Render Directory
+
+The `--render-dir` flag specifies where to save renders. The `--save-renders` flag enables saving (on by default for JSON mode, off for other modes). The `--keep-renders` flag disables cleanup on exit.
+
 ### Rendering Approach: Use Existing Dependencies
 
 We considered:
@@ -108,8 +112,9 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 ### Foundation
 
 - [ ] Add `--mode` flag to root command (default: tui)
-- [ ] Add `--save-images` flag for custom image path
-- [ ] Add `--keep-images` flag to disable cleanup
+- [ ] Add `--save-renders` flag to enable render saving
+- [ ] Add `--render-dir` flag for custom render path
+- [ ] Add `--keep-renders` flag to disable cleanup
 - [ ] Add tests for JSON protocol parsing
 - [ ] Implement JSON protocol parsing (stdin reader)
 - [ ] Add tests for JSON response writing
@@ -131,9 +136,9 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Implement ANSI sequence parser to extract text and styles
 - [ ] Add tests for image rendering
 - [ ] Implement image renderer (text + colors to PNG)
-- [ ] Add tests for image file output with timestamped filenames
-- [ ] Implement image file output (default: /tmp/time-tracker/screens)
-- [ ] Support custom path via --save-images flag
+- [ ] Add tests for render file output with timestamped filenames
+- [ ] Implement render file output (default: /tmp/time-tracker/renders)
+- [ ] Support custom path via --render-dir flag
 
 ### Integration
 
@@ -141,8 +146,8 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Wire up TUI model to JSON mode loop
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
-- [ ] Implement cleanup of temp images on exit (signal handling)
-- [ ] Implement `--keep-images` flag to disable cleanup
+- [ ] Implement cleanup of temp renders on exit (signal handling)
+- [ ] Implement `--keep-renders` flag to disable cleanup
 
 ### Documentation
 

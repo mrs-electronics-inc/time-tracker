@@ -41,13 +41,13 @@ Consider using [Elm](https://elm-lang.org/) for the web frontend. Bubble Tea was
 
 This would provide convenient mobile-friendly inputs while preserving the existing Bubble Tea architecture.
 
-### Image Saving
+### Render Saving
 
-The `--save-images` flag (shared across all modes) is disabled by default for web mode. Can be enabled for debugging or generating screenshots on demand:
+The `--save-renders` flag (shared across all modes) is disabled by default for web mode. Can be enabled for debugging, saving HTML snapshots of the rendered UI:
 
 ```bash
-time-tracker --mode web --save-images                    # saves to /tmp/time-tracker/screens
-time-tracker --mode web --save-images /custom/path       # custom directory
+time-tracker --mode web --save-renders                    # saves HTML to /tmp/time-tracker/renders
+time-tracker --mode web --save-renders --render-dir /custom/path   # custom directory
 ```
 
 ## Task List

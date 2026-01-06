@@ -56,7 +56,7 @@ Images are saved to `/tmp/time-tracker/screens` by default. Use `--save-images /
 
 Files are timestamped for easy sorting and debugging.
 
-When the serve command exits (or is killed), it cleans up all images it created. Use `--keep-images` to persist images for debugging and tracing.
+When time-tracker exits (or is killed), it cleans up all images it created. Use `--keep-images` to persist images for debugging and tracing.
 
 ### Initial State
 
@@ -137,7 +137,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Integration
 
-- [ ] Add integration tests for serve command
+- [ ] Add integration tests for JSON mode
 - [ ] Wire up TUI model to JSON mode loop
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
@@ -146,12 +146,12 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Documentation
 
-- [ ] Document serve command in README
+- [ ] Document --mode flag in README
 - [ ] Add example usage for AI agents
 
 ## Future Work
 
-The `serve` command is designed to support multiple modes:
+The `--mode` flag supports multiple modes:
 
 - `--mode json` - JSON over stdin/stdout for AI agents (this spec)
 - `--mode web` - HTTP server with web interface (see [spec 007](./007-web-mode.md))

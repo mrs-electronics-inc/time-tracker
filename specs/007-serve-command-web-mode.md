@@ -30,6 +30,15 @@ time-tracker serve --mode web --host 0.0.0.0 --port 8080   # Listen on all inter
 
 TBD - Need to decide on a default port for the web server.
 
+### Image Saving
+
+The `--save-images` flag (shared across all serve modes) is disabled by default for web mode. Can be enabled for debugging or generating screenshots on demand:
+
+```bash
+time-tracker serve --mode web --save-images                    # saves to /tmp/time-tracker/screens
+time-tracker serve --mode web --save-images /custom/path       # custom directory
+```
+
 ## Task List
 
 ### TBD

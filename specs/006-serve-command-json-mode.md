@@ -49,7 +49,7 @@ This allows AI agents to use vision capabilities to verify the actual rendered T
 {"image_path": "/tmp/time-tracker/screens/2026-01-06T10-45-32.123.png"}
 ```
 
-Images are saved to `/tmp/time-tracker/screens` by default. Use `--save-images /custom/path` to specify a different directory.
+Images are saved to `/tmp/time-tracker/screens` by default (enabled by default for `--mode json`). Use `--save-images /custom/path` to specify a different directory, or `--save-images=false` to disable.
 
 Files are timestamped for easy sorting and debugging.
 

@@ -58,10 +58,10 @@ time-tracker serve --mode json --output-dir /tmp/tui-screens
 ```
 
 ```json
-{"image_path": "/tmp/tui-screens/frame-001.png"}
+{"image_path": "/tmp/tui-screens/2026-01-06T10-45-32.123.png"}
 ```
 
-Files are auto-numbered sequentially. This simplifies agent workflows by avoiding base64 decoding.
+Files are timestamped for easy sorting and debugging. This simplifies agent workflows by avoiding base64 decoding.
 
 ### Initial State
 

@@ -4,9 +4,9 @@ author: Addison Emig
 creation_date: 2026-01-06
 ---
 
-# Serve Command with JSON Mode for TUI Testing
+# JSON Mode for TUI Testing
 
-Add a `serve` subcommand with a `--mode json` option that allows AI agents to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
+Add a `--mode json` flag that allows AI agents to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
 
 ## Problem
 
@@ -21,7 +21,7 @@ AI agents cannot easily verify what the user actually sees because:
 
 ## Solution
 
-Add a `time-tracker serve --mode json` command that:
+Run `time-tracker --mode json` to start JSON mode, which:
 1. Accepts commands via JSON on stdin
 2. Renders the TUI to a PNG image after each command
 3. Returns the image (base64 encoded) via JSON on stdout
@@ -56,6 +56,12 @@ Files are timestamped for easy sorting and debugging.
 When the serve command exits (or is killed), it cleans up all images it created. Use `--keep-images` to persist images for debugging and tracing.
 
 ### Initial State
+
+```bash
+time-tracker --mode json                              # JSON mode with default image path
+time-tracker --mode json --save-images /custom/path   # custom image directory
+time-tracker --mode json --keep-images                # persist images after exit
+```
 
 On startup, JSON mode will:
 1. Initialize with default terminal size (80x24)
@@ -98,7 +104,9 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Foundation
 
-- [ ] Add `cmd/serve.go` with cobra command structure, `--mode` flag, and optional `--save-images` flag for custom path
+- [ ] Add `--mode` flag to root command (default: tui)
+- [ ] Add `--save-images` flag for custom image path
+- [ ] Add `--keep-images` flag to disable cleanup
 - [ ] Add tests for JSON protocol parsing
 - [ ] Implement JSON protocol parsing (stdin reader)
 - [ ] Add tests for JSON response writing
@@ -127,7 +135,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 ### Integration
 
 - [ ] Add integration tests for serve command
-- [ ] Wire up TUI model to serve command loop
+- [ ] Wire up TUI model to JSON mode loop
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
 - [ ] Implement cleanup of temp images on exit (signal handling)
@@ -143,4 +151,4 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 The `serve` command is designed to support multiple modes:
 
 - `--mode json` - JSON over stdin/stdout for AI agents (this spec)
-- `--mode web` - HTTP server with web interface (see [spec 007](./007-serve-command-web-mode.md))
+- `--mode web` - HTTP server with web interface (see [spec 007](./007-web-mode.md))

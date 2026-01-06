@@ -1,0 +1,46 @@
+---
+status: draft
+author: Addison Emig
+creation_date: 2026-01-06
+---
+
+# Web Mode
+
+Add a `--mode web` flag that provides an HTTP-based web interface for time tracking.
+
+## Problem
+
+The current TUI requires a terminal. A web interface would enable:
+- Access from any device with a browser
+- Easier mobile use
+- Sharing/viewing across machines
+
+## Solution
+
+Add `--mode web` to start an HTTP server serving a web-based interface.
+
+```bash
+time-tracker --mode web                              # Start web server (default port, localhost only)
+time-tracker --mode web --host 0.0.0.0 --port 8080   # Listen on all interfaces, custom port
+```
+
+## Design Decisions
+
+### Default Port
+
+TBD - Need to decide on a default port for the web server.
+
+### Image Saving
+
+The `--save-images` flag (shared across all modes) is disabled by default for web mode. Can be enabled for debugging or generating screenshots on demand:
+
+```bash
+time-tracker --mode web --save-images                    # saves to /tmp/time-tracker/screens
+time-tracker --mode web --save-images /custom/path       # custom directory
+```
+
+## Task List
+
+### TBD
+
+- [ ] TBD

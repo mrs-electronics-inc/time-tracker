@@ -30,6 +30,17 @@ time-tracker --mode web --host 0.0.0.0 --port 8080   # Listen on all interfaces,
 
 TBD - Need to decide on a default port for the web server.
 
+### Frontend Architecture
+
+Consider using [Elm](https://elm-lang.org/) for the web frontend. Bubble Tea was inspired by Elm's architecture (Model-Update-View), which could allow:
+
+- Reusing the existing TUI logic/model on the backend
+- Sending user input from the web UI to the same Update functions
+- Rendering to HTML instead of terminal output
+- Clean separation: Go handles state/logic, Elm handles web presentation
+
+This would provide convenient mobile-friendly inputs while preserving the existing Bubble Tea architecture.
+
 ### Image Saving
 
 The `--save-images` flag (shared across all modes) is disabled by default for web mode. Can be enabled for debugging or generating screenshots on demand:

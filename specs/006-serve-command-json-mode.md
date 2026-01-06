@@ -53,7 +53,7 @@ Images are saved to `/tmp/time-tracker/screens` by default. Use `--save-images /
 
 Files are timestamped for easy sorting and debugging.
 
-When the serve command exits (or is killed), it cleans up all images it created.
+When the serve command exits (or is killed), it cleans up all images it created. Use `--keep-images` to persist images for debugging and tracing.
 
 ### Initial State
 
@@ -131,6 +131,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
 - [ ] Implement cleanup of temp images on exit (signal handling)
+- [ ] Implement `--keep-images` flag to disable cleanup
 
 ### Documentation
 

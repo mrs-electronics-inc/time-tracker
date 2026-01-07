@@ -70,7 +70,7 @@ time-tracker test --render-dir /custom/path    # custom render directory
 time-tracker test --keep-renders               # persist renders after exit
 ```
 
-On startup, JSON mode will:
+On startup, test mode will:
 
 1. Initialize with default terminal size (80x24)
 2. Load existing data (same as normal TUI mode)

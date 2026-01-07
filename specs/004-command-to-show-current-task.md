@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: completed
 author: Bennett Moore
 creation_date: 2025-12-18
 approved_by: Addison Emig
@@ -14,11 +14,11 @@ The command could be `current`, aliases `curr` and `c`.
 
 # Task List
 
-- [ ] Create convenience function to return current running task
-- [ ] Output something like:
+- [x] Create convenience function to return current running task
+- [x] Output something like:
 
   ```text
   mrs-sdk-qt review #46, duration 18m
   ```
 
-- [ ] Show nothing if no task is running
+- [x] Show nothing if no task is running

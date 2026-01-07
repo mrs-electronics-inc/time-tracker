@@ -65,25 +65,25 @@ Each row represents a single time entry (blank entries are filtered out).
 
 **Prerequisite**: Aggregation function from [spec #5](./005-stats-mode.md) (`ProjectDateEntry` and `AggregateByProjectDate`)
 
-- [ ] Test: `ExportDailyProjects` writes TSV with header row and correct columns (Project, Date, Duration, Description)
-- [ ] Test: `ExportDailyProjects` uses `encoding/csv` with `Comma: '\t'` for proper escaping
-- [ ] Test: Description column joins task titles with comma-space separator (`, `) for single-line TSV format
-- [ ] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
-- [ ] Test: `ExportDailyProjects` excludes running entries (entries without End time)
-- [ ] Test: `ExportDailyProjects` converts durations to minutes
-- [ ] Implement: `ExportDailyProjects` function in `utils/` that takes `ProjectDateEntry` slice and returns TSV string
-- [ ] Test: Export command writes TSV to stdout and to file
-- [ ] Implement: Add `export` CLI command with `--format daily-projects` (default), output to stdout or `--output` file
-- [ ] Test: End-to-end: load sample data, export, verify TSV contents match aggregated data
+- [x] Test: `ExportDailyProjects` writes TSV with header row and correct columns (Project, Date, Duration, Description)
+- [x] Test: `ExportDailyProjects` uses `encoding/csv` with `Comma: '\t'` for proper escaping
+- [x] Test: Description column joins task titles with comma-space separator (`, `) for single-line TSV format
+- [x] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
+- [x] Test: `ExportDailyProjects` excludes running entries (entries without End time)
+- [x] Test: `ExportDailyProjects` converts durations to minutes
+- [x] Implement: `ExportDailyProjects` function in `utils/` that takes `ProjectDateEntry` slice and returns TSV string
+- [x] Test: Export command writes TSV to stdout and to file
+- [x] Implement: Add `export` CLI command with `--format daily-projects` (default), output to stdout or `--output` file
+- [x] Test: End-to-end: load sample data, export, verify TSV contents match aggregated data
 
 ### Raw Export
 
-- [ ] Test: `ExportRaw` writes TSV with header row and correct columns (Project, Task, Start, End, Duration)
-- [ ] Test: `ExportRaw` uses `encoding/csv` with `Comma: '\t'` for proper escaping
-- [ ] Test: `ExportRaw` filters out blank entries
-- [ ] Test: `ExportRaw` excludes running entries (entries without End time)
-- [ ] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
-- [ ] Test: `ExportRaw` converts durations to minutes
-- [ ] Implement: `ExportRaw` function in `utils/` that takes `TimeEntry` slice and returns TSV string
-- [ ] Implement: Add `--format raw` option to export command
-- [ ] Test: End-to-end: load sample data, export raw format, verify TSV contains all completed entries (excluding blank and running)
+- [x] Test: `ExportRaw` writes TSV with header row and correct columns (Project, Task, Start, End, Duration)
+- [x] Test: `ExportRaw` uses `encoding/csv` with `Comma: '\t'` for proper escaping
+- [x] Test: `ExportRaw` filters out blank entries
+- [x] Test: `ExportRaw` excludes running entries (entries without End time)
+- [x] Test: Fields with tabs, newlines, and quotes are properly quoted and can round-trip (read back correctly)
+- [x] Test: `ExportRaw` converts durations to minutes
+- [x] Implement: `ExportRaw` function in `utils/` that takes `TimeEntry` slice and returns TSV string
+- [x] Implement: Add `--format raw` option to export command
+- [x] Test: End-to-end: load sample data, export raw format, verify TSV contains all completed entries (excluding blank and running)

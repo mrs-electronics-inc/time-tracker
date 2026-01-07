@@ -320,7 +320,7 @@ func TestExportDailyProjectsMultipleDays(t *testing.T) {
 	}
 
 	if records[1][1] != "2025-12-23" || records[2][1] != "2025-12-24" {
-		t.Errorf("Expected dates to be sorted, got %s and %s", records[1][1], records[2][1])
+		t.Errorf("Expected input order preserved: 2025-12-23 then 2025-12-24, got %s and %s", records[1][1], records[2][1])
 	}
 }
 

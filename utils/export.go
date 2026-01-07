@@ -10,7 +10,8 @@ import (
 )
 
 // ExportDailyProjects exports aggregated daily project entries as TSV format.
-// Excludes running entries (entries without End time).
+// Assumes entries are already aggregated and filtered (e.g., via AggregateByProjectDate).
+// Running and blank entries are already excluded in the aggregation step.
 // Returns a TSV string with columns: Project, Date, Duration (min), Description
 func ExportDailyProjects(entries []ProjectDateEntry) string {
 	var buf bytes.Buffer
@@ -18,19 +19,15 @@ func ExportDailyProjects(entries []ProjectDateEntry) string {
 	writer.Comma = '\t'
 
 	// Write header
-	writer.Write([]string{"Project", "Date", "Duration (min)", "Description"})
+	_ = writer.Write([]string{"Project", "Date", "Duration (min)", "Description"})
 
 	// Write data rows
 	for _, entry := range entries {
-		// Skip running entries (no End time in raw data, but aggregated entries always have duration)
-		// For daily-projects, we use the aggregated entries which already exclude running entries
-		// (running entries are handled in AggregateByProjectDate)
-
 		dateStr := entry.Date.Format("2006-01-02")
 		durationMin := int64(entry.Duration.Minutes())
 		description := strings.Join(entry.Tasks, ", ")
 
-		writer.Write([]string{
+		_ = writer.Write([]string{
 			entry.Project,
 			dateStr,
 			fmt.Sprintf("%d", durationMin),
@@ -43,8 +40,7 @@ func ExportDailyProjects(entries []ProjectDateEntry) string {
 }
 
 // ExportRaw exports raw time entries as TSV format.
-// Filters out blank entries (empty project and title).
-// Excludes running entries (entries without End time).
+// Filters out blank entries (empty project and title) and running entries (no End time).
 // Returns a TSV string with columns: Project, Task, Start, End, Duration (min)
 func ExportRaw(entries []models.TimeEntry) string {
 	var buf bytes.Buffer
@@ -52,7 +48,7 @@ func ExportRaw(entries []models.TimeEntry) string {
 	writer.Comma = '\t'
 
 	// Write header
-	writer.Write([]string{"Project", "Task", "Start", "End", "Duration (min)"})
+	_ = writer.Write([]string{"Project", "Task", "Start", "End", "Duration (min)"})
 
 	// Write data rows
 	for _, entry := range entries {
@@ -70,7 +66,7 @@ func ExportRaw(entries []models.TimeEntry) string {
 		endStr := entry.End.Format(time.RFC3339)
 		durationMin := int64(entry.Duration().Minutes())
 
-		writer.Write([]string{
+		_ = writer.Write([]string{
 			entry.Project,
 			entry.Title,
 			startStr,

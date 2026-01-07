@@ -1,7 +1,9 @@
 ---
-status: draft
+status: approved
 author: Addison Emig
 creation_date: 2026-01-06
+approved_by: Bennett Moore
+approval_date: 2026-01-07
 ---
 
 # Test Subcommand

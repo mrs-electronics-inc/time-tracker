@@ -32,17 +32,13 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 			continue
 		}
 
-		// For running entries, use current time as end time for duration calculation
-		endTime := entry.End
+		// Skip running entries (entries without End time)
 		if entry.IsRunning() {
-			now := Now()
-			endTime = &now
+			continue
 		}
 
-		duration := time.Duration(0)
-		if endTime != nil {
-			duration = endTime.Sub(entry.Start)
-		}
+		// For completed entries, calculate duration
+		duration := entry.End.Sub(entry.Start)
 
 		// Extract date from the start time. We format to a string and parse it back
 		// to ensure ProjectDateEntry.Date matches the date string displayed in stats.

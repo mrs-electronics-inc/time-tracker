@@ -42,15 +42,6 @@ Consider using [Elm](https://elm-lang.org/) for the web frontend. Bubble Tea was
 
 This would provide convenient mobile-friendly inputs while preserving the existing Bubble Tea architecture.
 
-### Render Saving
-
-The `--save-renders` flag can be enabled for debugging, saving HTML snapshots of the rendered UI:
-
-```bash
-time-tracker web --save-renders                              # saves HTML to /tmp/time-tracker/renders
-time-tracker web --save-renders --render-dir /custom/path    # custom directory
-```
-
 ## Task List
 
 ### TBD

@@ -161,8 +161,4 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 - [ ] Add example usage for AI agents
 - [ ] Update AGENTS.md to instruct agents to use `time-tracker test` for E2E testing of new features
 
-## Related Specs
 
-- `time-tracker` - Interactive terminal UI, the default (see [spec 002](./002-tui-implementation.md))
-- `time-tracker test` - JSON over stdin/stdout for AI agents and E2E testing (this spec)
-- `time-tracker web` - HTTP server with web interface (see [spec 008](./008-web-subcommand.md))

@@ -168,4 +168,4 @@ The `--mode` flag supports multiple modes:
 
 - `--mode tui` - Interactive terminal UI, the default (see [spec 002](./002-tui-implementation.md))
 - `--mode json` - JSON over stdin/stdout for AI agents and E2E testing (this spec)
-- `--mode web` - HTTP server with web interface (see [spec 007](./007-web-mode.md))
+- `--mode web` - HTTP server with web interface (see [spec 008](./008-web-mode.md))

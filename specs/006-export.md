@@ -1,5 +1,5 @@
 ---
-status: approved
+status: completed
 author: Addison Emig
 creation_date: 2025-12-23
 approved_by: Bennett Moore
@@ -17,6 +17,7 @@ Add a CLI command to export time tracking data as TSV (tab-separated values) for
 Each row aggregates all tasks completed for a single project in a single day. The task titles are combined into a comma-separated "description" column. This format matches the display output of stats mode from [spec #5](./005-stats-mode.md).
 
 **Columns:**
+
 - Project
 - Date (ISO 8601 format)
 - Duration (minutes)
@@ -27,6 +28,7 @@ Each row aggregates all tasks completed for a single project in a single day. Th
 Each row represents a single time entry (blank entries are filtered out).
 
 **Columns:**
+
 - Project
 - Task
 - Start (ISO 8601 format)

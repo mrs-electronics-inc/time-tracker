@@ -76,7 +76,7 @@ By default, output is written to stdout. Use --output to write to a file.`,
 }
 
 func init() {
-	exportCmd.Flags().StringP("format", "f", "daily-projects", "Export format: 'daily-projects' (default) or 'raw'")
+	exportCmd.Flags().StringP("format", "f", "daily-projects", "Export format: 'daily-projects' or 'raw'")
 	exportCmd.Flags().StringP("output", "o", "", "Output file path (default: stdout)")
 
 	rootCmd.AddCommand(exportCmd)

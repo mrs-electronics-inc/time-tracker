@@ -1,7 +1,9 @@
 ---
-status: draft
+status: approved
 author: Addison Emig
 creation_date: 2025-12-23
+approved_by: Bennett Moore
+approved_dated: 2025-01-06
 ---
 
 # Export

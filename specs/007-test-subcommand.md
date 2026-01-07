@@ -27,7 +27,7 @@ Run `time-tracker test` to start test mode, which:
 
 1. Accepts commands via JSON on stdin
 2. Renders the TUI to a PNG image after each command
-3. Returns the image (base64 encoded) via JSON on stdout
+3. Returns the image file path via JSON on stdout
 
 This enables:
 

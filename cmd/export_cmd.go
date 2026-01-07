@@ -52,10 +52,18 @@ By default, output is written to stdout. Use --output to write to a file.`,
 		switch format {
 		case "daily-projects":
 			aggregated := utils.AggregateByProjectDate(entries)
-			exportData = utils.ExportDailyProjects(aggregated)
+			var err error
+			exportData, err = utils.ExportDailyProjects(aggregated)
+			if err != nil {
+				return fmt.Errorf("failed to export daily projects: %w", err)
+			}
 
 		case "raw":
-			exportData = utils.ExportRaw(entries)
+			var err error
+			exportData, err = utils.ExportRaw(entries)
+			if err != nil {
+				return fmt.Errorf("failed to export raw data: %w", err)
+			}
 		}
 
 		// Write to output destination

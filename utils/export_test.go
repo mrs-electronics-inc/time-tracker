@@ -21,7 +21,10 @@ func parseRawTSV(t *testing.T, tsvString string) [][]string {
 
 func TestExportDailyProjectsHeader(t *testing.T) {
 	entries := []ProjectDateEntry{}
-	result := ExportDailyProjects(entries)
+	result, err := ExportDailyProjects(entries)
+	if err != nil {
+		t.Fatalf("ExportDailyProjects failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) < 1 {
@@ -51,7 +54,10 @@ func TestExportDailyProjectsBasic(t *testing.T) {
 		},
 	}
 
-	result := ExportDailyProjects(entries)
+	result, err := ExportDailyProjects(entries)
+	if err != nil {
+		t.Fatalf("ExportDailyProjects failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 3 {
@@ -82,7 +88,10 @@ func TestExportDailyProjectsWithSpecialCharacters(t *testing.T) {
 		},
 	}
 
-	result := ExportDailyProjects(entries)
+	result, err := ExportDailyProjects(entries)
+	if err != nil {
+		t.Fatalf("ExportDailyProjects failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 2 {
@@ -110,7 +119,10 @@ func TestExportDailyProjectsEmptyTasks(t *testing.T) {
 		},
 	}
 
-	result := ExportDailyProjects(entries)
+	result, err := ExportDailyProjects(entries)
+	if err != nil {
+		t.Fatalf("ExportDailyProjects failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 2 {
@@ -125,7 +137,10 @@ func TestExportDailyProjectsEmptyTasks(t *testing.T) {
 
 func TestExportRawHeader(t *testing.T) {
 	entries := []models.TimeEntry{}
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) < 1 {
@@ -150,7 +165,10 @@ func TestExportRawBasic(t *testing.T) {
 		},
 	}
 
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 2 {
@@ -195,7 +213,10 @@ func TestExportRawFiltersBlankEntries(t *testing.T) {
 		},
 	}
 
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 3 {
@@ -230,7 +251,10 @@ func TestExportRawExcludesRunningEntries(t *testing.T) {
 		},
 	}
 
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 2 {
@@ -255,7 +279,10 @@ func TestExportRawWithSpecialCharacters(t *testing.T) {
 		},
 	}
 
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 2 {
@@ -285,7 +312,10 @@ func TestExportRawDurationCalculation(t *testing.T) {
 		},
 	}
 
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	// Duration should be 45 minutes (rounded down)
@@ -313,7 +343,10 @@ func TestExportDailyProjectsMultipleDays(t *testing.T) {
 		},
 	}
 
-	result := ExportDailyProjects(entries)
+	result, err := ExportDailyProjects(entries)
+	if err != nil {
+		t.Fatalf("ExportDailyProjects failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 3 {
@@ -346,7 +379,10 @@ func TestExportRawMultipleEntries(t *testing.T) {
 		},
 	}
 
-	result := ExportRaw(entries)
+	result, err := ExportRaw(entries)
+	if err != nil {
+		t.Fatalf("ExportRaw failed: %v", err)
+	}
 	records := parseRawTSV(t, result)
 
 	if len(records) != 3 {

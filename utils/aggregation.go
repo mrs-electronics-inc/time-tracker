@@ -19,8 +19,8 @@ type ProjectDateEntry struct {
 // It handles blank entries, running entries, and task deduplication.
 // Returns a slice sorted by date (ascending), then project name.
 //
-// Timezone Note: ProjectDateEntry.Date is parsed from "2006-01-02" format, which returns UTC.
-// This is intentional and aligns with date display in stats, which uses the start time's date.
+// Timezone Note: ProjectDateEntry.Date is parsed in the entry's location to preserve timezone context.
+// This ensures dates align with the user's local timezone, matching stats display.
 func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 	// Map key: "YYYY-MM-DD:project"
 	aggregated := make(map[string]*ProjectDateEntry)
@@ -37,18 +37,16 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 		}
 
 		// For completed entries, calculate duration
-		// Nil check is defensive; IsRunning() above should guarantee non-nil End
-		if entry.End == nil {
-			continue
-		}
 		duration := entry.End.Sub(entry.Start)
 
 		// Extract date from the start time. We format to a string and parse it back
 		// to ensure ProjectDateEntry.Date matches the date string displayed in stats.
-		// This avoids timezone offset issues when truncating times.
+		// Parse with the entry's location to preserve timezone context: "2025-01-01" in
+		// the entry's timezone becomes midnight in that timezone, not UTC midnight.
+		// This ensures consumers see dates in the same timezone as the original entries.
 		dateStr := entry.Start.Format("2006-01-02")
 		key := dateStr + ":" + entry.Project
-		parsedDate, _ := time.Parse("2006-01-02", dateStr) // Safe: we just formatted this string
+		parsedDate, _ := time.ParseInLocation("2006-01-02", dateStr, entry.Start.Location()) // Safe: we just formatted this string
 
 		// Add to aggregation
 		if aggregated[key] == nil {

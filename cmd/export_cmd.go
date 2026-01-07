@@ -68,8 +68,11 @@ By default, output is written to stdout. Use --output to write to a file.`,
 
 		// Write to output destination
 		if output == "" {
-			// Write to stdout with trailing newline for shell pipeline compatibility
-			fmt.Println(exportData)
+			// Write to stdout without adding extra newline to preserve exact TSV format
+			_, err := os.Stdout.WriteString(exportData)
+			if err != nil {
+				return fmt.Errorf("failed to write to stdout: %w", err)
+			}
 		} else {
 			// Write to file with restricted permissions (owner read/write only)
 			// for privacy of time tracking data

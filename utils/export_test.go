@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/csv"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -28,7 +29,7 @@ func TestExportDailyProjectsHeader(t *testing.T) {
 	}
 
 	expectedHeader := []string{"Project", "Date", "Duration", "Description"}
-	if !sliceEqual(records[0], expectedHeader) {
+	if !slices.Equal(records[0], expectedHeader) {
 		t.Errorf("Expected header %v, got %v", expectedHeader, records[0])
 	}
 }
@@ -59,13 +60,13 @@ func TestExportDailyProjectsBasic(t *testing.T) {
 
 	// Check first data row
 	expectedRow0 := []string{"ProjectA", "2025-12-23", "90", "Task1, Task2"}
-	if !sliceEqual(records[1], expectedRow0) {
+	if !slices.Equal(records[1], expectedRow0) {
 		t.Errorf("Expected row %v, got %v", expectedRow0, records[1])
 	}
 
 	// Check second data row
 	expectedRow1 := []string{"ProjectB", "2025-12-23", "30", "Task3"}
-	if !sliceEqual(records[2], expectedRow1) {
+	if !slices.Equal(records[2], expectedRow1) {
 		t.Errorf("Expected row %v, got %v", expectedRow1, records[2])
 	}
 }
@@ -132,7 +133,7 @@ func TestExportRawHeader(t *testing.T) {
 	}
 
 	expectedHeader := []string{"Project", "Task", "Start", "End", "Duration"}
-	if !sliceEqual(records[0], expectedHeader) {
+	if !slices.Equal(records[0], expectedHeader) {
 		t.Errorf("Expected header %v, got %v", expectedHeader, records[0])
 	}
 }
@@ -163,7 +164,7 @@ func TestExportRawBasic(t *testing.T) {
 		end.Format(time.RFC3339),
 		"90",
 	}
-	if !sliceEqual(records[1], expectedRow) {
+	if !slices.Equal(records[1], expectedRow) {
 		t.Errorf("Expected row %v, got %v", expectedRow, records[1])
 	}
 }
@@ -351,17 +352,4 @@ func TestExportRawMultipleEntries(t *testing.T) {
 	if len(records) != 3 {
 		t.Fatalf("Expected 3 rows (header + 2 data), got %d", len(records))
 	}
-}
-
-// Helper function to compare string slices
-func sliceEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

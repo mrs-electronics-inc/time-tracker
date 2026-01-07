@@ -68,11 +68,12 @@ By default, output is written to stdout. Use --output to write to a file.`,
 
 		// Write to output destination
 		if output == "" {
-			// Write to stdout
-			fmt.Print(exportData)
+			// Write to stdout with trailing newline for shell pipeline compatibility
+			fmt.Println(exportData)
 		} else {
-			// Write to file
-			err := os.WriteFile(output, []byte(exportData), 0644)
+			// Write to file with restricted permissions (owner read/write only)
+			// for privacy of time tracking data
+			err := os.WriteFile(output, []byte(exportData), 0600)
 			if err != nil {
 				return fmt.Errorf("failed to write to file %q: %w", output, err)
 			}

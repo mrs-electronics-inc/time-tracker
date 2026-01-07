@@ -6,10 +6,6 @@ import (
 	"time-tracker/models"
 )
 
-// Now is a function variable that returns the current time.
-// It can be overridden in tests to provide deterministic times.
-var Now = time.Now
-
 // ProjectDateEntry represents an aggregated group of time entries for a (project, date) combination
 type ProjectDateEntry struct {
 	Project     string
@@ -22,6 +18,9 @@ type ProjectDateEntry struct {
 // AggregateByProjectDate groups time entries by (project, date) and collects task descriptions.
 // It handles blank entries, running entries, and task deduplication.
 // Returns a slice sorted by date (ascending), then project name.
+//
+// Timezone Note: ProjectDateEntry.Date is parsed from "2006-01-02" format, which returns UTC.
+// This is intentional and aligns with date display in stats, which uses the start time's date.
 func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 	// Map key: "YYYY-MM-DD:project"
 	aggregated := make(map[string]*ProjectDateEntry)
@@ -38,6 +37,10 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 		}
 
 		// For completed entries, calculate duration
+		// Nil check is defensive; IsRunning() above should guarantee non-nil End
+		if entry.End == nil {
+			continue
+		}
 		duration := entry.End.Sub(entry.Start)
 
 		// Extract date from the start time. We format to a string and parse it back

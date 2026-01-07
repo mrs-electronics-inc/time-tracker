@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"time-tracker/utils"
 )
 
 // ListMode is the list view mode
@@ -189,7 +190,7 @@ func renderTableRows(m *Model, maxHeight int) string {
 		project := entry.Project
 		title := entry.Title
 
-		duration := formatDuration(entry.Duration())
+		duration := utils.FormatDuration(entry.Duration())
 
 		row := fmt.Sprintf(
 			"%-*s %-*s %-*s %-*s %*s",

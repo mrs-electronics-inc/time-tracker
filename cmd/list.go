@@ -82,7 +82,7 @@ func displayEntriesTable(entries []models.TimeEntry) {
 			endTime = entry.End.Format("2006-01-02 15:04")
 		}
 
-		duration := formatDuration(entry.Duration())
+		duration := utils.FormatDuration(entry.Duration())
 
 		row := []string{
 			startTime,
@@ -96,15 +96,6 @@ func displayEntriesTable(entries []models.TimeEntry) {
 	}
 
 	table.Render()
-}
-
-func formatDuration(d time.Duration) string {
-	hours := int(d.Hours())
-	minutes := int(d.Minutes()) % 60
-	if hours > 0 {
-		return fmt.Sprintf("%dh %dm", hours, minutes)
-	}
-	return fmt.Sprintf("%dm", minutes)
 }
 
 func init() {

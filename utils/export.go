@@ -19,7 +19,7 @@ func ExportDailyProjects(entries []ProjectDateEntry) string {
 	writer.Comma = '\t'
 
 	// Write header
-	_ = writer.Write([]string{"Project", "Date", "Duration (min)", "Description"})
+	_ = writer.Write([]string{"Project", "Date", "Duration", "Description"})
 
 	// Write data rows
 	for _, entry := range entries {
@@ -48,7 +48,7 @@ func ExportRaw(entries []models.TimeEntry) string {
 	writer.Comma = '\t'
 
 	// Write header
-	_ = writer.Write([]string{"Project", "Task", "Start", "End", "Duration (min)"})
+	_ = writer.Write([]string{"Project", "Task", "Start", "End", "Duration"})
 
 	// Write data rows
 	for _, entry := range entries {

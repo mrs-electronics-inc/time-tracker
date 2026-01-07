@@ -27,7 +27,7 @@ func TestExportDailyProjectsHeader(t *testing.T) {
 		t.Fatalf("Expected at least header row, got %d rows", len(records))
 	}
 
-	expectedHeader := []string{"Project", "Date", "Duration (min)", "Description"}
+	expectedHeader := []string{"Project", "Date", "Duration", "Description"}
 	if !sliceEqual(records[0], expectedHeader) {
 		t.Errorf("Expected header %v, got %v", expectedHeader, records[0])
 	}
@@ -131,7 +131,7 @@ func TestExportRawHeader(t *testing.T) {
 		t.Fatalf("Expected at least header row, got %d rows", len(records))
 	}
 
-	expectedHeader := []string{"Project", "Task", "Start", "End", "Duration (min)"}
+	expectedHeader := []string{"Project", "Task", "Start", "End", "Duration"}
 	if !sliceEqual(records[0], expectedHeader) {
 		t.Errorf("Expected header %v, got %v", expectedHeader, records[0])
 	}

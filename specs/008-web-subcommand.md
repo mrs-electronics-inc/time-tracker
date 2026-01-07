@@ -4,9 +4,9 @@ author: Addison Emig
 creation_date: 2026-01-06
 ---
 
-# Web Mode
+# Web Subcommand
 
-Add a `--mode web` flag that provides an HTTP-based web interface for time tracking.
+Add a `web` subcommand that provides an HTTP-based web interface for time tracking.
 
 ## Problem
 
@@ -18,11 +18,11 @@ The current TUI requires a terminal. A web interface would enable:
 
 ## Solution
 
-Add `--mode web` to start an HTTP server serving a web-based interface.
+Add `time-tracker web` to start an HTTP server serving a web-based interface.
 
 ```bash
-time-tracker --mode web                              # Start web server (default port, localhost only)
-time-tracker --mode web --host 0.0.0.0 --port 8080   # Listen on all interfaces, custom port
+time-tracker web                              # Start web server (default port, localhost only)
+time-tracker web --host 0.0.0.0 --port 8080   # Listen on all interfaces, custom port
 ```
 
 ## Design Decisions
@@ -44,11 +44,11 @@ This would provide convenient mobile-friendly inputs while preserving the existi
 
 ### Render Saving
 
-The `--save-renders` flag (shared across all modes) is disabled by default for web mode. Can be enabled for debugging, saving HTML snapshots of the rendered UI:
+The `--save-renders` flag can be enabled for debugging, saving HTML snapshots of the rendered UI:
 
 ```bash
-time-tracker --mode web --save-renders                    # saves HTML to /tmp/time-tracker/renders
-time-tracker --mode web --save-renders --render-dir /custom/path   # custom directory
+time-tracker web --save-renders                              # saves HTML to /tmp/time-tracker/renders
+time-tracker web --save-renders --render-dir /custom/path    # custom directory
 ```
 
 ## Task List

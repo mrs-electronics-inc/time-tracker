@@ -4,9 +4,9 @@ author: Addison Emig
 creation_date: 2026-01-06
 ---
 
-# JSON Mode for TUI Testing
+# Test Subcommand
 
-Add a `--mode json` flag that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
+Add a `test` subcommand that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
 
 ## Problem
 
@@ -23,7 +23,7 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 
 ## Solution
 
-Run `time-tracker --mode json` to start JSON mode, which:
+Run `time-tracker test` to start test mode, which:
 
 1. Accepts commands via JSON on stdin
 2. Renders the TUI to a PNG image after each command
@@ -65,9 +65,9 @@ When time-tracker exits (or is killed), it cleans up all renders it created. Use
 ### Initial State
 
 ```bash
-time-tracker --mode json                              # JSON mode with default render path
-time-tracker --mode json --render-dir /custom/path    # custom render directory
-time-tracker --mode json --keep-renders               # persist renders after exit
+time-tracker test                              # test mode with default render path
+time-tracker test --render-dir /custom/path    # custom render directory
+time-tracker test --keep-renders               # persist renders after exit
 ```
 
 On startup, JSON mode will:
@@ -94,7 +94,7 @@ We considered several output formats:
 
 ### Render Directory
 
-The `--render-dir` flag specifies where to save renders. The `--save-renders` flag enables saving (on by default for JSON mode, off for other modes). The `--keep-renders` flag disables cleanup on exit.
+The `--render-dir` flag specifies where to save renders. Renders are always saved in test mode. The `--keep-renders` flag disables cleanup on exit.
 
 ### Rendering Approach: Use Existing Dependencies
 
@@ -118,8 +118,7 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Foundation
 
-- [ ] Add `--mode` flag to root command (default: tui)
-- [ ] Add `--save-renders` flag to enable render saving
+- [ ] Add `test` subcommand to root command
 - [ ] Add `--render-dir` flag for custom render path
 - [ ] Add `--keep-renders` flag to disable cleanup
 - [ ] Add tests for JSON protocol parsing
@@ -149,8 +148,8 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Integration
 
-- [ ] Add integration tests for JSON mode
-- [ ] Wire up TUI model to JSON mode loop
+- [ ] Add integration tests for test subcommand
+- [ ] Wire up TUI model to test mode loop
 - [ ] Send initial rendered state on startup
 - [ ] Add error handling for invalid commands
 - [ ] Implement cleanup of temp renders on exit (signal handling)
@@ -158,14 +157,12 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Documentation
 
-- [ ] Document --mode flag in README
+- [ ] Document test subcommand in README
 - [ ] Add example usage for AI agents
-- [ ] Update AGENTS.md to instruct agents to use --mode json for E2E testing of new features
+- [ ] Update AGENTS.md to instruct agents to use `time-tracker test` for E2E testing of new features
 
 ## Related Specs
 
-The `--mode` flag supports multiple modes:
-
-- `--mode tui` - Interactive terminal UI, the default (see [spec 002](./002-tui-implementation.md))
-- `--mode json` - JSON over stdin/stdout for AI agents and E2E testing (this spec)
-- `--mode web` - HTTP server with web interface (see [spec 008](./008-web-mode.md))
+- `time-tracker` - Interactive terminal UI, the default (see [spec 002](./002-tui-implementation.md))
+- `time-tracker test` - JSON over stdin/stdout for AI agents and E2E testing (this spec)
+- `time-tracker web` - HTTP server with web interface (see [spec 008](./008-web-subcommand.md))

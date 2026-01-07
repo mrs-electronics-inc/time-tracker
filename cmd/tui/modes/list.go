@@ -14,6 +14,7 @@ import (
 var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
+		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
 		{Keys: "k / ↑", Label: "UP", Description: "Move up"},
 		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
 		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
@@ -72,6 +73,10 @@ var ListMode = &Mode{
 					m.Err = err
 				}
 			}
+			return m, nil
+
+		case "tab":
+			m.SwitchMode(m.StatsMode)
 			return m, nil
 		}
 		return m, nil

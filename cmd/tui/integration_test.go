@@ -259,7 +259,7 @@ func TestEdgeCaseNoData(t *testing.T) {
 	}
 
 	if m.SelectedIdx != 0 {
-		t.Error("Expected selection at 0 with empty list")
+		t.Error("Expected scroll offset at 0 with empty list")
 	}
 
 	// View should not crash

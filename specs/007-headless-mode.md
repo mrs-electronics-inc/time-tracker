@@ -251,5 +251,6 @@ Embed Fira Code (OFL licensed) because:
 ### Documentation
 
 - [ ] Document headless mode in README
+- [ ] Document security considerations (localhost binding, no auth, local dev only)
 - [ ] Add example usage for AI agents
 - [ ] Update AGENTS.md with headless server workflow and new recipes (`just run-docker headless`, `just input`)

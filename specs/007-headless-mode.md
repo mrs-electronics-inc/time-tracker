@@ -23,7 +23,7 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 
 ## Solution
 
-Run `time-tracker headless` to start an HTTP server that accepts commands and serves rendered screenshots:
+Run `time-tracker headless` to start an HTTP server that accepts input and serves rendered screenshots:
 
 ```bash
 time-tracker headless              # Start on default port 8484
@@ -39,9 +39,9 @@ This enables:
 
 ## HTTP API
 
-### POST /input - Send Commands
+### POST /input - Send Actions
 
-Send a command to the TUI and receive the updated state.
+Send an action to the TUI and receive the updated state.
 
 **Request:**
 ```json
@@ -121,23 +121,23 @@ just input resize 40 160
 ### Interacting with the Server
 
 ```bash
-# Send a key command
+# Send a key action
 curl -X POST http://localhost:8484/input \
   -H "Content-Type: application/json" \
-  -d '{"cmd": "key", "key": "j"}'
+  -d '{"action": "key", "key": "j"}'
 
 # View latest render in browser (redirects to timestamped URL)
 open http://localhost:8484/render/latest
 
 # Resize terminal
 curl -X POST http://localhost:8484/input \
-  -d '{"cmd": "resize", "rows": 40, "cols": 160}'
+  -d '{"action": "resize", "rows": 40, "cols": 160}'
 ```
 
 ### AI Agent Workflow
 
 1. Start headless server: `just run-docker headless`
-2. Send commands: `just input key j` or `just input type "text"`
+2. Send input: `just input key j` or `just input type "text"`
 3. View renders via browser at http://localhost:8484/render/latest
 4. Use ANSI output from response for text-based assertions
 
@@ -202,10 +202,10 @@ Embed Fira Code (OFL licensed) because:
 
 ### Input Handling
 
-- [ ] Convert `key` commands to `tea.KeyMsg`
-- [ ] Convert `type` commands to sequence of `tea.KeyMsg`
-- [ ] Handle `resize` commands via `tea.WindowSizeMsg`
-- [ ] Add tests for command conversion
+- [ ] Convert `key` actions to `tea.KeyMsg`
+- [ ] Convert `type` actions to sequence of `tea.KeyMsg`
+- [ ] Handle `resize` actions via `tea.WindowSizeMsg`
+- [ ] Add tests for action conversion
 
 ### Rendering
 
@@ -227,7 +227,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Set default terminal size to 120×30
 - [ ] Send initial render on first /render/latest.png request
 - [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
-- [ ] Add `input` recipe for sending commands (key, type, resize)
+- [ ] Add `input` recipe for sending actions (key, type, resize)
 
 ### Documentation
 

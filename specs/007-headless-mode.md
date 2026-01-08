@@ -158,10 +158,10 @@ ANSI 16-color palette:
 
 ### Input Handling
 
-- [ ] Convert `key` actions to `tea.KeyMsg`
-- [ ] Convert `type` actions to sequence of `tea.KeyMsg`
-- [ ] Handle `resize` actions via `tea.WindowSizeMsg`
-- [ ] Add tests for action conversion
+- [x] Convert `key` actions to `tea.KeyMsg`
+- [x] Convert `type` actions to sequence of `tea.KeyMsg`
+- [x] Handle `resize` actions via `tea.WindowSizeMsg`
+- [x] Add tests for action conversion
 
 ### Rendering
 

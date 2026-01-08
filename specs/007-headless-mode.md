@@ -106,7 +106,7 @@ open http://localhost:8484/render/latest
 - **HTTP vs stdin/stdout**: HTTP allows direct browser access to renders, no volume mounts needed
 - **ANSI + PNG**: Response includes both for flexibility (vision vs text assertions)
 - **160×40 default**: Large enough for content, small enough to catch layout issues
-- **Fira Code font**: Embedded for powerline symbols and clear rendering
+- **FiraCode Nerd Font**: Required for powerline symbols (regular Fira Code lacks these glyphs)
 - **Ghostty color palette**: Matches common terminal appearance
 
 ## Task List
@@ -132,7 +132,7 @@ open http://localhost:8484/render/latest
 
 ### Rendering
 
-- [ ] Embed Fira Code Regular and Bold fonts
+- [ ] Embed FiraCode Nerd Font (Regular and Bold) for powerline symbol support
 - [ ] Implement ANSI sequence parser
 - [ ] Implement PNG renderer with Ghostty color palette
 - [ ] Store renders in memory with timestamp keys
@@ -147,6 +147,7 @@ open http://localhost:8484/render/latest
 
 ### Integration
 
+- [ ] Configure bubbletea to render ANSI codes to non-tty output
 - [ ] Wire up TUI model to HTTP handlers
 - [ ] Set default terminal size to 160×40
 - [ ] Create initial render on server startup (so /render/latest works immediately)

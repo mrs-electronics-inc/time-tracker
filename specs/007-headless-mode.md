@@ -25,6 +25,8 @@ Send an action, receive updated state.
 ```json
 // Request
 {"action": "key", "key": "j"}
+{"action": "key", "key": "enter"}
+{"action": "key", "key": "ctrl+c"}
 {"action": "type", "text": "hello world"}
 {"action": "resize", "rows": 24, "cols": 80}
 
@@ -33,10 +35,16 @@ Send an action, receive updated state.
   "width": 160,
   "height": 40,
   "mode": "list",
-  "render_url": "/render/2026-01-08T10-45-32.123.png",
+  "render_url": "/render/2026-01-08T10-45-32-123.png",
   "ansi": "\u001b[1;92mStart..."
 }
 ```
+
+**Key format:** Use `tea.KeyMsg.String()` format: `enter`, `esc`, `tab`, `up`, `down`, `shift+tab`, `ctrl+c`, etc.
+
+**Mode values:** From `CurrentMode.Name`: `list`, `start`, `help`, `stats`, etc.
+
+**Timestamp format:** `2026-01-08T10-45-32-123.png` (ISO 8601 with dashes for URL safety, millisecond precision)
 
 The `ansi` field contains raw output from `View()` with all escape sequences.
 
@@ -107,7 +115,7 @@ open http://localhost:8484/render/latest
 - **ANSI + PNG**: Response includes both for flexibility (vision vs text assertions)
 - **160×40 default**: Large enough for content, small enough to catch layout issues
 - **FiraCode Nerd Font**: Required for powerline symbols (regular Fira Code lacks these glyphs)
-- **Ghostty color palette**: Matches common terminal appearance
+- **Ghostty color palette**: Use Ghostty's default 16-color ANSI palette from [ghostty source](https://github.com/ghostty-org/ghostty/blob/main/src/config/Config.zig) (search for `palette`)
 
 ## Task List
 

@@ -6,203 +6,99 @@ creation_date: 2026-01-06
 
 # Headless Mode
 
-Add a `headless` subcommand that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
-
-## Problem
-
-Currently, testing the TUI requires either:
-
-- Manual interaction with a real terminal
-- Unit tests that call model methods directly (which don't verify rendered output)
-
-This makes E2E testing difficult, and AI agents cannot easily verify what the user actually sees because:
-
-- PTY-based approaches require complex terminal emulation
-- ANSI escape sequences are difficult to parse and verify
-- Structured text output loses styling information (colors indicate state)
+Add a `headless` subcommand that runs the TUI as an HTTP server, enabling AI agents and automated tests to interact programmatically.
 
 ## Solution
 
-Run `time-tracker headless` to start an HTTP server that accepts input and serves rendered screenshots:
-
 ```bash
-time-tracker headless                  # Start on localhost:8484 (default)
-time-tracker headless --port 9000      # Custom port, still localhost only
+time-tracker headless                  # Start on localhost:8484
+time-tracker headless --port 9000      # Custom port
 time-tracker headless --bind 0.0.0.0   # Expose to network (use with caution)
 ```
 
-This enables:
-
-- **E2E testing**: Automated tests can verify the actual rendered output
-- **AI agent interaction**: Agents can use vision capabilities to verify the TUI
-- **Visual regression testing**: Compare screenshots across versions
-- **Easy debugging**: View renders directly in a browser
-
 ## HTTP API
 
-### POST /input - Send Actions
+### POST /input
 
-Send an action to the TUI and receive the updated state.
+Send an action, receive updated state.
 
-**Request:**
 ```json
+// Request
 {"action": "key", "key": "j"}
-{"action": "key", "key": "enter"}
-{"action": "key", "key": "esc"}
-{"action": "key", "key": "up"}
-{"action": "key", "key": "down"}
-{"action": "key", "key": "tab"}
 {"action": "type", "text": "hello world"}
 {"action": "resize", "rows": 24, "cols": 80}
-```
 
-**Response:**
-```json
+// Response
 {
   "render_url": "/render/2026-01-06T10-45-32.123.png",
-  "ansi": "\u001b[1;92mStart             End..."
+  "ansi": "\u001b[1;92mStart..."
 }
 ```
 
-The `ansi` field contains the raw ANSI output from the TUI's `View()` method, including all escape sequences exactly as produced by the application. This is not normalized or processed - it's the same output that would be sent to a real terminal.
+The `ansi` field contains raw output from `View()` with all escape sequences.
 
-### GET /render/latest - Redirect to Current Screen
+### GET /render/latest
 
-Redirects (HTTP 302) to the most recent timestamped render. Convenient for quick viewing - just refresh to see the latest state.
+Redirects (302) to most recent render.
 
-### GET /render/{timestamp}.png - Specific Render
+### GET /render/{timestamp}.png
 
-Returns a specific render by timestamp. The `render_url` in POST responses points here.
+Returns specific render PNG.
 
-### GET /state - Current State
+### GET /state
 
-Returns the current TUI state including ANSI output and link to latest render.
+Returns current state:
 
 ```json
-{
-  "width": 160,
-  "height": 40,
-  "mode": "list",
-  "render_url": "/render/2026-01-06T10-45-32.123.png",
-  "ansi": "\u001b[1;92mStart             End..."
-}
+{"width": 160, "height": 40, "mode": "list", "render_url": "...", "ansi": "..."}
 ```
 
-## Default Configuration
+## Configuration
 
-- **Bind address**: 127.0.0.1 (localhost only)
-- **Port**: 8484
-- **Terminal size**: 160 columns × 40 rows (moderate size to catch layout issues on smaller terminals)
-- **Render retention**: Last 100 renders kept (configurable via `--max-renders`)
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--bind` | 127.0.0.1 | Bind address (localhost only by default) |
+| `--port` | 8484 | Port number |
+| `--max-renders` | 100 | Max renders to keep in memory (FIFO eviction) |
 
-## Security Considerations
+Default terminal size: 160×40
 
-The headless server is intended for **local development and testing only**.
+## Security
 
-- **Localhost by default**: The server binds to 127.0.0.1, preventing network access. Use `--bind 0.0.0.0` to expose publicly (not recommended).
-- **No authentication**: There is no authentication mechanism. Anyone with network access can send commands.
-- **No CORS restrictions**: The server does not implement CORS headers. If exposed publicly, any website could interact with it.
-- **Data exposure**: The TUI may display sensitive time tracking data.
+**This server is for local development only.**
 
-**Recommendation**: Only run headless mode on trusted machines and never expose it to untrusted networks.
+- Binds to localhost by default
+- No authentication
+- No CORS restrictions
+- May expose sensitive time tracking data
+
+Never expose to untrusted networks.
 
 ## Usage
 
-### Starting the Headless Server
-
 ```bash
-# Via just recipe (recommended for development)
+# Start server
 just run-docker headless
 
-# Direct invocation (without Docker)
-time-tracker headless
-```
-
-### Sending Input
-
-```bash
-# Send a key
+# Send input via just recipe
 just input key j
-just input key enter
-just input key tab
-
-# Type text
 just input type "hello world"
-
-# Resize terminal
 just input resize 40 160
-```
 
-### Interacting with the Server
+# Or use curl directly
+curl -X POST localhost:8484/input -d '{"action": "key", "key": "j"}'
 
-```bash
-# Send a key action
-curl -X POST http://localhost:8484/input \
-  -H "Content-Type: application/json" \
-  -d '{"action": "key", "key": "j"}'
-
-# View latest render in browser (redirects to timestamped URL)
+# View in browser
 open http://localhost:8484/render/latest
-
-# Resize terminal
-curl -X POST http://localhost:8484/input \
-  -d '{"action": "resize", "rows": 40, "cols": 160}'
 ```
-
-### AI Agent Workflow
-
-1. Start headless server: `just run-docker headless`
-2. Send input: `just input key j` or `just input type "text"`
-3. View renders via browser at http://localhost:8484/render/latest
-4. Use ANSI output from response for text-based assertions
 
 ## Design Decisions
 
-### HTTP Server vs stdin/stdout
-
-We considered two approaches:
-
-| Approach | Pros | Cons |
-|----------|------|------|
-| stdin/stdout JSON | Simple, no network | Requires volume mounts for images, buffering issues |
-| **HTTP server** | Direct image access, browser viewable, stateless | Requires port allocation |
-
-**Decision**: HTTP server. Benefits:
-- AI agents can directly navigate to render URLs in browser
-- No need for filesystem volume mounts in Docker
-- Easy manual debugging via browser
-- curl/httpie for scripting
-- ANSI + PNG in single response
-
-### Response Includes Both ANSI and PNG URL
-
-The POST /input response includes both:
-- `render_url`: For visual verification via vision capabilities
-- `ansi`: For text-based assertions and searching
-
-This allows agents to choose the best approach for each verification.
-
-### Default Terminal Size
-
-Default size is 160×40 (vs typical 80×24) because:
-- Large enough for status bars and wide tables to render properly
-- Small enough to catch layout issues that appear on smaller terminals
-- AI vision works better with larger, clearer images
-
-### Render Retention
-
-Renders are kept in memory with a configurable limit (default: 100). When the limit is reached, the oldest renders are discarded. This:
-- Prevents unbounded memory growth in long-running servers
-- Keeps enough history for debugging and comparisons
-- Can be adjusted via `--max-renders` for CI or memory-constrained environments
-
-### Font Choice: Fira Code
-
-Embed Fira Code (OFL licensed) because:
-- Excellent Unicode coverage including powerline symbols
-- Clear rendering at various sizes
-- Popular, well-maintained open source font
-- Includes bold variant for proper bold rendering
+- **HTTP vs stdin/stdout**: HTTP allows direct browser access to renders, no volume mounts needed
+- **ANSI + PNG**: Response includes both for flexibility (vision vs text assertions)
+- **160×40 default**: Large enough for content, small enough to catch layout issues
+- **Fira Code font**: Embedded for powerline symbols and clear rendering
+- **Ghostty color palette**: Matches common terminal appearance
 
 ## Task List
 

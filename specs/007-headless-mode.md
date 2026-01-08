@@ -184,8 +184,8 @@ ANSI 16-color palette:
 - [x] Wire up TUI model to HTTP handlers
 - [x] Set default terminal size to 160×40
 - [x] Create initial render on server startup (so /render/latest works immediately)
-- [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
-- [ ] Add `input` recipe that wraps curl for sending actions (key, type, resize)
+- [x] Update `run-docker` recipe to bind port 8484 for headless subcommand
+- [x] Add `input` recipe that wraps curl for sending actions (key, type, resize)
 
 ### Documentation
 

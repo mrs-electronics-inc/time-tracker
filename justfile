@@ -26,7 +26,12 @@ build-docker:
 
 # Run time-tracker in Docker sandbox with any subcommand and flags
 run-docker *args:
-    docker compose run --remove-orphans time-tracker {{ args }}
+    #!/usr/bin/env bash
+    if [[ "$1" == "headless" ]]; then
+        docker compose run --rm --remove-orphans -p 8484:8484 time-tracker headless --bind 0.0.0.0 "${@:2}"
+    else
+        docker compose run --remove-orphans time-tracker {{ args }}
+    fi
 
 # View the dev data file from the volume (for debugging)
 inspect-data:
@@ -35,3 +40,26 @@ inspect-data:
 # Import JSON data from stdin into the volume (OVERWRITES existing data)
 import-data:
     docker run --rm -v time-tracker_config:/mnt -i alpine tee /mnt/time-tracker/data.json > /dev/null
+
+# Send input to headless server (action: key, type, resize)
+input action *args:
+    #!/usr/bin/env bash
+    case "{{ action }}" in
+        key)
+            curl -s -X POST localhost:8484/input -d "{\"action\": \"key\", \"key\": \"$1\"}" | jq .
+            ;;
+        type)
+            curl -s -X POST localhost:8484/input -d "{\"action\": \"type\", \"text\": \"$1\"}" | jq .
+            ;;
+        resize)
+            curl -s -X POST localhost:8484/input -d "{\"action\": \"resize\", \"rows\": $1, \"cols\": $2}" | jq .
+            ;;
+        *)
+            echo "Usage: just input <key|type|resize> <args>"
+            echo "  just input key j"
+            echo "  just input key enter"
+            echo "  just input type 'hello world'"
+            echo "  just input resize 40 160"
+            exit 1
+            ;;
+    esac

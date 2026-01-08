@@ -146,15 +146,15 @@ ANSI 16-color palette:
 
 ### HTTP Server Foundation
 
-- [ ] Add `headless` subcommand with HTTP server
-- [ ] Add `--port` flag (default: 8484)
-- [ ] Add `--bind` flag (default: 127.0.0.1)
-- [ ] Add `--max-renders` flag (default: 100)
-- [ ] Implement `POST /input` endpoint
-- [ ] Implement `GET /render/latest` redirect endpoint
-- [ ] Implement `GET /render/{timestamp}.png` endpoint
-- [ ] Return JSON error responses for invalid actions
-- [ ] Add tests for HTTP endpoints
+- [x] Add `headless` subcommand with HTTP server
+- [x] Add `--port` flag (default: 8484)
+- [x] Add `--bind` flag (default: 127.0.0.1)
+- [x] Add `--max-renders` flag (default: 100)
+- [x] Implement `POST /input` endpoint
+- [x] Implement `GET /render/latest` redirect endpoint
+- [x] Implement `GET /render/{timestamp}.png` endpoint
+- [x] Return JSON error responses for invalid actions
+- [x] Add tests for HTTP endpoints
 
 ### Input Handling
 

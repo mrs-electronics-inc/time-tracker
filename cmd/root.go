@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+	"time-tracker/cmd/headless"
 	"time-tracker/cmd/tui"
 	"time-tracker/config"
 	"time-tracker/utils"
@@ -46,4 +47,5 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.AddCommand(headless.HeadlessCmd)
 }

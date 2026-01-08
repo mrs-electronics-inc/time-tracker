@@ -63,23 +63,25 @@ Send a command to the TUI and receive the updated state.
 }
 ```
 
-### GET /render/latest.png - Current Screen
+### GET /render/latest - Redirect to Current Screen
 
-Returns the most recent render as a PNG image. Convenient for quick viewing.
+Redirects (HTTP 302) to the most recent timestamped render. Convenient for quick viewing - just refresh to see the latest state.
 
 ### GET /render/{timestamp}.png - Specific Render
 
 Returns a specific render by timestamp. The `render_url` in POST responses points here.
 
-### GET /state - Current State (Optional)
+### GET /state - Current State
 
-Returns metadata about the current TUI state.
+Returns the current TUI state including ANSI output and link to latest render.
 
 ```json
 {
   "width": 120,
   "height": 30,
-  "mode": "list"
+  "mode": "list",
+  "render_url": "/render/2026-01-06T10-45-32.123.png",
+  "ansi": "\u001b[1;92mStart             End..."
 }
 ```
 
@@ -112,8 +114,8 @@ curl -X POST http://localhost:8080/input \
   -H "Content-Type: application/json" \
   -d '{"cmd": "key", "key": "j"}'
 
-# View latest render in browser
-open http://localhost:8080/render/latest.png
+# View latest render in browser (redirects to timestamped URL)
+open http://localhost:8080/render/latest
 
 # Resize terminal
 curl -X POST http://localhost:8080/input \
@@ -124,7 +126,7 @@ curl -X POST http://localhost:8080/input \
 
 1. Start headless server: `just headless`
 2. Send commands via POST /input
-3. View renders via browser at /render/latest.png
+3. View renders via browser at /render/latest
 4. Use ANSI output from response for text-based assertions
 
 ## Design Decisions
@@ -182,7 +184,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Add `headless` subcommand with HTTP server
 - [ ] Add `--port` flag (default: 8080)
 - [ ] Implement POST /input endpoint
-- [ ] Implement GET /render/latest.png endpoint
+- [ ] Implement GET /render/latest redirect endpoint
 - [ ] Implement GET /render/{timestamp}.png endpoint
 - [ ] Add tests for HTTP endpoints
 
@@ -205,7 +207,7 @@ Embed Fira Code (OFL licensed) because:
 
 - [ ] Include `render_url` in POST response
 - [ ] Include `ansi` (raw ANSI string) in POST response
-- [ ] Implement GET /state endpoint (optional)
+- [ ] Implement GET /state endpoint with render_url and ansi
 
 ### Integration
 

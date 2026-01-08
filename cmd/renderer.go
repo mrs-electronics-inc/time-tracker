@@ -28,30 +28,30 @@ type TerminalRenderer struct {
 	cellHeight  int
 }
 
-// ANSI color palette (standard 16 colors - matching common terminal themes)
+// ANSI color palette (standard 16 colors - matching Ghostty defaults)
 var ansiColors = []color.RGBA{
-	{0, 0, 0, 255},       // 0: Black
-	{205, 49, 49, 255},   // 1: Red
-	{13, 188, 121, 255},  // 2: Green
-	{229, 229, 16, 255},  // 3: Yellow
-	{36, 114, 200, 255},  // 4: Blue
-	{188, 63, 188, 255},  // 5: Magenta
-	{17, 168, 205, 255},  // 6: Cyan
-	{229, 229, 229, 255}, // 7: White (light gray)
-	{88, 88, 88, 255},    // 8: Bright Black (dark gray) - used for status bar labels bg
-	{241, 76, 76, 255},   // 9: Bright Red
-	{35, 209, 139, 255},  // 10: Bright Green
-	{245, 245, 67, 255},  // 11: Bright Yellow
-	{59, 142, 234, 255},  // 12: Bright Blue
-	{214, 112, 214, 255}, // 13: Bright Magenta
-	{41, 184, 219, 255},  // 14: Bright Cyan
-	{255, 255, 255, 255}, // 15: Bright White
+	{29, 31, 33, 255},    // 0: Black
+	{204, 102, 102, 255}, // 1: Red
+	{181, 189, 104, 255}, // 2: Green
+	{240, 198, 116, 255}, // 3: Yellow
+	{129, 162, 190, 255}, // 4: Blue
+	{178, 148, 187, 255}, // 5: Magenta
+	{138, 190, 183, 255}, // 6: Cyan
+	{197, 200, 198, 255}, // 7: White (light gray)
+	{102, 102, 102, 255}, // 8: Bright Black (dark gray)
+	{213, 78, 83, 255},   // 9: Bright Red
+	{185, 202, 74, 255},  // 10: Bright Green
+	{231, 197, 71, 255},  // 11: Bright Yellow
+	{122, 166, 218, 255}, // 12: Bright Blue
+	{195, 151, 216, 255}, // 13: Bright Magenta
+	{112, 192, 177, 255}, // 14: Bright Cyan
+	{234, 234, 234, 255}, // 15: Bright White
 }
 
-// Default colors
+// Default colors (matching Ghostty defaults)
 var (
-	defaultFg = color.RGBA{229, 229, 229, 255} // Light gray
-	defaultBg = color.RGBA{30, 30, 30, 255}    // Dark gray (VSCode-like)
+	defaultFg = color.RGBA{255, 255, 255, 255} // White
+	defaultBg = color.RGBA{40, 44, 52, 255}    // Dark gray
 )
 
 // NewTerminalRenderer creates a new terminal renderer

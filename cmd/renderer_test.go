@@ -151,7 +151,7 @@ func TestSGRParsing(t *testing.T) {
 			name:       "multiple params",
 			params:     "1;32;44",
 			initStyle:  cellStyle{fg: defaultFg, bg: defaultBg},
-			wantStyle:  cellStyle{fg: ansiColors[10], bg: ansiColors[4], bold: true}, // bold + green becomes bright green
+			wantStyle:  cellStyle{fg: ansiColors[2], bg: ansiColors[4], bold: true}, // bold + green stays green (bold handled by font)
 		},
 	}
 

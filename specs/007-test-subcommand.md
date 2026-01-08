@@ -1,9 +1,7 @@
 ---
-status: approved
+status: draft
 author: Addison Emig
 creation_date: 2026-01-06
-approved_by: Bennett Moore
-approval_date: 2026-01-07
 ---
 
 # Test Subcommand
@@ -25,22 +23,27 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 
 ## Solution
 
-Run `time-tracker test` to start test mode, which:
+Run `time-tracker test` to start an HTTP server that accepts commands and serves rendered screenshots:
 
-1. Accepts commands via JSON on stdin
-2. Renders the TUI to a PNG image after each command
-3. Returns the image file path via JSON on stdout
+```bash
+time-tracker test              # Start on default port 8080
+time-tracker test --port 9000  # Start on custom port
+```
 
 This enables:
 
 - **E2E testing**: Automated tests can verify the actual rendered output
 - **AI agent interaction**: Agents can use vision capabilities to verify the TUI
 - **Visual regression testing**: Compare screenshots across versions
+- **Easy debugging**: View renders directly in a browser
 
-## Protocol
+## HTTP API
 
-### Input Commands
+### POST /input - Send Commands
 
+Send a command to the TUI and receive the updated state.
+
+**Request:**
 ```json
 {"cmd": "key", "key": "j"}
 {"cmd": "key", "key": "enter"}
@@ -52,115 +55,167 @@ This enables:
 {"cmd": "resize", "rows": 24, "cols": 80}
 ```
 
-### Output Response
+**Response:**
+```json
+{
+  "render_url": "/render/2026-01-06T10-45-32.123.png",
+  "ansi": "\u001b[1;92mStart             End..."
+}
+```
+
+### GET /render/latest.png - Current Screen
+
+Returns the most recent render as a PNG image. Convenient for quick viewing.
+
+### GET /render/{timestamp}.png - Specific Render
+
+Returns a specific render by timestamp. The `render_url` in POST responses points here.
+
+### GET /state - Current State (Optional)
+
+Returns metadata about the current TUI state.
 
 ```json
-{ "render_path": "/tmp/time-tracker/renders/2026-01-06T10-45-32.123.png" }
+{
+  "width": 120,
+  "height": 30,
+  "mode": "list"
+}
 ```
 
-Renders are saved to `/tmp/time-tracker/renders` by default. Use `--render-dir /custom/path` to specify a different directory.
+## Default Configuration
 
-Files are timestamped for easy sorting and debugging.
+- **Port**: 8080
+- **Terminal size**: 120 columns × 30 rows (larger default for better visibility)
+- **Render cleanup**: Renders are kept for the lifetime of the server
 
-When time-tracker exits (or is killed), it cleans up all renders it created. Use `--keep-renders` to persist them for debugging and tracing.
+## Usage
 
-### Initial State
+### Starting the Test Server
 
 ```bash
-time-tracker test                              # test mode with default render path
-time-tracker test --render-dir /custom/path    # custom render directory
-time-tracker test --keep-renders               # persist renders after exit
+# Via just recipe (recommended for development)
+just test-server
+
+# Direct invocation
+time-tracker test --port 8080
+
+# With Docker
+just test-server-docker
 ```
 
-On startup, test mode will:
+### Interacting with the Server
 
-1. Initialize with default terminal size (80x24)
-2. Load existing data (same as normal TUI mode)
-3. Send an initial response with the rendered screen
+```bash
+# Send a key command
+curl -X POST http://localhost:8080/input \
+  -H "Content-Type: application/json" \
+  -d '{"cmd": "key", "key": "j"}'
+
+# View latest render in browser
+open http://localhost:8080/render/latest.png
+
+# Resize terminal
+curl -X POST http://localhost:8080/input \
+  -d '{"cmd": "resize", "rows": 40, "cols": 160}'
+```
+
+### AI Agent Workflow
+
+1. Start test server: `just test-server`
+2. Send commands via POST /input
+3. View renders via browser at /render/latest.png
+4. Use ANSI output from response for text-based assertions
 
 ## Design Decisions
 
-### Output Format: PNG Image
+### HTTP Server vs stdin/stdout
 
-We considered several output formats:
+We considered two approaches:
 
-| Format                     | Pros                        | Cons                               |
-| -------------------------- | --------------------------- | ---------------------------------- |
-| Plain text (ANSI stripped) | Simple                      | Loses color/styling information    |
-| Raw ANSI codes             | Lossless                    | Difficult to parse and verify      |
-| Structured cell grid       | Precise                     | Verbose, hard for AI to process    |
-| Base64-encoded PNG         | Self-contained              | Requires decoding, verbose in JSON |
-| **PNG file with path**     | AI agents can read directly | Requires filesystem                |
+| Approach | Pros | Cons |
+|----------|------|------|
+| stdin/stdout JSON | Simple, no network | Requires volume mounts for images, buffering issues |
+| **HTTP server** | Direct image access, browser viewable, stateless | Requires port allocation |
 
-**Decision**: PNG files with paths returned in JSON. AI agents can use the file path directly with image reading tools. Simpler than base64 decoding, and files are useful for debugging.
+**Decision**: HTTP server. Benefits:
+- AI agents can directly navigate to render URLs in browser
+- No need for filesystem volume mounts in Docker
+- Easy manual debugging via browser
+- curl/httpie for scripting
+- ANSI + PNG in single response
 
-### Render Directory
+### Response Includes Both ANSI and PNG URL
 
-The `--render-dir` flag specifies where to save renders. Renders are always saved in test mode. The `--keep-renders` flag disables cleanup on exit.
+The POST /input response includes both:
+- `render_url`: For visual verification via vision capabilities
+- `ansi`: For text-based assertions and searching
 
-### Rendering Approach: Use Existing Dependencies
+This allows agents to choose the best approach for each verification.
 
-We considered:
+### Larger Default Terminal Size
 
-- External binary (e.g., `textimg`) - adds deployment complexity
-- Inline rendering with existing deps - ~200-300 lines of new code
+Default size is 120×30 (vs typical 80×24) because:
+- Modern displays can show more content
+- Status bars and wide tables render better
+- AI vision works better with larger, clearer images
 
-**Decision**: Implement rendering using existing dependencies:
+### Render Retention
 
-- `charmbracelet/x/ansi` for parsing ANSI sequences (already a dependency)
-- `golang.org/x/image/font` for text rendering
-- Embed a suitable open-source monospace font (MIT/OFL licensed)
-- Standard library `image/png` for encoding
+Renders are kept for the server's lifetime (no cleanup). This enables:
+- Debugging by reviewing history
+- Visual regression comparisons
+- No risk of deleting renders still being viewed
 
-### Protocol Format: JSON Lines
+### Font Choice: Fira Code
 
-Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely supported.
+Embed Fira Code (OFL licensed) because:
+- Excellent Unicode coverage including powerline symbols
+- Clear rendering at various sizes
+- Popular, well-maintained open source font
+- Includes bold variant for proper bold rendering
 
 ## Task List
 
-### Foundation
+### HTTP Server Foundation
 
-- [ ] Add `test` subcommand to root command
-- [ ] Add `--render-dir` flag for custom render path
-- [ ] Add `--keep-renders` flag to disable cleanup
-- [ ] Add tests for JSON protocol parsing
-- [ ] Implement JSON protocol parsing (stdin reader)
-- [ ] Add tests for JSON response writing
-- [ ] Implement JSON response writing (stdout)
+- [ ] Add `test` subcommand with HTTP server
+- [ ] Add `--port` flag (default: 8080)
+- [ ] Implement POST /input endpoint
+- [ ] Implement GET /render/latest.png endpoint
+- [ ] Implement GET /render/{timestamp}.png endpoint
+- [ ] Add tests for HTTP endpoints
 
 ### Input Handling
 
-- [ ] Add tests for key command conversion
 - [ ] Convert `key` commands to `tea.KeyMsg`
-- [ ] Add tests for type command conversion
 - [ ] Convert `type` commands to sequence of `tea.KeyMsg`
-- [ ] Add tests for resize command handling
 - [ ] Handle `resize` commands via `tea.WindowSizeMsg`
+- [ ] Add tests for command conversion
 
 ### Rendering
 
-- [ ] Embed a monospace font (e.g., JetBrains Mono, Source Code Pro)
-- [ ] Add tests for ANSI sequence parsing
-- [ ] Implement ANSI sequence parser to extract text and styles
-- [ ] Add tests for image rendering
-- [ ] Implement image renderer (text + colors to PNG)
-- [ ] Add tests for render file output with timestamped filenames
-- [ ] Implement render file output (default: /tmp/time-tracker/renders)
-- [ ] Support custom path via --render-dir flag
+- [ ] Embed Fira Code Regular and Bold fonts
+- [ ] Implement ANSI sequence parser
+- [ ] Implement PNG renderer with Ghostty color palette
+- [ ] Store renders in memory with timestamp keys
+- [ ] Add tests for rendering
+
+### Response Format
+
+- [ ] Include `render_url` in POST response
+- [ ] Include `ansi` (raw ANSI string) in POST response
+- [ ] Implement GET /state endpoint (optional)
 
 ### Integration
 
-- [ ] Add integration tests for test subcommand
-- [ ] Wire up TUI model to test mode loop
-- [ ] Send initial rendered state on startup
-- [ ] Add error handling for invalid commands
-- [ ] Implement cleanup of temp renders on exit (signal handling)
-- [ ] Implement `--keep-renders` flag to disable cleanup
+- [ ] Wire up TUI model to HTTP handlers
+- [ ] Set default terminal size to 120×30
+- [ ] Send initial render on first /render/latest.png request
+- [ ] Add just recipes: `test-server`, `test-server-docker`
 
 ### Documentation
 
 - [ ] Document test subcommand in README
 - [ ] Add example usage for AI agents
-- [ ] Update AGENTS.md to instruct agents to use `time-tracker test` for E2E testing of new features
-
-
+- [ ] Update AGENTS.md with test server workflow

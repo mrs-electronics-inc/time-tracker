@@ -26,8 +26,9 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 Run `time-tracker headless` to start an HTTP server that accepts input and serves rendered screenshots:
 
 ```bash
-time-tracker headless              # Start on default port 8484
-time-tracker headless --port 9000  # Start on custom port
+time-tracker headless                  # Start on localhost:8484 (default)
+time-tracker headless --port 9000      # Custom port, still localhost only
+time-tracker headless --bind 0.0.0.0   # Expose to network (use with caution)
 ```
 
 This enables:
@@ -87,9 +88,21 @@ Returns the current TUI state including ANSI output and link to latest render.
 
 ## Default Configuration
 
+- **Bind address**: 127.0.0.1 (localhost only)
 - **Port**: 8484
 - **Terminal size**: 160 columns × 40 rows (moderate size to catch layout issues on smaller terminals)
 - **Render cleanup**: Renders are kept for the lifetime of the server
+
+## Security Considerations
+
+The headless server is intended for **local development and testing only**.
+
+- **Localhost by default**: The server binds to 127.0.0.1, preventing network access. Use `--bind 0.0.0.0` to expose publicly (not recommended).
+- **No authentication**: There is no authentication mechanism. Anyone with network access can send commands.
+- **No CORS restrictions**: The server does not implement CORS headers. If exposed publicly, any website could interact with it.
+- **Data exposure**: The TUI may display sensitive time tracking data.
+
+**Recommendation**: Only run headless mode on trusted machines and never expose it to untrusted networks.
 
 ## Usage
 
@@ -195,6 +208,7 @@ Embed Fira Code (OFL licensed) because:
 
 - [ ] Add `headless` subcommand with HTTP server
 - [ ] Add `--port` flag (default: 8484)
+- [ ] Add `--bind` flag (default: 127.0.0.1)
 - [ ] Implement POST /input endpoint
 - [ ] Implement GET /render/latest redirect endpoint
 - [ ] Implement GET /render/{timestamp}.png endpoint

@@ -112,3 +112,47 @@ This keeps the spec file as a living document that tracks implementation progres
 - Rule: When in doubt about whether something is a transient implementation choice or a long-term spec decision, ask the user.
 
 See specs/README.md for complete guidelines on the Specture System.
+
+## Headless Server
+
+For programmatic TUI interaction, use the headless server:
+
+```bash
+# Start the headless server in Docker
+docker compose run --rm -d -p 8484:8484 time-tracker headless --bind 0.0.0.0
+
+# Send keyboard input via curl
+curl -X POST localhost:8484/input -d '{"action": "key", "key": "j"}'
+curl -X POST localhost:8484/input -d '{"action": "key", "key": "enter"}'
+curl -X POST localhost:8484/input -d '{"action": "type", "text": "hello"}'
+curl -X POST localhost:8484/input -d '{"action": "resize", "rows": 40, "cols": 160}'
+
+# Get current state
+curl localhost:8484/state
+
+# Get latest render as PNG
+curl -L localhost:8484/render/latest -o screenshot.png
+```
+
+The `/state` and `/input` endpoints return JSON with `width`, `height`, `mode`, `render_url`, and `ansi` fields.
+
+### Using Browser Tools (Preferred)
+
+**When browser/screenshot tools are available, agents SHOULD use them to view renders directly:**
+
+```
+# Navigate to the render URL
+browser_navigate("http://localhost:8484/render/latest")
+
+# Take a screenshot to see the TUI
+browser_take_screenshot()
+```
+
+This is preferred over downloading PNGs via curl because:
+1. Screenshots are immediately visible in the conversation
+2. Browser tools handle redirects automatically
+3. No need to manage temporary files
+
+### Key format
+
+Use `tea.KeyMsg.String()` format: `enter`, `esc`, `tab`, `up`, `down`, `shift+tab`, `ctrl+c`, etc.

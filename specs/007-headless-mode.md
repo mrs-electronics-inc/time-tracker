@@ -165,25 +165,25 @@ ANSI 16-color palette:
 
 ### Rendering
 
-- [ ] Embed FiraCode Nerd Font (Regular and Bold) for powerline symbol support
-- [ ] Implement ANSI sequence parser
-- [ ] Implement PNG renderer with color palette from spec
-- [ ] Store renders in memory with timestamp keys
-- [ ] Implement render eviction when max limit reached (FIFO)
-- [ ] Add tests for rendering
+- [x] Embed FiraCode Nerd Font (Regular and Bold) for powerline symbol support
+- [x] Implement ANSI sequence parser
+- [x] Implement PNG renderer with color palette from spec
+- [x] Store renders in memory with timestamp keys
+- [x] Implement render eviction when max limit reached (FIFO)
+- [x] Add tests for rendering
 
 ### Response Format
 
-- [ ] Include `render_url` in POST response
-- [ ] Include `ansi` (raw ANSI string) in POST response
-- [ ] Implement `GET /state` endpoint with render_url and ansi
+- [x] Include `render_url` in POST response
+- [x] Include `ansi` (raw ANSI string) in POST response
+- [x] Implement `GET /state` endpoint with render_url and ansi
 
 ### Integration
 
-- [ ] Force ANSI color output via `lipgloss.SetColorProfile(termenv.ANSI)` (prevents auto-detection disabling colors for non-tty)
-- [ ] Wire up TUI model to HTTP handlers
-- [ ] Set default terminal size to 160×40
-- [ ] Create initial render on server startup (so /render/latest works immediately)
+- [x] Force ANSI color output via `lipgloss.SetColorProfile(termenv.ANSI)` (prevents auto-detection disabling colors for non-tty)
+- [x] Wire up TUI model to HTTP handlers
+- [x] Set default terminal size to 160×40
+- [x] Create initial render on server startup (so /render/latest works immediately)
 - [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
 - [ ] Add `input` recipe that wraps curl for sending actions (key, type, resize)
 

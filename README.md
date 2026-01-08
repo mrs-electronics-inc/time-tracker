@@ -146,6 +146,63 @@ time-tracker stats  # Daily totals
 time-tracker stats --weekly  # Weekly totals
 ```
 
+## Headless Mode
+
+For programmatic interaction (e.g., AI agents, automated testing), Time Tracker provides a headless HTTP server:
+
+```bash
+# Start the headless server
+just run-docker headless
+
+# Or with custom options
+just run-docker headless --port 9000
+```
+
+### HTTP API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/input` | POST | Send input action, receive updated state |
+| `/state` | GET | Get current state |
+| `/render/latest` | GET | Redirect to most recent PNG render |
+| `/render/{timestamp}.png` | GET | Get specific PNG render |
+
+### Input Actions
+
+```bash
+# Send keyboard input
+just input key j
+just input key enter
+just input key shift+tab
+
+# Type text
+just input type "hello world"
+
+# Resize terminal
+just input resize 40 160
+```
+
+### Response Format
+
+```json
+{
+  "width": 160,
+  "height": 40,
+  "mode": "list",
+  "render_url": "/render/2026-01-08T10-45-32-123.png",
+  "ansi": "\u001b[1;92mStart..."
+}
+```
+
+### Security
+
+⚠️ **This server is for local development only.**
+
+- Binds to localhost by default (`--bind 0.0.0.0` to expose)
+- No authentication
+- May expose sensitive time tracking data
+- Never expose to untrusted networks
+
 ## Tech Stack
 
 - **Language**: [Go](https://go.dev/)

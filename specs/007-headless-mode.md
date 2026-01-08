@@ -189,7 +189,7 @@ ANSI 16-color palette:
 
 ### Documentation
 
-- [ ] Document headless mode in README
-- [ ] Document security considerations (localhost binding, no auth, local dev only)
-- [ ] Add example usage for AI agents
-- [ ] Update AGENTS.md with headless server workflow and new recipes (`just run-docker headless`, `just input`)
+- [x] Document headless mode in README
+- [x] Document security considerations (localhost binding, no auth, local dev only)
+- [x] Add example usage for AI agents
+- [x] Update AGENTS.md with headless server workflow and new recipes (`just run-docker headless`, `just input`)

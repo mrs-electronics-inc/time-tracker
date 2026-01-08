@@ -97,13 +97,13 @@ Returns the current TUI state including ANSI output and link to latest render.
 
 ```bash
 # Via just recipe (recommended for development)
-just headless
+just run-docker headless
 
-# Direct invocation
+# With custom port
+just run-docker headless --port 9000
+
+# Direct invocation (without Docker)
 time-tracker headless --port 8080
-
-# With Docker
-just headless-docker
 ```
 
 ### Interacting with the Server
@@ -124,7 +124,7 @@ curl -X POST http://localhost:8080/input \
 
 ### AI Agent Workflow
 
-1. Start headless server: `just headless`
+1. Start headless server: `just run-docker headless`
 2. Send commands via POST /input
 3. View renders via browser at /render/latest
 4. Use ANSI output from response for text-based assertions
@@ -214,7 +214,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Wire up TUI model to HTTP handlers
 - [ ] Set default terminal size to 120×30
 - [ ] Send initial render on first /render/latest.png request
-- [ ] Add just recipes: `headless`, `headless-docker`
+- [ ] Update `run-docker` recipe to bind port 8080 for headless subcommand
 
 ### Documentation
 

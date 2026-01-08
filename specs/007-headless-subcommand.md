@@ -103,6 +103,21 @@ just run-docker headless
 time-tracker headless
 ```
 
+### Sending Input
+
+```bash
+# Send a key
+just input key j
+just input key enter
+just input key tab
+
+# Type text
+just input type "hello world"
+
+# Resize terminal
+just input resize 40 160
+```
+
 ### Interacting with the Server
 
 ```bash
@@ -122,8 +137,8 @@ curl -X POST http://localhost:8484/input \
 ### AI Agent Workflow
 
 1. Start headless server: `just run-docker headless`
-2. Send commands via POST /input
-3. View renders via browser at /render/latest
+2. Send commands: `just input key j` or `just input type "text"`
+3. View renders via browser at http://localhost:8484/render/latest
 4. Use ANSI output from response for text-based assertions
 
 ## Design Decisions
@@ -212,6 +227,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Set default terminal size to 120×30
 - [ ] Send initial render on first /render/latest.png request
 - [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
+- [ ] Add `input` recipe for sending commands (key, type, resize)
 
 ### Documentation
 

@@ -30,7 +30,10 @@ Send an action, receive updated state.
 
 // Response
 {
-  "render_url": "/render/2026-01-06T10-45-32.123.png",
+  "width": 160,
+  "height": 40,
+  "mode": "list",
+  "render_url": "/render/2026-01-08T10-45-32.123.png",
   "ansi": "\u001b[1;92mStart..."
 }
 ```
@@ -51,6 +54,9 @@ Returns current state (same format as `POST /input` response):
 
 ```json
 {
+  "width": 160,
+  "height": 40,
+  "mode": "list",
   "render_url": "/render/2026-01-08T10-45-32.123.png",
   "ansi": "\u001b[1;92mStart..."
 }

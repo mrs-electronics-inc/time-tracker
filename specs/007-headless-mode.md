@@ -64,6 +64,8 @@ Send an action to the TUI and receive the updated state.
 }
 ```
 
+The `ansi` field contains the raw ANSI output from the TUI's `View()` method, including all escape sequences exactly as produced by the application. This is not normalized or processed - it's the same output that would be sent to a real terminal.
+
 ### GET /render/latest - Redirect to Current Screen
 
 Redirects (HTTP 302) to the most recent timestamped render. Convenient for quick viewing - just refresh to see the latest state.
@@ -91,7 +93,7 @@ Returns the current TUI state including ANSI output and link to latest render.
 - **Bind address**: 127.0.0.1 (localhost only)
 - **Port**: 8484
 - **Terminal size**: 160 columns × 40 rows (moderate size to catch layout issues on smaller terminals)
-- **Render cleanup**: Renders are kept for the lifetime of the server
+- **Render retention**: Last 100 renders kept (configurable via `--max-renders`)
 
 ## Security Considerations
 
@@ -189,10 +191,10 @@ Default size is 160×40 (vs typical 80×24) because:
 
 ### Render Retention
 
-Renders are kept for the server's lifetime (no cleanup). This enables:
-- Debugging by reviewing history
-- Visual regression comparisons
-- No risk of deleting renders still being viewed
+Renders are kept in memory with a configurable limit (default: 100). When the limit is reached, the oldest renders are discarded. This:
+- Prevents unbounded memory growth in long-running servers
+- Keeps enough history for debugging and comparisons
+- Can be adjusted via `--max-renders` for CI or memory-constrained environments
 
 ### Font Choice: Fira Code
 
@@ -209,6 +211,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Add `headless` subcommand with HTTP server
 - [ ] Add `--port` flag (default: 8484)
 - [ ] Add `--bind` flag (default: 127.0.0.1)
+- [ ] Add `--max-renders` flag (default: 100)
 - [ ] Implement POST /input endpoint
 - [ ] Implement GET /render/latest redirect endpoint
 - [ ] Implement GET /render/{timestamp}.png endpoint
@@ -228,6 +231,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Implement ANSI sequence parser
 - [ ] Implement PNG renderer with Ghostty color palette
 - [ ] Store renders in memory with timestamp keys
+- [ ] Implement render eviction when max limit reached (FIFO)
 - [ ] Add tests for rendering
 
 ### Response Format

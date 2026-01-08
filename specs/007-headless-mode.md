@@ -115,7 +115,32 @@ open http://localhost:8484/render/latest
 - **ANSI + PNG**: Response includes both for flexibility (vision vs text assertions)
 - **160×40 default**: Large enough for content, small enough to catch layout issues
 - **FiraCode Nerd Font**: Required for powerline symbols (regular Fira Code lacks these glyphs)
-- **Ghostty color palette**: Use Ghostty's default 16-color ANSI palette from [ghostty source](https://github.com/ghostty-org/ghostty/blob/main/src/config/Config.zig) (search for `palette`)
+- **Color palette**: ANSI 16-color palette (see below), default/background color is pure black (`#000000`)
+
+## Color Palette
+
+Default/background color: `#000000` (pure black)
+
+ANSI 16-color palette:
+
+| Index | Name | Hex |
+|-------|------|-----|
+| 0 | black | `#1D1F21` |
+| 1 | red | `#CC6666` |
+| 2 | green | `#B5BD68` |
+| 3 | yellow | `#F0C674` |
+| 4 | blue | `#81A2BE` |
+| 5 | magenta | `#B294BB` |
+| 6 | cyan | `#8ABEB7` |
+| 7 | white | `#C5C8C6` |
+| 8 | bright black | `#666666` |
+| 9 | bright red | `#D54E53` |
+| 10 | bright green | `#B9CA4A` |
+| 11 | bright yellow | `#E7C547` |
+| 12 | bright blue | `#7AA6DA` |
+| 13 | bright magenta | `#C397D8` |
+| 14 | bright cyan | `#70C0B1` |
+| 15 | bright white | `#EAEAEA` |
 
 ## Task List
 
@@ -142,7 +167,7 @@ open http://localhost:8484/render/latest
 
 - [ ] Embed FiraCode Nerd Font (Regular and Bold) for powerline symbol support
 - [ ] Implement ANSI sequence parser
-- [ ] Implement PNG renderer with Ghostty color palette
+- [ ] Implement PNG renderer with color palette from spec
 - [ ] Store renders in memory with timestamp keys
 - [ ] Implement render eviction when max limit reached (FIFO)
 - [ ] Add tests for rendering

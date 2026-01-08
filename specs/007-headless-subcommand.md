@@ -4,9 +4,9 @@ author: Addison Emig
 creation_date: 2026-01-06
 ---
 
-# Test Subcommand
+# Headless Subcommand
 
-Add a `test` subcommand that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
+Add a `headless` subcommand that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
 
 ## Problem
 
@@ -23,11 +23,11 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 
 ## Solution
 
-Run `time-tracker test` to start an HTTP server that accepts commands and serves rendered screenshots:
+Run `time-tracker headless` to start an HTTP server that accepts commands and serves rendered screenshots:
 
 ```bash
-time-tracker test              # Start on default port 8080
-time-tracker test --port 9000  # Start on custom port
+time-tracker headless              # Start on default port 8080
+time-tracker headless --port 9000  # Start on custom port
 ```
 
 This enables:
@@ -91,17 +91,17 @@ Returns metadata about the current TUI state.
 
 ## Usage
 
-### Starting the Test Server
+### Starting the Headless Server
 
 ```bash
 # Via just recipe (recommended for development)
-just test-server
+just headless
 
 # Direct invocation
-time-tracker test --port 8080
+time-tracker headless --port 8080
 
 # With Docker
-just test-server-docker
+just headless-docker
 ```
 
 ### Interacting with the Server
@@ -122,7 +122,7 @@ curl -X POST http://localhost:8080/input \
 
 ### AI Agent Workflow
 
-1. Start test server: `just test-server`
+1. Start headless server: `just headless`
 2. Send commands via POST /input
 3. View renders via browser at /render/latest.png
 4. Use ANSI output from response for text-based assertions
@@ -179,7 +179,7 @@ Embed Fira Code (OFL licensed) because:
 
 ### HTTP Server Foundation
 
-- [ ] Add `test` subcommand with HTTP server
+- [ ] Add `headless` subcommand with HTTP server
 - [ ] Add `--port` flag (default: 8080)
 - [ ] Implement POST /input endpoint
 - [ ] Implement GET /render/latest.png endpoint
@@ -212,10 +212,10 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Wire up TUI model to HTTP handlers
 - [ ] Set default terminal size to 120×30
 - [ ] Send initial render on first /render/latest.png request
-- [ ] Add just recipes: `test-server`, `test-server-docker`
+- [ ] Add just recipes: `headless`, `headless-docker`
 
 ### Documentation
 
-- [ ] Document test subcommand in README
+- [ ] Document headless subcommand in README
 - [ ] Add example usage for AI agents
-- [ ] Update AGENTS.md with test server workflow
+- [ ] Update AGENTS.md with headless server workflow

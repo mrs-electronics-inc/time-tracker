@@ -26,7 +26,7 @@ This makes E2E testing difficult, and AI agents cannot easily verify what the us
 Run `time-tracker headless` to start an HTTP server that accepts commands and serves rendered screenshots:
 
 ```bash
-time-tracker headless              # Start on default port 8080
+time-tracker headless              # Start on default port 8484
 time-tracker headless --port 9000  # Start on custom port
 ```
 
@@ -87,7 +87,7 @@ Returns the current TUI state including ANSI output and link to latest render.
 
 ## Default Configuration
 
-- **Port**: 8080
+- **Port**: 8484
 - **Terminal size**: 120 columns × 30 rows (larger default for better visibility)
 - **Render cleanup**: Renders are kept for the lifetime of the server
 
@@ -100,22 +100,22 @@ Returns the current TUI state including ANSI output and link to latest render.
 just run-docker headless
 
 # Direct invocation (without Docker)
-time-tracker headless --port 8080
+time-tracker headless
 ```
 
 ### Interacting with the Server
 
 ```bash
 # Send a key command
-curl -X POST http://localhost:8080/input \
+curl -X POST http://localhost:8484/input \
   -H "Content-Type: application/json" \
   -d '{"cmd": "key", "key": "j"}'
 
 # View latest render in browser (redirects to timestamped URL)
-open http://localhost:8080/render/latest
+open http://localhost:8484/render/latest
 
 # Resize terminal
-curl -X POST http://localhost:8080/input \
+curl -X POST http://localhost:8484/input \
   -d '{"cmd": "resize", "rows": 40, "cols": 160}'
 ```
 
@@ -179,7 +179,7 @@ Embed Fira Code (OFL licensed) because:
 ### HTTP Server Foundation
 
 - [ ] Add `headless` subcommand with HTTP server
-- [ ] Add `--port` flag (default: 8080)
+- [ ] Add `--port` flag (default: 8484)
 - [ ] Implement POST /input endpoint
 - [ ] Implement GET /render/latest redirect endpoint
 - [ ] Implement GET /render/{timestamp}.png endpoint
@@ -211,7 +211,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Wire up TUI model to HTTP handlers
 - [ ] Set default terminal size to 120×30
 - [ ] Send initial render on first /render/latest.png request
-- [ ] Update `run-docker` recipe to bind port 8080 for headless subcommand
+- [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
 
 ### Documentation
 

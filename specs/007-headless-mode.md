@@ -1,7 +1,7 @@
 ---
 status: draft
 author: Addison Emig
-creation_date: 2026-01-06
+creation_date: 2026-01-08
 ---
 
 # Headless Mode
@@ -18,7 +18,7 @@ time-tracker headless --bind 0.0.0.0   # Expose to network (use with caution)
 
 ## HTTP API
 
-### POST /input
+### `POST /input`
 
 Send an action, receive updated state.
 
@@ -37,20 +37,23 @@ Send an action, receive updated state.
 
 The `ansi` field contains raw output from `View()` with all escape sequences.
 
-### GET /render/latest
+### `GET /render/latest`
 
 Redirects (302) to most recent render.
 
-### GET /render/{timestamp}.png
+### `GET /render/{timestamp}.png`
 
 Returns specific render PNG.
 
-### GET /state
+### `GET /state`
 
-Returns current state:
+Returns current state (same format as `POST /input` response):
 
 ```json
-{"width": 160, "height": 40, "mode": "list", "render_url": "...", "ansi": "..."}
+{
+  "render_url": "/render/2026-01-08T10-45-32.123.png",
+  "ansi": "\u001b[1;92mStart..."
+}
 ```
 
 ## Configuration
@@ -108,9 +111,9 @@ open http://localhost:8484/render/latest
 - [ ] Add `--port` flag (default: 8484)
 - [ ] Add `--bind` flag (default: 127.0.0.1)
 - [ ] Add `--max-renders` flag (default: 100)
-- [ ] Implement POST /input endpoint
-- [ ] Implement GET /render/latest redirect endpoint
-- [ ] Implement GET /render/{timestamp}.png endpoint
+- [ ] Implement `POST /input` endpoint
+- [ ] Implement `GET /render/latest` redirect endpoint
+- [ ] Implement `GET /render/{timestamp}.png` endpoint
 - [ ] Return JSON error responses for invalid actions
 - [ ] Add tests for HTTP endpoints
 
@@ -134,7 +137,7 @@ open http://localhost:8484/render/latest
 
 - [ ] Include `render_url` in POST response
 - [ ] Include `ansi` (raw ANSI string) in POST response
-- [ ] Implement GET /state endpoint with render_url and ansi
+- [ ] Implement `GET /state` endpoint with render_url and ansi
 
 ### Integration
 

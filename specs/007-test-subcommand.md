@@ -120,42 +120,42 @@ Simple JSON objects over stdin/stdout, one per line. Easy to parse, widely suppo
 
 ### Foundation
 
-- [ ] Add `test` subcommand to root command
-- [ ] Add `--render-dir` flag for custom render path
-- [ ] Add `--keep-renders` flag to disable cleanup
-- [ ] Add tests for JSON protocol parsing
-- [ ] Implement JSON protocol parsing (stdin reader)
-- [ ] Add tests for JSON response writing
-- [ ] Implement JSON response writing (stdout)
+- [x] Add `test` subcommand to root command
+- [x] Add `--render-dir` flag for custom render path
+- [x] Add `--keep-renders` flag to disable cleanup
+- [x] Add tests for JSON protocol parsing
+- [x] Implement JSON protocol parsing (stdin reader)
+- [x] Add tests for JSON response writing
+- [x] Implement JSON response writing (stdout)
 
 ### Input Handling
 
-- [ ] Add tests for key command conversion
-- [ ] Convert `key` commands to `tea.KeyMsg`
-- [ ] Add tests for type command conversion
-- [ ] Convert `type` commands to sequence of `tea.KeyMsg`
-- [ ] Add tests for resize command handling
-- [ ] Handle `resize` commands via `tea.WindowSizeMsg`
+- [x] Add tests for key command conversion
+- [x] Convert `key` commands to `tea.KeyMsg`
+- [x] Add tests for type command conversion
+- [x] Convert `type` commands to sequence of `tea.KeyMsg`
+- [x] Add tests for resize command handling
+- [x] Handle `resize` commands via `tea.WindowSizeMsg`
 
 ### Rendering
 
 - [ ] Embed a monospace font (e.g., JetBrains Mono, Source Code Pro)
-- [ ] Add tests for ANSI sequence parsing
-- [ ] Implement ANSI sequence parser to extract text and styles
-- [ ] Add tests for image rendering
-- [ ] Implement image renderer (text + colors to PNG)
-- [ ] Add tests for render file output with timestamped filenames
-- [ ] Implement render file output (default: /tmp/time-tracker/renders)
-- [ ] Support custom path via --render-dir flag
+- [x] Add tests for ANSI sequence parsing
+- [x] Implement ANSI sequence parser to extract text and styles
+- [x] Add tests for image rendering
+- [x] Implement image renderer (text + colors to PNG)
+- [x] Add tests for render file output with timestamped filenames
+- [x] Implement render file output (default: /tmp/time-tracker/renders)
+- [x] Support custom path via --render-dir flag
 
 ### Integration
 
-- [ ] Add integration tests for test subcommand
-- [ ] Wire up TUI model to test mode loop
-- [ ] Send initial rendered state on startup
-- [ ] Add error handling for invalid commands
-- [ ] Implement cleanup of temp renders on exit (signal handling)
-- [ ] Implement `--keep-renders` flag to disable cleanup
+- [x] Add integration tests for test subcommand
+- [x] Wire up TUI model to test mode loop
+- [x] Send initial rendered state on startup
+- [x] Add error handling for invalid commands
+- [x] Implement cleanup of temp renders on exit (signal handling)
+- [x] Implement `--keep-renders` flag to disable cleanup
 
 ### Documentation
 

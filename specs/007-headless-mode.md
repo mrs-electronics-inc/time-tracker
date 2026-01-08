@@ -45,14 +45,14 @@ Send a command to the TUI and receive the updated state.
 
 **Request:**
 ```json
-{"cmd": "key", "key": "j"}
-{"cmd": "key", "key": "enter"}
-{"cmd": "key", "key": "esc"}
-{"cmd": "key", "key": "up"}
-{"cmd": "key", "key": "down"}
-{"cmd": "key", "key": "tab"}
-{"cmd": "type", "text": "hello world"}
-{"cmd": "resize", "rows": 24, "cols": 80}
+{"action": "key", "key": "j"}
+{"action": "key", "key": "enter"}
+{"action": "key", "key": "esc"}
+{"action": "key", "key": "up"}
+{"action": "key", "key": "down"}
+{"action": "key", "key": "tab"}
+{"action": "type", "text": "hello world"}
+{"action": "resize", "rows": 24, "cols": 80}
 ```
 
 **Response:**

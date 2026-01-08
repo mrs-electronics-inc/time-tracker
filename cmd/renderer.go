@@ -28,7 +28,7 @@ type TerminalRenderer struct {
 	cellHeight  int
 }
 
-// ANSI color palette (standard 16 colors)
+// ANSI color palette (standard 16 colors - matching common terminal themes)
 var ansiColors = []color.RGBA{
 	{0, 0, 0, 255},       // 0: Black
 	{205, 49, 49, 255},   // 1: Red
@@ -38,7 +38,7 @@ var ansiColors = []color.RGBA{
 	{188, 63, 188, 255},  // 5: Magenta
 	{17, 168, 205, 255},  // 6: Cyan
 	{229, 229, 229, 255}, // 7: White (light gray)
-	{102, 102, 102, 255}, // 8: Bright Black (dark gray)
+	{88, 88, 88, 255},    // 8: Bright Black (dark gray) - used for status bar labels bg
 	{241, 76, 76, 255},   // 9: Bright Red
 	{35, 209, 139, 255},  // 10: Bright Green
 	{245, 245, 67, 255},  // 11: Bright Yellow
@@ -288,9 +288,9 @@ func (r *TerminalRenderer) parseSGR(params string, style *cellStyle) {
 		case num >= 30 && num <= 37:
 			// Standard foreground colors
 			colorIdx := num - 30
-			if style.bold && colorIdx < 8 {
-				colorIdx += 8 // Use bright variant
-			}
+			// Note: We don't brighten colors when bold is set, as some text
+			// (like status bar labels) intentionally uses bold black on gray.
+			// Brightening would make the text invisible.
 			style.fg = ansiColors[colorIdx]
 		case num == 38:
 			// Extended foreground color

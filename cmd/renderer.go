@@ -15,13 +15,17 @@ import (
 )
 
 //go:embed fonts/FiraCode-Regular.ttf
-var firaCodeTTF []byte
+var firaCodeRegularTTF []byte
+
+//go:embed fonts/FiraCode-Bold.ttf
+var firaCodeBoldTTF []byte
 
 // TerminalRenderer renders ANSI terminal output to PNG images
 type TerminalRenderer struct {
-	face       font.Face
-	cellWidth  int
-	cellHeight int
+	regularFace font.Face
+	boldFace    font.Face
+	cellWidth   int
+	cellHeight  int
 }
 
 // ANSI color palette (standard 16 colors)
@@ -52,16 +56,30 @@ var (
 
 // NewTerminalRenderer creates a new terminal renderer
 func NewTerminalRenderer() (*TerminalRenderer, error) {
-	// Parse the embedded font
-	ft, err := opentype.Parse(firaCodeTTF)
+	// Parse the embedded fonts
+	regularFont, err := opentype.Parse(firaCodeRegularTTF)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create font face at 14pt size
+	boldFont, err := opentype.Parse(firaCodeBoldTTF)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create font faces at 14pt size
 	const fontSize = 14
 	const dpi = 72
-	face, err := opentype.NewFace(ft, &opentype.FaceOptions{
+	regularFace, err := opentype.NewFace(regularFont, &opentype.FaceOptions{
+		Size:    fontSize,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	boldFace, err := opentype.NewFace(boldFont, &opentype.FaceOptions{
 		Size:    fontSize,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
@@ -71,16 +89,17 @@ func NewTerminalRenderer() (*TerminalRenderer, error) {
 	}
 
 	// Calculate cell dimensions based on font metrics
-	metrics := face.Metrics()
+	metrics := regularFace.Metrics()
 	cellHeight := (metrics.Height).Ceil()
 	// Measure the width of a character (monospace so all same)
-	adv, _ := face.GlyphAdvance('M')
+	adv, _ := regularFace.GlyphAdvance('M')
 	cellWidth := adv.Ceil()
 
 	return &TerminalRenderer{
-		face:       face,
-		cellWidth:  cellWidth,
-		cellHeight: cellHeight,
+		regularFace: regularFace,
+		boldFace:    boldFace,
+		cellWidth:   cellWidth,
+		cellHeight:  cellHeight,
 	}, nil
 }
 
@@ -131,7 +150,7 @@ func (r *TerminalRenderer) RenderToFile(text string, width, height int, filename
 
 			// Draw character
 			if c.char != 0 && c.char != ' ' {
-				r.drawChar(img, col, row, c.char, c.style.fg)
+				r.drawChar(img, col, row, c.char, c.style.fg, c.style.bold)
 			}
 		}
 	}
@@ -358,9 +377,15 @@ func (r *TerminalRenderer) get256Color(idx int) color.RGBA {
 }
 
 // drawChar draws a character at the given cell position
-func (r *TerminalRenderer) drawChar(img *image.RGBA, col, row int, ch rune, fg color.RGBA) {
+func (r *TerminalRenderer) drawChar(img *image.RGBA, col, row int, ch rune, fg color.RGBA, bold bool) {
+	// Select font face based on bold
+	face := r.regularFace
+	if bold {
+		face = r.boldFace
+	}
+
 	// Get font metrics for baseline positioning
-	metrics := r.face.Metrics()
+	metrics := face.Metrics()
 	ascent := metrics.Ascent.Ceil()
 
 	point := fixed.Point26_6{
@@ -371,7 +396,7 @@ func (r *TerminalRenderer) drawChar(img *image.RGBA, col, row int, ch rune, fg c
 	d := &font.Drawer{
 		Dst:  img,
 		Src:  image.NewUniform(fg),
-		Face: r.face,
+		Face: face,
 		Dot:  point,
 	}
 

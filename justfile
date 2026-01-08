@@ -28,7 +28,7 @@ build-docker:
 run-docker *args:
     #!/usr/bin/env bash
     if [[ "$1" == "headless" ]]; then
-        docker compose run --rm --remove-orphans -p 8484:8484 time-tracker headless --bind 0.0.0.0 "${@:2}"
+        docker run --rm -p 8484:8484 -v time-tracker_config:/root/.config time-tracker headless "${@:2}"
     else
         docker compose run --remove-orphans time-tracker {{ args }}
     fi

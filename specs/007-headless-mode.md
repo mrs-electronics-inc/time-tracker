@@ -180,7 +180,7 @@ ANSI 16-color palette:
 
 ### Integration
 
-- [ ] Configure bubbletea to render ANSI codes to non-tty output
+- [ ] Force ANSI color output via `lipgloss.SetColorProfile(termenv.ANSI)` (prevents auto-detection disabling colors for non-tty)
 - [ ] Wire up TUI model to HTTP handlers
 - [ ] Set default terminal size to 160×40
 - [ ] Create initial render on server startup (so /render/latest works immediately)

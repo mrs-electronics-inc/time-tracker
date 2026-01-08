@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	_ "embed"
 	"image"
 	"image/color"
 	"image/png"
@@ -9,9 +10,12 @@ import (
 	"strings"
 
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
+
+//go:embed fonts/FiraCode-Regular.ttf
+var firaCodeTTF []byte
 
 // TerminalRenderer renders ANSI terminal output to PNG images
 type TerminalRenderer struct {
@@ -23,37 +27,60 @@ type TerminalRenderer struct {
 // ANSI color palette (standard 16 colors)
 var ansiColors = []color.RGBA{
 	{0, 0, 0, 255},       // 0: Black
-	{170, 0, 0, 255},     // 1: Red
-	{0, 170, 0, 255},     // 2: Green
-	{170, 85, 0, 255},    // 3: Yellow/Brown
-	{0, 0, 170, 255},     // 4: Blue
-	{170, 0, 170, 255},   // 5: Magenta
-	{0, 170, 170, 255},   // 6: Cyan
-	{170, 170, 170, 255}, // 7: White (light gray)
-	{85, 85, 85, 255},    // 8: Bright Black (dark gray)
-	{255, 85, 85, 255},   // 9: Bright Red
-	{85, 255, 85, 255},   // 10: Bright Green
-	{255, 255, 85, 255},  // 11: Bright Yellow
-	{85, 85, 255, 255},   // 12: Bright Blue
-	{255, 85, 255, 255},  // 13: Bright Magenta
-	{85, 255, 255, 255},  // 14: Bright Cyan
+	{205, 49, 49, 255},   // 1: Red
+	{13, 188, 121, 255},  // 2: Green
+	{229, 229, 16, 255},  // 3: Yellow
+	{36, 114, 200, 255},  // 4: Blue
+	{188, 63, 188, 255},  // 5: Magenta
+	{17, 168, 205, 255},  // 6: Cyan
+	{229, 229, 229, 255}, // 7: White (light gray)
+	{102, 102, 102, 255}, // 8: Bright Black (dark gray)
+	{241, 76, 76, 255},   // 9: Bright Red
+	{35, 209, 139, 255},  // 10: Bright Green
+	{245, 245, 67, 255},  // 11: Bright Yellow
+	{59, 142, 234, 255},  // 12: Bright Blue
+	{214, 112, 214, 255}, // 13: Bright Magenta
+	{41, 184, 219, 255},  // 14: Bright Cyan
 	{255, 255, 255, 255}, // 15: Bright White
 }
 
 // Default colors
 var (
-	defaultFg = color.RGBA{170, 170, 170, 255} // Light gray
-	defaultBg = color.RGBA{0, 0, 0, 255}       // Black
+	defaultFg = color.RGBA{229, 229, 229, 255} // Light gray
+	defaultBg = color.RGBA{30, 30, 30, 255}    // Dark gray (VSCode-like)
 )
 
 // NewTerminalRenderer creates a new terminal renderer
 func NewTerminalRenderer() (*TerminalRenderer, error) {
-	face := basicfont.Face7x13
+	// Parse the embedded font
+	ft, err := opentype.Parse(firaCodeTTF)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create font face at 14pt size
+	const fontSize = 14
+	const dpi = 72
+	face, err := opentype.NewFace(ft, &opentype.FaceOptions{
+		Size:    fontSize,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate cell dimensions based on font metrics
+	metrics := face.Metrics()
+	cellHeight := (metrics.Height).Ceil()
+	// Measure the width of a character (monospace so all same)
+	adv, _ := face.GlyphAdvance('M')
+	cellWidth := adv.Ceil()
 
 	return &TerminalRenderer{
 		face:       face,
-		cellWidth:  7,
-		cellHeight: 13,
+		cellWidth:  cellWidth,
+		cellHeight: cellHeight,
 	}, nil
 }
 
@@ -93,10 +120,12 @@ func (r *TerminalRenderer) RenderToFile(text string, width, height int, filename
 		for col := 0; col < width; col++ {
 			c := grid[row][col]
 
-			// Draw background
-			for dy := 0; dy < r.cellHeight; dy++ {
-				for dx := 0; dx < r.cellWidth; dx++ {
-					img.Set(col*r.cellWidth+dx, row*r.cellHeight+dy, c.style.bg)
+			// Draw background if not default
+			if c.style.bg != defaultBg {
+				for dy := 0; dy < r.cellHeight; dy++ {
+					for dx := 0; dx < r.cellWidth; dx++ {
+						img.Set(col*r.cellWidth+dx, row*r.cellHeight+dy, c.style.bg)
+					}
 				}
 			}
 
@@ -144,7 +173,7 @@ func (r *TerminalRenderer) parseANSI(text string, width, height int) [][]cell {
 		if ch == '\x1b' && i+1 < len(runes) && runes[i+1] == '[' {
 			// Parse CSI sequence
 			j := i + 2
-			for j < len(runes) && (runes[j] == ';' || (runes[j] >= '0' && runes[j] <= '9')) {
+			for j < len(runes) && (runes[j] == ';' || runes[j] == ':' || (runes[j] >= '0' && runes[j] <= '9')) {
 				j++
 			}
 			if j < len(runes) {
@@ -208,6 +237,9 @@ func (r *TerminalRenderer) parseSGR(params string, style *cellStyle) {
 		style.italic = false
 		return
 	}
+
+	// Handle colon-separated params (convert to semicolon for uniform handling)
+	params = strings.ReplaceAll(params, ":", ";")
 
 	// Split by semicolon
 	parts := strings.Split(params, ";")
@@ -327,9 +359,13 @@ func (r *TerminalRenderer) get256Color(idx int) color.RGBA {
 
 // drawChar draws a character at the given cell position
 func (r *TerminalRenderer) drawChar(img *image.RGBA, col, row int, ch rune, fg color.RGBA) {
+	// Get font metrics for baseline positioning
+	metrics := r.face.Metrics()
+	ascent := metrics.Ascent.Ceil()
+
 	point := fixed.Point26_6{
 		X: fixed.I(col * r.cellWidth),
-		Y: fixed.I(row*r.cellHeight + r.cellHeight - 2),
+		Y: fixed.I(row*r.cellHeight + ascent),
 	}
 
 	d := &font.Drawer{

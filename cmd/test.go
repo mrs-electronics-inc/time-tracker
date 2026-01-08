@@ -11,6 +11,8 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 	"time-tracker/cmd/tui"
 	"time-tracker/config"
@@ -54,6 +56,9 @@ func init() {
 }
 
 func runTestMode(cmd *cobra.Command, args []string) error {
+	// Force color output even without TTY
+	lipgloss.SetColorProfile(termenv.TrueColor)
+
 	// Create render directory
 	if err := os.MkdirAll(renderDir, 0755); err != nil {
 		return fmt.Errorf("failed to create render directory: %w", err)

@@ -88,7 +88,7 @@ Returns the current TUI state including ANSI output and link to latest render.
 ## Default Configuration
 
 - **Port**: 8484
-- **Terminal size**: 120 columns × 30 rows (larger default for better visibility)
+- **Terminal size**: 240 columns × 60 rows (large default for AI agent visibility)
 - **Render cleanup**: Renders are kept for the lifetime of the server
 
 ## Usage
@@ -224,7 +224,7 @@ Embed Fira Code (OFL licensed) because:
 ### Integration
 
 - [ ] Wire up TUI model to HTTP handlers
-- [ ] Set default terminal size to 120×30
+- [ ] Set default terminal size to 240×60
 - [ ] Send initial render on first /render/latest.png request
 - [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
 - [ ] Add `input` recipe for sending actions (key, type, resize)

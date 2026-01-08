@@ -4,7 +4,7 @@ author: Addison Emig
 creation_date: 2026-01-06
 ---
 
-# Headless Subcommand
+# Headless Mode
 
 Add a `headless` subcommand that allows AI agents and automated tests to interact with the TUI programmatically. This enables automated testing and verification of TUI behavior without requiring a real terminal.
 
@@ -231,6 +231,6 @@ Embed Fira Code (OFL licensed) because:
 
 ### Documentation
 
-- [ ] Document headless subcommand in README
+- [ ] Document headless mode in README
 - [ ] Add example usage for AI agents
 - [ ] Update AGENTS.md with headless server workflow and new recipes (`just run-docker headless`, `just input`)

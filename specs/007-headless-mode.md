@@ -77,8 +77,8 @@ Returns the current TUI state including ANSI output and link to latest render.
 
 ```json
 {
-  "width": 120,
-  "height": 30,
+  "width": 160,
+  "height": 40,
   "mode": "list",
   "render_url": "/render/2026-01-06T10-45-32.123.png",
   "ansi": "\u001b[1;92mStart             End..."
@@ -167,11 +167,11 @@ The POST /input response includes both:
 
 This allows agents to choose the best approach for each verification.
 
-### Larger Default Terminal Size
+### Default Terminal Size
 
-Default size is 120×30 (vs typical 80×24) because:
-- Modern displays can show more content
-- Status bars and wide tables render better
+Default size is 160×40 (vs typical 80×24) because:
+- Large enough for status bars and wide tables to render properly
+- Small enough to catch layout issues that appear on smaller terminals
 - AI vision works better with larger, clearer images
 
 ### Render Retention
@@ -198,6 +198,7 @@ Embed Fira Code (OFL licensed) because:
 - [ ] Implement POST /input endpoint
 - [ ] Implement GET /render/latest redirect endpoint
 - [ ] Implement GET /render/{timestamp}.png endpoint
+- [ ] Return JSON error responses for invalid actions
 - [ ] Add tests for HTTP endpoints
 
 ### Input Handling
@@ -225,9 +226,9 @@ Embed Fira Code (OFL licensed) because:
 
 - [ ] Wire up TUI model to HTTP handlers
 - [ ] Set default terminal size to 160×40
-- [ ] Send initial render on first /render/latest.png request
+- [ ] Create initial render on server startup (so /render/latest works immediately)
 - [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
-- [ ] Add `input` recipe for sending actions (key, type, resize)
+- [ ] Add `input` recipe that wraps curl for sending actions (key, type, resize)
 
 ### Documentation
 

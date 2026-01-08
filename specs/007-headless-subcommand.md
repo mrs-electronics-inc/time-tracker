@@ -99,9 +99,6 @@ Returns the current TUI state including ANSI output and link to latest render.
 # Via just recipe (recommended for development)
 just run-docker headless
 
-# With custom port
-just run-docker headless --port 9000
-
 # Direct invocation (without Docker)
 time-tracker headless --port 8080
 ```

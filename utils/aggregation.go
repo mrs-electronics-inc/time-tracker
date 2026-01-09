@@ -6,10 +6,6 @@ import (
 	"time-tracker/models"
 )
 
-// Now is a function variable that returns the current time.
-// It can be overridden in tests to provide deterministic times.
-var Now = time.Now
-
 // ProjectDateEntry represents an aggregated group of time entries for a (project, date) combination
 type ProjectDateEntry struct {
 	Project     string
@@ -22,6 +18,9 @@ type ProjectDateEntry struct {
 // AggregateByProjectDate groups time entries by (project, date) and collects task descriptions.
 // It handles blank entries, running entries, and task deduplication.
 // Returns a slice sorted by date (ascending), then project name.
+//
+// Timezone Note: ProjectDateEntry.Date is parsed as UTC (entries are stored in UTC).
+// This ensures consistent aggregation. The display layer handles timezone conversion.
 func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 	// Map key: "YYYY-MM-DD:project"
 	aggregated := make(map[string]*ProjectDateEntry)
@@ -32,24 +31,21 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 			continue
 		}
 
-		// For running entries, use current time as end time for duration calculation
-		endTime := entry.End
+		// Skip running entries (entries without End time)
 		if entry.IsRunning() {
-			now := Now()
-			endTime = &now
+			continue
 		}
 
-		duration := time.Duration(0)
-		if endTime != nil {
-			duration = endTime.Sub(entry.Start)
-		}
+		// For completed entries, calculate duration
+		duration := entry.End.Sub(entry.Start)
 
 		// Extract date from the start time. We format to a string and parse it back
 		// to ensure ProjectDateEntry.Date matches the date string displayed in stats.
-		// This avoids timezone offset issues when truncating times.
+		// Entries are stored in UTC, so parse as UTC for consistent aggregation.
+		// The display layer (TUI/export) handles timezone conversion if needed.
 		dateStr := entry.Start.Format("2006-01-02")
 		key := dateStr + ":" + entry.Project
-		parsedDate, _ := time.Parse("2006-01-02", dateStr) // Safe: we just formatted this string
+		parsedDate, _ := time.Parse("2006-01-02", dateStr) // Safe: we just formatted this string, returns UTC
 
 		// Add to aggregation
 		if aggregated[key] == nil {

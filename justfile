@@ -26,12 +26,7 @@ build-docker:
 
 # Run time-tracker in Docker sandbox with any subcommand and flags
 run-docker *args:
-    #!/usr/bin/env bash
-    if [[ "$1" == "headless" ]]; then
-        docker run --rm -p 8484:8484 -v time-tracker_config:/root/.config time-tracker headless "${@:2}"
-    else
-        docker compose run --remove-orphans time-tracker {{ args }}
-    fi
+    docker compose run --remove-orphans -p 8484:8484 time-tracker {{ args }}
 
 # View the dev data file from the volume (for debugging)
 inspect-data:

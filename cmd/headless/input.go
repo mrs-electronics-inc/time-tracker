@@ -6,71 +6,59 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// ParseKeyMsg converts a key string to tea.KeyMsg
-// Supports formats like: "j", "enter", "ctrl+c", "shift+tab"
-func ParseKeyMsg(key string) tea.KeyMsg {
-	// Check for modifier combinations
-	if strings.Contains(key, "+") {
-		parts := strings.SplitN(key, "+", 2)
-		modifier := strings.ToLower(parts[0])
-		baseKey := strings.ToLower(parts[1])
+var specialKeys = map[string]tea.KeyType{
+	"enter": tea.KeyEnter, "return": tea.KeyEnter,
+	"esc": tea.KeyEscape, "escape": tea.KeyEscape,
+	"tab": tea.KeyTab, "backspace": tea.KeyBackspace, "delete": tea.KeyDelete,
+	"up": tea.KeyUp, "down": tea.KeyDown, "left": tea.KeyLeft, "right": tea.KeyRight,
+	"home": tea.KeyHome, "end": tea.KeyEnd,
+	"pgup": tea.KeyPgUp, "pageup": tea.KeyPgUp,
+	"pgdown": tea.KeyPgDown, "pagedown": tea.KeyPgDown,
+	"space":     tea.KeySpace,
+	"shift+tab": tea.KeyShiftTab,
+}
 
-		switch modifier {
-		case "ctrl":
-			return tea.KeyMsg{Type: tea.KeyCtrlA + tea.KeyType(baseKey[0]-'a')}
-		case "shift":
-			if baseKey == "tab" {
-				return tea.KeyMsg{Type: tea.KeyShiftTab}
+var ctrlKeys = map[byte]tea.KeyType{
+	'a': tea.KeyCtrlA, 'b': tea.KeyCtrlB, 'c': tea.KeyCtrlC, 'd': tea.KeyCtrlD,
+	'e': tea.KeyCtrlE, 'f': tea.KeyCtrlF, 'g': tea.KeyCtrlG, 'h': tea.KeyCtrlH,
+	'i': tea.KeyCtrlI, 'j': tea.KeyCtrlJ, 'k': tea.KeyCtrlK, 'l': tea.KeyCtrlL,
+	'm': tea.KeyCtrlM, 'n': tea.KeyCtrlN, 'o': tea.KeyCtrlO, 'p': tea.KeyCtrlP,
+	'q': tea.KeyCtrlQ, 'r': tea.KeyCtrlR, 's': tea.KeyCtrlS, 't': tea.KeyCtrlT,
+	'u': tea.KeyCtrlU, 'v': tea.KeyCtrlV, 'w': tea.KeyCtrlW, 'x': tea.KeyCtrlX,
+	'y': tea.KeyCtrlY, 'z': tea.KeyCtrlZ,
+}
+
+// ParseKeyMsg converts a key string to tea.KeyMsg
+// Supports formats like: "j", "enter", "ctrl+c", "shift+tab", "alt+x"
+func ParseKeyMsg(key string) tea.KeyMsg {
+	normalized := strings.ToLower(key)
+
+	if keyType, ok := specialKeys[normalized]; ok {
+		return tea.KeyMsg{Type: keyType}
+	}
+
+	if strings.HasPrefix(normalized, "ctrl+") {
+		baseKey := normalized[5:]
+		if len(baseKey) == 1 {
+			if keyType, ok := ctrlKeys[baseKey[0]]; ok {
+				return tea.KeyMsg{Type: keyType}
 			}
-			// Shift + letter = uppercase
-			if len(baseKey) == 1 {
-				return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{rune(strings.ToUpper(baseKey)[0])}}
-			}
-		case "alt":
-			msg := ParseKeyMsg(baseKey)
-			msg.Alt = true
-			return msg
 		}
 	}
 
-	// Special keys
-	switch strings.ToLower(key) {
-	case "enter", "return":
-		return tea.KeyMsg{Type: tea.KeyEnter}
-	case "esc", "escape":
-		return tea.KeyMsg{Type: tea.KeyEscape}
-	case "tab":
-		return tea.KeyMsg{Type: tea.KeyTab}
-	case "backspace":
-		return tea.KeyMsg{Type: tea.KeyBackspace}
-	case "delete":
-		return tea.KeyMsg{Type: tea.KeyDelete}
-	case "up":
-		return tea.KeyMsg{Type: tea.KeyUp}
-	case "down":
-		return tea.KeyMsg{Type: tea.KeyDown}
-	case "left":
-		return tea.KeyMsg{Type: tea.KeyLeft}
-	case "right":
-		return tea.KeyMsg{Type: tea.KeyRight}
-	case "home":
-		return tea.KeyMsg{Type: tea.KeyHome}
-	case "end":
-		return tea.KeyMsg{Type: tea.KeyEnd}
-	case "pgup", "pageup":
-		return tea.KeyMsg{Type: tea.KeyPgUp}
-	case "pgdown", "pagedown":
-		return tea.KeyMsg{Type: tea.KeyPgDown}
-	case "space":
-		return tea.KeyMsg{Type: tea.KeySpace}
+	if strings.HasPrefix(normalized, "shift+") {
+		baseKey := normalized[6:]
+		if len(baseKey) == 1 {
+			return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{rune(strings.ToUpper(baseKey)[0])}}
+		}
 	}
 
-	// Single character
-	if len(key) == 1 {
-		return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(key)}
+	if strings.HasPrefix(normalized, "alt+") {
+		msg := ParseKeyMsg(normalized[4:])
+		msg.Alt = true
+		return msg
 	}
 
-	// Unknown key - treat as runes
 	return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(key)}
 }
 

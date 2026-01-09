@@ -118,14 +118,14 @@ See specs/README.md for complete guidelines on the Specture System.
 For programmatic TUI interaction, use the headless server:
 
 ```bash
-# Start the headless server in Docker
-docker compose run --rm -d -p 8484:8484 time-tracker headless --bind 0.0.0.0
+# Start the headless server in Docker using just
+just run-docker headless --bind 0.0.0.0
 
-# Send keyboard input via curl
-curl -X POST localhost:8484/input -d '{"action": "key", "key": "j"}'
-curl -X POST localhost:8484/input -d '{"action": "key", "key": "enter"}'
-curl -X POST localhost:8484/input -d '{"action": "type", "text": "hello"}'
-curl -X POST localhost:8484/input -d '{"action": "resize", "rows": 40, "cols": 160}'
+# Send keyboard input using just
+just input key j
+just input key enter
+just input type hello
+just input resize 40 160
 
 # Get current state
 curl localhost:8484/state

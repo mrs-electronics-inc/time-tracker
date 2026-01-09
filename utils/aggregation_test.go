@@ -152,26 +152,21 @@ func TestAggregateByProjectDate(t *testing.T) {
 		}
 	})
 
-	t.Run("skip running entries for duration but include in list", func(t *testing.T) {
-		// Override Now() to return a fixed time for deterministic testing
-		originalNow := Now
-		defer func() { Now = originalNow }()
-
+	t.Run("skip running entries", func(t *testing.T) {
 		start := time.Date(2025, 1, 1, 9, 0, 0, 0, time.UTC)
-		fixedNow := time.Date(2025, 1, 1, 10, 30, 0, 0, time.UTC)
-		Now = func() time.Time { return fixedNow }
+		end := time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)
 
 		entries := []models.TimeEntry{
+			{Start: start, End: &end, Project: "P", Title: "Completed Task"},
 			{Start: start, End: nil, Project: "P", Title: "Running Task"},
 		}
 		result := AggregateByProjectDate(entries)
 		if len(result) != 1 {
-			t.Fatalf("expected 1 entry, got %d", len(result))
+			t.Fatalf("expected 1 entry (running excluded), got %d", len(result))
 		}
-		// Running entry should have a duration of 1.5 hours (10:30 - 9:00)
-		expectedDuration := 1*time.Hour + 30*time.Minute
-		if result[0].Duration != expectedDuration {
-			t.Errorf("expected %v duration for running entry, got %v", expectedDuration, result[0].Duration)
+		// Only the completed task should remain
+		if len(result[0].Tasks) != 1 || result[0].Tasks[0] != "Completed Task" {
+			t.Errorf("expected only 'Completed Task', got %v", result[0].Tasks)
 		}
 	})
 

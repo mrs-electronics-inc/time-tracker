@@ -3,10 +3,12 @@ package headless
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"image"
 	"image/color"
 	"image/png"
 	"sync"
+	"unicode/utf8"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -83,11 +85,13 @@ type Cell struct {
 
 // Renderer renders ANSI text to PNG
 type Renderer struct {
-	width    int // columns
-	height   int // rows
-	fontSize float64
-	cellW    int
-	cellH    int
+	width       int // columns
+	height      int // rows
+	fontSize    float64
+	cellW       int
+	cellH       int
+	regularFace font.Face
+	boldFace    font.Face
 }
 
 // NewRenderer creates a new renderer
@@ -95,19 +99,34 @@ func NewRenderer(cols, rows int) (*Renderer, error) {
 	if err := loadFonts(); err != nil {
 		return nil, err
 	}
+	if regularFont == nil || boldFont == nil {
+		return nil, errors.New("embedded fonts failed to load")
+	}
 
 	fontSize := 14.0
-	// Approximate cell dimensions for monospace font
 	cellW := int(fontSize * 0.6)
 	cellH := int(fontSize * 1.4)
 
-	return &Renderer{
+	r := &Renderer{
 		width:    cols,
 		height:   rows,
 		fontSize: fontSize,
 		cellW:    cellW,
 		cellH:    cellH,
-	}, nil
+	}
+
+	r.regularFace = truetype.NewFace(regularFont, &truetype.Options{
+		Size:    fontSize,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+	r.boldFace = truetype.NewFace(boldFont, &truetype.Options{
+		Size:    fontSize,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+
+	return r, nil
 }
 
 // parseANSI parses ANSI escape sequences and returns a grid of cells
@@ -148,54 +167,23 @@ func (rend *Renderer) parseANSI(ansi string) [][]Cell {
 			}
 		}
 
-		ch := rune(ansi[i])
+		ch, size := utf8.DecodeRuneInString(ansi[i:])
 		if ch == '\n' {
 			curX = 0
 			curY++
+			if curY >= rend.height {
+				break
+			}
 		} else if ch == '\r' {
 			curX = 0
-		} else if ch >= 0x80 {
-			// UTF-8 multi-byte character
-			utfRune, size := decodeUTF8(ansi[i:])
-			if curY < rend.height && curX < rend.width {
-				grid[curY][curX] = Cell{Rune: utfRune, FG: curFG, BG: curBG, Bold: curBold}
-				curX++
-			}
-			i += size
-			continue
-		} else if ch >= 32 {
-			if curY < rend.height && curX < rend.width {
-				grid[curY][curX] = Cell{Rune: ch, FG: curFG, BG: curBG, Bold: curBold}
-				curX++
-			}
+		} else if ch >= 32 && curY < rend.height && curX < rend.width {
+			grid[curY][curX] = Cell{Rune: ch, FG: curFG, BG: curBG, Bold: curBold}
+			curX++
 		}
-		i++
+		i += size
 	}
 
 	return grid
-}
-
-func decodeUTF8(s string) (rune, int) {
-	if len(s) == 0 {
-		return 0, 0
-	}
-	b := s[0]
-	if b < 0x80 {
-		return rune(b), 1
-	}
-	if b < 0xC0 {
-		return '?', 1
-	}
-	if b < 0xE0 && len(s) >= 2 {
-		return rune(b&0x1F)<<6 | rune(s[1]&0x3F), 2
-	}
-	if b < 0xF0 && len(s) >= 3 {
-		return rune(b&0x0F)<<12 | rune(s[1]&0x3F)<<6 | rune(s[2]&0x3F), 3
-	}
-	if len(s) >= 4 {
-		return rune(b&0x07)<<18 | rune(s[1]&0x3F)<<12 | rune(s[2]&0x3F)<<6 | rune(s[3]&0x3F), 4
-	}
-	return '?', 1
 }
 
 func (r *Renderer) parseSGR(seq string, fg, bg color.RGBA, bold bool) (color.RGBA, color.RGBA, bool) {
@@ -314,17 +302,10 @@ func (r *Renderer) Render(ansi string) ([]byte, error) {
 }
 
 func (r *Renderer) drawChar(img *image.RGBA, x, y int, cell Cell) {
-	f := regularFont
+	face := r.regularFace
 	if cell.Bold {
-		f = boldFont
+		face = r.boldFace
 	}
-
-	face := truetype.NewFace(f, &truetype.Options{
-		Size:    r.fontSize,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	})
-	defer face.Close()
 
 	d := &font.Drawer{
 		Dst:  img,
@@ -332,10 +313,19 @@ func (r *Renderer) drawChar(img *image.RGBA, x, y int, cell Cell) {
 		Face: face,
 	}
 
-	// Position: baseline is at bottom of cell
 	d.Dot = fixed.Point26_6{
 		X: fixed.I(x),
 		Y: fixed.I(y + r.cellH - 3),
 	}
 	d.DrawString(string(cell.Rune))
+}
+
+// Close releases font resources
+func (r *Renderer) Close() {
+	if r.regularFace != nil {
+		r.regularFace.Close()
+	}
+	if r.boldFace != nil {
+		r.boldFace.Close()
+	}
 }

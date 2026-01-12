@@ -66,12 +66,16 @@ type Model struct {
 	StartMode  *Mode
 	HelpMode   *Mode
 	StatsMode  *Mode
-	NewMode    *Mode
-	EditMode   *Mode
-	ResumeMode *Mode
+	NewMode     *Mode
+	EditMode    *Mode
+	ResumeMode  *Mode
+	ConfirmMode *Mode
 
 	// Form state for new/edit/resume modes
 	FormState FormState
+
+	// Confirm state for delete confirmation
+	ConfirmState ConfirmState
 }
 
 // LoadEntries loads time entries from storage

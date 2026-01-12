@@ -52,7 +52,7 @@ These shortcuts apply to the list mode
 
 ### Delete Confirmation Modal
 
-- [ ] Implement `d` shortcut with delete confirmation modal dialog
+- [x] Implement `d` shortcut with delete confirmation modal dialog
   - Create `ConfirmMode` for the modal
   - Shows entry details and Yes/No buttons
 

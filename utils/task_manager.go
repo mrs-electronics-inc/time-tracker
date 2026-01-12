@@ -130,3 +130,21 @@ func (tm *TaskManager) UpdateEntry(idx int, project, title string, startTime tim
 
 	return tm.storage.Save(entries)
 }
+
+// DeleteEntry converts an entry to a blank (gap) entry
+func (tm *TaskManager) DeleteEntry(idx int) error {
+	entries, err := tm.storage.Load()
+	if err != nil {
+		return err
+	}
+
+	if idx < 0 || idx >= len(entries) {
+		return fmt.Errorf("invalid entry index: %d", idx)
+	}
+
+	// Convert to blank entry
+	entries[idx].Project = ""
+	entries[idx].Title = ""
+
+	return tm.storage.Save(entries)
+}

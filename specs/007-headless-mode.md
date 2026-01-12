@@ -1,5 +1,5 @@
 ---
-status: draft
+status: completed
 author: Addison Emig
 creation_date: 2026-01-08
 ---
@@ -76,11 +76,11 @@ Returns current state (same format as `POST /input` response):
 
 ## Configuration
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--bind` | 127.0.0.1 | Bind address (localhost only by default) |
-| `--port` | 8484 | Port number |
-| `--max-renders` | 100 | Max renders to keep in memory (FIFO eviction) |
+| Flag            | Default   | Description                                   |
+| --------------- | --------- | --------------------------------------------- |
+| `--bind`        | 127.0.0.1 | Bind address (localhost only by default)      |
+| `--port`        | 8484      | Port number                                   |
+| `--max-renders` | 100       | Max renders to keep in memory (FIFO eviction) |
 
 Default terminal size: 160×40
 
@@ -127,24 +127,24 @@ Default/background color: `#000000` (pure black)
 
 ANSI 16-color palette:
 
-| Index | Name | Hex |
-|-------|------|-----|
-| 0 | black | `#1D1F21` |
-| 1 | red | `#CC6666` |
-| 2 | green | `#B5BD68` |
-| 3 | yellow | `#F0C674` |
-| 4 | blue | `#81A2BE` |
-| 5 | magenta | `#B294BB` |
-| 6 | cyan | `#8ABEB7` |
-| 7 | white | `#C5C8C6` |
-| 8 | bright black | `#666666` |
-| 9 | bright red | `#D54E53` |
-| 10 | bright green | `#B9CA4A` |
-| 11 | bright yellow | `#E7C547` |
-| 12 | bright blue | `#7AA6DA` |
-| 13 | bright magenta | `#C397D8` |
-| 14 | bright cyan | `#70C0B1` |
-| 15 | bright white | `#EAEAEA` |
+| Index | Name           | Hex       |
+| ----- | -------------- | --------- |
+| 0     | black          | `#1D1F21` |
+| 1     | red            | `#CC6666` |
+| 2     | green          | `#B5BD68` |
+| 3     | yellow         | `#F0C674` |
+| 4     | blue           | `#81A2BE` |
+| 5     | magenta        | `#B294BB` |
+| 6     | cyan           | `#8ABEB7` |
+| 7     | white          | `#C5C8C6` |
+| 8     | bright black   | `#666666` |
+| 9     | bright red     | `#D54E53` |
+| 10    | bright green   | `#B9CA4A` |
+| 11    | bright yellow  | `#E7C547` |
+| 12    | bright blue    | `#7AA6DA` |
+| 13    | bright magenta | `#C397D8` |
+| 14    | bright cyan    | `#70C0B1` |
+| 15    | bright white   | `#EAEAEA` |
 
 ## Task List
 

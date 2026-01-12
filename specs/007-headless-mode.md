@@ -150,50 +150,50 @@ ANSI 16-color palette:
 
 ### HTTP Server Foundation
 
-- [ ] Add `headless` subcommand with HTTP server
-- [ ] Add `--port` flag (default: 8484)
-- [ ] Add `--bind` flag (default: 127.0.0.1)
-- [ ] Add `--max-renders` flag (default: 100)
-- [ ] Implement `POST /input` endpoint
-- [ ] Implement `GET /render/latest` redirect endpoint
-- [ ] Implement `GET /render/{timestamp}.png` endpoint
-- [ ] Return JSON error responses for invalid actions
-- [ ] Add tests for HTTP endpoints
+- [x] Add `headless` subcommand with HTTP server
+- [x] Add `--port` flag (default: 8484)
+- [x] Add `--bind` flag (default: 127.0.0.1)
+- [x] Add `--max-renders` flag (default: 100)
+- [x] Implement `POST /input` endpoint
+- [x] Implement `GET /render/latest` redirect endpoint
+- [x] Implement `GET /render/{timestamp}.png` endpoint
+- [x] Return JSON error responses for invalid actions
+- [x] Add tests for HTTP endpoints
 
 ### Input Handling
 
-- [ ] Convert `key` actions to `tea.KeyMsg`
-- [ ] Convert `type` actions to sequence of `tea.KeyMsg`
-- [ ] Handle `resize` actions via `tea.WindowSizeMsg`
-- [ ] Add tests for action conversion
+- [x] Convert `key` actions to `tea.KeyMsg`
+- [x] Convert `type` actions to sequence of `tea.KeyMsg`
+- [x] Handle `resize` actions via `tea.WindowSizeMsg`
+- [x] Add tests for action conversion
 
 ### Rendering
 
-- [ ] Embed FiraCode Nerd Font (Regular and Bold) for powerline symbol support
-- [ ] Implement ANSI sequence parser
-- [ ] Implement PNG renderer with color palette from spec
-- [ ] Store renders in memory with timestamp keys
-- [ ] Implement render eviction when max limit reached (FIFO)
-- [ ] Add tests for rendering
+- [x] Embed FiraCode Nerd Font (Regular and Bold) for powerline symbol support
+- [x] Implement ANSI sequence parser
+- [x] Implement PNG renderer with color palette from spec
+- [x] Store renders in memory with timestamp keys
+- [x] Implement render eviction when max limit reached (FIFO)
+- [x] Add tests for rendering
 
 ### Response Format
 
-- [ ] Include `render_url` in POST response
-- [ ] Include `ansi` (raw ANSI string) in POST response
-- [ ] Implement `GET /state` endpoint with render_url and ansi
+- [x] Include `render_url` in POST response
+- [x] Include `ansi` (raw ANSI string) in POST response
+- [x] Implement `GET /state` endpoint with render_url and ansi
 
 ### Integration
 
-- [ ] Force ANSI color output via `lipgloss.SetColorProfile(termenv.ANSI)` (prevents auto-detection disabling colors for non-tty)
-- [ ] Wire up TUI model to HTTP handlers
-- [ ] Set default terminal size to 160×40
-- [ ] Create initial render on server startup (so /render/latest works immediately)
-- [ ] Update `run-docker` recipe to bind port 8484 for headless subcommand
-- [ ] Add `input` recipe that wraps curl for sending actions (key, type, resize)
+- [x] Force ANSI color output via `lipgloss.SetColorProfile(termenv.ANSI)` (prevents auto-detection disabling colors for non-tty)
+- [x] Wire up TUI model to HTTP handlers
+- [x] Set default terminal size to 160×40
+- [x] Create initial render on server startup (so /render/latest works immediately)
+- [x] Update `run-docker` recipe to bind port 8484 for headless subcommand
+- [x] Add `input` recipe that wraps curl for sending actions (key, type, resize)
 
 ### Documentation
 
-- [ ] Document headless mode in README
-- [ ] Document security considerations (localhost binding, no auth, local dev only)
-- [ ] Add example usage for AI agents
-- [ ] Update AGENTS.md with headless server workflow and new recipes (`just run-docker headless`, `just input`)
+- [x] Document headless mode in README
+- [x] Document security considerations (localhost binding, no auth, local dev only)
+- [x] Add example usage for AI agents
+- [x] Update AGENTS.md with headless server workflow and new recipes (`just run-docker headless`, `just input`)

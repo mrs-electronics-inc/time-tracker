@@ -22,15 +22,19 @@ time-tracker headless --bind 0.0.0.0   # Expose to network (use with caution)
 
 Send an action, receive updated state.
 
+**Request:**
+
 ```json
-// Request
 {"action": "key", "key": "j"}
 {"action": "key", "key": "enter"}
 {"action": "key", "key": "ctrl+c"}
 {"action": "type", "text": "hello world"}
 {"action": "resize", "rows": 24, "cols": 80}
+```
 
-// Response
+**Response:**
+
+```json
 {
   "width": 160,
   "height": 40,
@@ -65,7 +69,7 @@ Returns current state (same format as `POST /input` response):
   "width": 160,
   "height": 40,
   "mode": "list",
-  "render_url": "/render/2026-01-08T10-45-32.123.png",
+  "render_url": "/render/2026-01-08T10-45-32-123.png",
   "ansi": "\u001b[1;92mStart..."
 }
 ```

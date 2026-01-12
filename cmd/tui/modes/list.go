@@ -14,13 +14,14 @@ import (
 var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
+		{Keys: "n", Label: "NEW", Description: "New entry"},
+		{Keys: "s", Label: "STOP", Description: "Stop running entry"},
+		{Keys: "r", Label: "RESUME", Description: "Resume entry"},
+		{Keys: "e", Label: "EDIT", Description: "Edit entry"},
+		{Keys: "d", Label: "DELETE", Description: "Delete entry"},
 		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
-		{Keys: "k / ↑", Label: "UP", Description: "Move up"},
-		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
-		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
-		{Keys: "s", Label: "START/STOP", Description: "Start/stop entry"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
-		{Keys: "q / Esc", Label: "QUIT", Description: "Quit"},
+		{Keys: "q", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {

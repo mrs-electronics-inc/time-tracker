@@ -58,5 +58,5 @@ These shortcuts apply to the list mode
 
 ### Polish & Testing
 
-- [ ] Update KeyBindings in list.go to show all shortcuts (n, s, r, e, d)
-- [ ] Add tests for new shortcuts
+- [x] Update KeyBindings in list.go to show all shortcuts (n, s, r, e, d)
+- [x] Add tests for new shortcuts

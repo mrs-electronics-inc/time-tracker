@@ -112,3 +112,21 @@ func (tm *TaskManager) ListEntries() ([]models.TimeEntry, error) {
 
 	return entries, nil
 }
+
+// UpdateEntry updates an existing entry's project, title, and start time
+func (tm *TaskManager) UpdateEntry(idx int, project, title string, startTime time.Time) error {
+	entries, err := tm.storage.Load()
+	if err != nil {
+		return err
+	}
+
+	if idx < 0 || idx >= len(entries) {
+		return fmt.Errorf("invalid entry index: %d", idx)
+	}
+
+	entries[idx].Project = project
+	entries[idx].Title = title
+	entries[idx].Start = startTime
+
+	return tm.storage.Save(entries)
+}

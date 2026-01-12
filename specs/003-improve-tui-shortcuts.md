@@ -34,13 +34,13 @@ These shortcuts apply to the list mode
 
 ### Unified Form Infrastructure
 
-- [ ] Create shared form helpers (in start.go or new file)
+- [x] Create shared form helpers (in start.go or new file)
   - `renderFormContent(m *Model, title string)` - renders form with given title
   - `handleFormSubmit(m *Model, mode string)` - handles submit for new/edit/resume
   - `openNewMode(m *Model)` - setup and open new entry form
   - `openEditMode(m *Model, entry TimeEntry)` - setup and open edit form
   - `openResumeMode(m *Model, entry TimeEntry)` - setup and open resume form
-- [ ] Create `NewMode`, `EditMode`, `ResumeMode` using shared helpers
+- [x] Create `NewMode`, `EditMode`, `ResumeMode` using shared helpers
   - Keep `StartMode` for backward compatibility or remove if not used
 
 ### Implement List Shortcuts

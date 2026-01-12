@@ -53,10 +53,29 @@ var ListMode = &Mode{
 			m.Status = ""
 			return m, nil
 
+		case "n":
+			openNewMode(m)
+			return m, nil
+
+		case "r":
+			if len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
+				entry := m.Entries[m.SelectedIdx]
+				if !entry.IsBlank() {
+					openResumeMode(m, entry)
+				}
+			}
+			return m, nil
+
+		case "e":
+			if len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
+				entry := m.Entries[m.SelectedIdx]
+				openEditMode(m, entry, m.SelectedIdx)
+			}
+			return m, nil
+
 		case "s":
-			if len(m.Entries) == 0 {
-				openStartModeBlank(m)
-			} else if m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
+			// Stop only works on running entries
+			if len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
 				entry := m.Entries[m.SelectedIdx]
 				if entry.IsRunning() {
 					if _, err := m.TaskManager.StopEntry(); err != nil {
@@ -64,13 +83,9 @@ var ListMode = &Mode{
 					} else {
 						m.Status = "Entry stopped"
 					}
-				} else if !entry.IsBlank() {
-					openStartMode(m, entry)
-				} else {
-					openStartModeBlank(m)
-				}
-				if err := m.LoadEntries(); err != nil {
-					m.Err = err
+					if err := m.LoadEntries(); err != nil {
+						m.Err = err
+					}
 				}
 			}
 			return m, nil

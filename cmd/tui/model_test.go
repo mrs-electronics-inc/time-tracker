@@ -47,21 +47,21 @@ func TestWindowSizeUpdate(t *testing.T) {
 	}
 }
 
-// TestModeTransitionFromListToStart verifies navigation to start mode
-func TestModeTransitionFromListToStart(t *testing.T) {
+// TestModeTransitionFromListToNew verifies navigation to new mode
+func TestModeTransitionFromListToNew(t *testing.T) {
 	m := newTestModel()
 	// Load no entries first
 	if err := m.LoadEntries(); err != nil {
 		t.Fatalf("Failed to load entries: %v", err)
 	}
 
-	// Simulate 's' key in list mode (should open start mode blank)
-	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}}
+	// Simulate 'n' key in list mode (should open new mode)
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}}
 	updated, _ := m.Update(msg)
 	model := updated.(*Model)
 
-	if model.CurrentMode != model.StartMode {
-		t.Error("Expected mode to switch to start mode after 's' key")
+	if model.CurrentMode != model.NewMode {
+		t.Error("Expected mode to switch to new mode after 'n' key")
 	}
 }
 

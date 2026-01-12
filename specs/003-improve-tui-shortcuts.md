@@ -45,10 +45,10 @@ These shortcuts apply to the list mode
 
 ### Implement List Shortcuts
 
-- [ ] Implement `n` shortcut in `list.go` - calls `openNewMode()`
-- [ ] Implement `r` shortcut in `list.go` - calls `openResumeMode()`, disabled on blank entries
-- [ ] Implement `e` shortcut in `list.go` - calls `openEditMode()`
-- [ ] Refactor `s` shortcut - only stop running entries, does nothing on blank/non-running
+- [x] Implement `n` shortcut in `list.go` - calls `openNewMode()`
+- [x] Implement `r` shortcut in `list.go` - calls `openResumeMode()`, disabled on blank entries
+- [x] Implement `e` shortcut in `list.go` - calls `openEditMode()`
+- [x] Refactor `s` shortcut - only stop running entries, does nothing on blank/non-running
 
 ### Delete Confirmation Modal
 

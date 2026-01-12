@@ -105,13 +105,20 @@ This keeps the spec file as a living document that tracks implementation progres
 - Rule: Spec files under `specs/` are long-term design documents. Do NOT record ephemeral or per-session choices (e.g., "user chose 1B") directly inside `specs/` files.
 
 - Rule: Before editing any `specs/` file the agent MUST ask for confirmation. State the exact file path and the change summary. Example prompt:
-  - I plan to update `specs/001-new-data-format` to change the 'Blank entries representation' line to 'decision pending'. Reply 'yes' to apply.
+   - I plan to update `specs/001-new-data-format` to change the 'Blank entries representation' line to 'decision pending'. Reply 'yes' to apply.
 
 - Rule: After receiving approval to edit a `specs/` file, present the staged files and a one-line commit message for explicit confirmation BEFORE committing. Do not proceed without this second confirmation.
 
 - Rule: When in doubt about whether something is a transient implementation choice or a long-term spec decision, ask the user.
 
 See specs/README.md for complete guidelines on the Specture System.
+
+### Spec Formatting Standards
+
+- **Task lists**: Group related tasks under descriptive section headers (e.g., "Unified Form Infrastructure", "Implement List Shortcuts")
+- **Code formatting**: All code names (functions, types, files, variables) must be in backticks:
+  - `openNewMode()`, `EditMode`, `list.go`, `SelectedIdx`
+  - Even in task descriptions and bullets
 
 ## Headless Server
 

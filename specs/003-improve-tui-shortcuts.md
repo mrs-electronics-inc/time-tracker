@@ -1,5 +1,5 @@
 ---
-status: draft
+status: in-progress
 author: Addison Emig, Bennett Moore, Jason Luke
 creation_date: 2025-12-18
 ---
@@ -13,21 +13,50 @@ The current start/stop shortcut in the TUI is confusing. It does different thing
 These shortcuts apply to the list mode
 
 - `n` - new
-  - Open the **start entry form** with empty project and task
+  - Open the unified form in "new" mode with empty project and task
+  - User selects start time
 - `s` - stop
-  - Keep as-is
-  - Does nothing on a blank entry
-- `r` - resume (replaces start)
-  - Duplicate selected project and task into new task
-  - Use the **start entry form**, so the user can select the start time
-  - If used on a blank entry, it acts just the same as the **new** shortcut
+  - Stop the currently running entry
+  - Does nothing on blank entries or non-running entries
+- `r` - resume
+  - Open the unified form in "resume" mode with project and task pre-filled from selected entry
+  - User selects start time
+  - Disabled on blank entries (does nothing)
 - `e` - edit
-  - Go to **edit entry form** and allow user to edit any of the fields
-  - The **edit entry form** will look the exact same as the **start entry form**, just with a different title (ideally it will be the exact same form behind the scenes)
+  - Open the unified form in "edit" mode with all fields pre-filled from selected entry
+  - User can edit project, task, and start time (not end time)
+  - Note: End time is not editable because our duration model derives it from the next entry's start time. Editing end time would require complex logic (inserting blanks or adjusting next entry). Keep it simple for now.
 - `d` - delete
-  - Make the selected entry a blank entry
-  - There should be a confirmation dialog to protect against accidental deletions
+  - Show a confirmation modal dialog
+  - On confirmation, make the selected entry a blank entry (gap)
 
 ## Task List
 
-TBD
+### Unified Form Infrastructure
+
+- [ ] Create shared form helpers (in start.go or new file)
+  - `renderFormContent(m *Model, title string)` - renders form with given title
+  - `handleFormSubmit(m *Model, mode string)` - handles submit for new/edit/resume
+  - `openNewMode(m *Model)` - setup and open new entry form
+  - `openEditMode(m *Model, entry TimeEntry)` - setup and open edit form
+  - `openResumeMode(m *Model, entry TimeEntry)` - setup and open resume form
+- [ ] Create `NewMode`, `EditMode`, `ResumeMode` using shared helpers
+  - Keep `StartMode` for backward compatibility or remove if not used
+
+### Implement List Shortcuts
+
+- [ ] Implement `n` shortcut in `list.go` - calls `openNewMode()`
+- [ ] Implement `r` shortcut in `list.go` - calls `openResumeMode()`, disabled on blank entries
+- [ ] Implement `e` shortcut in `list.go` - calls `openEditMode()`
+- [ ] Refactor `s` shortcut - only stop running entries, does nothing on blank/non-running
+
+### Delete Confirmation Modal
+
+- [ ] Implement `d` shortcut with delete confirmation modal dialog
+  - Create `ConfirmMode` for the modal
+  - Shows entry details and Yes/No buttons
+
+### Polish & Testing
+
+- [ ] Update KeyBindings in list.go to show all shortcuts (n, s, r, e, d)
+- [ ] Add tests for new shortcuts

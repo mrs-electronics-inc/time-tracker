@@ -180,7 +180,7 @@ func renderTableHeader(m *Model) string {
 func renderTableRows(m *Model, maxHeight int) string {
 	if len(m.Entries) == 0 {
 		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
-		msg := "No time entries found. Press 's' to start tracking.\n"
+		msg := "No time entries found. Press 'n' to start tracking.\n"
 		return emptyStyle.Render(msg)
 	}
 

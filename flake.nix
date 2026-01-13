@@ -17,10 +17,10 @@
         packages.default = pkgs.buildGoModule {
           inherit pname version;
           src = self;
-          
+
           # vendorHash locks Go module dependencies
-          vendorHash = "sha256-2caz5wagKxYEBWkHpkdY3rv/K7Vvpqbt0DFK86N5oeY=";
-          
+          vendorHash = "sha256-kx3AtANh/lqX6jT2d9RC+SiDS8uxiownH0K3moSBgfA=";
+
           meta = with pkgs.lib; {
             description = "A simple CLI tool to track time spent on different projects and tasks";
             homepage = "https://github.com/mrs-electronics-inc/time-tracker";

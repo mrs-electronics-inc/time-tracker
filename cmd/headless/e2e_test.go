@@ -388,6 +388,54 @@ func TestE2E_FormSubmitNewEntry(t *testing.T) {
 	}
 }
 
+// TestE2E_EditBlankEntry tests editing a blank entry to change its start time
+func TestE2E_EditBlankEntry(t *testing.T) {
+	server := setupTestServerWithData(t)
+
+	// Stop the running entry to create a blank entry
+	sendKey(t, server, "s")
+
+	// Press 'e' to open edit mode on the blank entry
+	state := sendKey(t, server, "e")
+	if state.Mode != "edit" {
+		t.Errorf("Expected mode 'edit' after 'e' key on blank entry, got %q", state.Mode)
+	}
+
+	// ANSI output should show edit form
+	if !strings.Contains(state.ANSI, "Edit Entry") {
+		t.Error("Expected 'Edit Entry' in ANSI output")
+	}
+
+	// Project and title fields should be empty for blank entry
+	// Tab to hour field (tab 2 times: project -> title -> hour)
+	sendKey(t, server, "tab")
+	sendKey(t, server, "tab")
+
+	// Clear and type new hour
+	sendKey(t, server, "backspace")
+	sendKey(t, server, "backspace")
+	// Type new hour
+	for _, c := range "14" {
+		body, _ := json.Marshal(InputRequest{Action: "type", Text: string(c)})
+		req := httptest.NewRequest(http.MethodPost, "/input", bytes.NewReader(body))
+		w := httptest.NewRecorder()
+		server.handleInput(w, req)
+	}
+
+	// Submit
+	state = sendKey(t, server, "enter")
+
+	// Should be back in list mode
+	if state.Mode != "list" {
+		t.Errorf("Expected mode 'list' after submit, got %q", state.Mode)
+	}
+
+	// Status should indicate update
+	if !strings.Contains(strings.ToLower(state.ANSI), "updated") {
+		t.Error("Expected 'updated' in status message")
+	}
+}
+
 // TestE2E_StatusBarShowsAllShortcuts tests status bar displays all shortcuts
 func TestE2E_StatusBarShowsAllShortcuts(t *testing.T) {
 	server := setupTestServer(t)

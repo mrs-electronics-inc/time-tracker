@@ -126,7 +126,9 @@ func handleFormSubmit(m *Model, formMode FormMode) (*Model, tea.Cmd) {
 	project := m.Inputs[0].Value()
 	title := m.Inputs[1].Value()
 
-	if project == "" || title == "" {
+	// For new/resume modes, require project and title
+	// For edit mode, allow empty values (to create blank entries/gaps)
+	if (formMode == FormModeNew || formMode == FormModeResume) && (project == "" || title == "") {
 		m.Status = "Project and title are required"
 		return m, nil
 	}

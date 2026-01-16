@@ -85,7 +85,8 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 
 // parseFormTime parses hour and minute from form inputs
 // Returns the parsed time on today (or yesterday if time is in the future)
-func parseFormTime(m *Model) (time.Time, error) {
+// If baseDate is provided, uses that as the date instead of today
+func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
 	hourStr := m.Inputs[2].Value()
 	minuteStr := m.Inputs[3].Value()
 
@@ -107,9 +108,14 @@ func parseFormTime(m *Model) (time.Time, error) {
 	now := time.Now()
 	date := now
 
-	// If time is in the future, assume yesterday
-	if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
-		date = now.AddDate(0, 0, -1)
+	// If baseDate provided (edit mode), use its date
+	if baseDate != nil {
+		date = *baseDate
+	} else {
+		// If time is in the future, assume yesterday
+		if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
+			date = now.AddDate(0, 0, -1)
+		}
 	}
 
 	return time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location()), nil
@@ -125,7 +131,14 @@ func handleFormSubmit(m *Model, formMode FormMode) (*Model, tea.Cmd) {
 		return m, nil
 	}
 
-	startTime, err := parseFormTime(m)
+	// When editing, preserve the original entry's date
+	var baseDate *time.Time
+	if formMode == FormModeEdit && m.FormState.EditingIdx < len(m.Entries) {
+		originalDate := m.Entries[m.FormState.EditingIdx].Start
+		baseDate = &originalDate
+	}
+
+	startTime, err := parseFormTime(m, baseDate)
 	if err != nil {
 		m.Status = "Error: " + err.Error()
 		return m, nil
@@ -252,8 +265,8 @@ var formKeyBindings = []KeyBinding{
 
 // NewMode is the new entry form mode
 var NewMode = &Mode{
-	Name:        "new",
-	KeyBindings: formKeyBindings,
+	Name:         "new",
+	KeyBindings:  formKeyBindings,
 	HandleKeyMsg: createFormKeyHandler(FormModeNew),
 	RenderContent: func(m *Model, availableHeight int) string {
 		return renderFormContent(m, "New Entry", availableHeight)
@@ -262,8 +275,8 @@ var NewMode = &Mode{
 
 // EditMode is the edit entry form mode
 var EditMode = &Mode{
-	Name:        "edit",
-	KeyBindings: formKeyBindings,
+	Name:         "edit",
+	KeyBindings:  formKeyBindings,
 	HandleKeyMsg: createFormKeyHandler(FormModeEdit),
 	RenderContent: func(m *Model, availableHeight int) string {
 		return renderFormContent(m, "Edit Entry", availableHeight)
@@ -272,8 +285,8 @@ var EditMode = &Mode{
 
 // ResumeMode is the resume entry form mode
 var ResumeMode = &Mode{
-	Name:        "resume",
-	KeyBindings: formKeyBindings,
+	Name:         "resume",
+	KeyBindings:  formKeyBindings,
 	HandleKeyMsg: createFormKeyHandler(FormModeResume),
 	RenderContent: func(m *Model, availableHeight int) string {
 		return renderFormContent(m, "Resume Entry", availableHeight)

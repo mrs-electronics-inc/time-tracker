@@ -197,46 +197,13 @@ func TestE2E_ResumeShortcut(t *testing.T) {
 
 // TestE2E_ResumeShortcutDisabledOnBlank tests 'r' does nothing on blank entries
 func TestE2E_ResumeShortcutDisabledOnBlank(t *testing.T) {
-	storage := utils.NewMemoryStorage()
-	tm := utils.NewTaskManager(storage)
+	server := setupTestServerWithData(t)
 
-	// Create an entry and stop it to get a blank
-	tm.StartEntryAt("test", "task", time.Now().Add(-1*time.Hour))
-	tm.StopEntry()
-
-	model := tui.NewModel(storage, tm)
-	model.LoadEntries()
-
-	server := NewServer(100)
-	server.model = model
-
-	// Set window size and create renderer
-	server.width = 160
-	server.height = 40
-
-	var err error
-	server.renderer, err = NewRenderer(server.width, server.height)
-	if err != nil {
-		t.Fatalf("Failed to create renderer: %v", err)
-	}
-
-	// Send window size to model
-	updated, _ := model.Update(tea.WindowSizeMsg{Width: server.width, Height: server.height})
-	server.model = updated.(*tui.Model)
-
-	// Generate initial render
-	if err := server.updateRender(); err != nil {
-		t.Fatalf("Failed to update render: %v", err)
-	}
-
-	// Go to the blank entry (last one)
-	state := getState(t, server)
-	if state.Mode != "list" {
-		t.Fatalf("Expected initial mode 'list', got %q", state.Mode)
-	}
+	// Stop the running entry to create a blank entry at the end
+	sendKey(t, server, "s")
 
 	// Press 'r' on the blank entry - should stay in list mode
-	state = sendKey(t, server, "r")
+	state := sendKey(t, server, "r")
 	if state.Mode != "list" {
 		t.Errorf("Expected to stay in 'list' mode on blank entry, got %q", state.Mode)
 	}
@@ -313,7 +280,7 @@ func TestE2E_DeleteConfirm(t *testing.T) {
 
 	// Status should indicate deletion
 	if !strings.Contains(state.ANSI, "deleted") {
-		t.Log("Warning: Expected 'deleted' in status message")
+		t.Errorf("Expected 'deleted' in status message")
 	}
 }
 
@@ -324,7 +291,7 @@ func TestE2E_StopShortcut(t *testing.T) {
 	// Currently selected entry is running (most recent)
 	state := getState(t, server)
 	if !strings.Contains(state.ANSI, "running") {
-		t.Log("Selected entry should be running")
+		t.Errorf("Selected entry should be running")
 	}
 
 	// Press 's' to stop
@@ -355,9 +322,6 @@ func TestE2E_StopShortcutNoOpOnNonRunning(t *testing.T) {
 	if state.Mode != "list" {
 		t.Errorf("Expected mode 'list', got %q", state.Mode)
 	}
-
-	// Should not show "stopped" for a non-running entry
-	// The status should be empty or unchanged
 }
 
 // TestE2E_KeyboardNavigation tests navigation shortcuts work

@@ -76,11 +76,7 @@ var ListMode = &Mode{
 
 		case "d":
 			if len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
-				entry := m.Entries[m.SelectedIdx]
-				// Only allow delete on non-blank entries
-				if !entry.IsBlank() {
-					openConfirmDelete(m, m.SelectedIdx)
-				}
+				openConfirmDelete(m, m.SelectedIdx)
 			}
 			return m, nil
 

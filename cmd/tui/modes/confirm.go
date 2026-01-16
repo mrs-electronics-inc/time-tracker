@@ -60,20 +60,37 @@ var ConfirmMode = &Mode{
 		warningStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("11")).Bold(true)
 
 		var content strings.Builder
-		content.WriteString(titleStyle.Render("Delete Entry?") + "\n\n")
+		// Determine if this is a blank entry
+		isBlank := entry.IsBlank()
 
-		// Entry details
-		content.WriteString(labelStyle.Render("Project: ") + valueStyle.Render(entry.Project) + "\n")
-		content.WriteString(labelStyle.Render("Task: ") + valueStyle.Render(entry.Title) + "\n")
+		if isBlank {
+			content.WriteString(titleStyle.Render("Remove Gap?") + "\n\n")
+		} else {
+			content.WriteString(titleStyle.Render("Delete Entry?") + "\n\n")
+		}
+
+		// Entry details (skip for blank entries)
+		if !isBlank {
+			content.WriteString(labelStyle.Render("Project: ") + valueStyle.Render(entry.Project) + "\n")
+			content.WriteString(labelStyle.Render("Task: ") + valueStyle.Render(entry.Title) + "\n")
+		}
 		content.WriteString(labelStyle.Render("Start: ") + valueStyle.Render(entry.Start.Format("2006-01-02 15:04")) + "\n")
 		if entry.End != nil {
 			content.WriteString(labelStyle.Render("End: ") + valueStyle.Render(entry.End.Format("2006-01-02 15:04")) + "\n")
-		} else {
+		} else if !isBlank {
 			content.WriteString(labelStyle.Render("End: ") + valueStyle.Render("running") + "\n")
 		}
-		content.WriteString(labelStyle.Render("Duration: ") + valueStyle.Render(utils.FormatDuration(entry.Duration())) + "\n\n")
+		if !isBlank {
+			content.WriteString(labelStyle.Render("Duration: ") + valueStyle.Render(utils.FormatDuration(entry.Duration())) + "\n\n")
+		} else {
+			content.WriteString("\n")
+		}
 
-		content.WriteString(warningStyle.Render("This will convert the entry to a gap.") + "\n\n")
+		if isBlank {
+			content.WriteString(warningStyle.Render("This will remove the gap.") + "\n\n")
+		} else {
+			content.WriteString(warningStyle.Render("This will convert the entry to a gap.") + "\n\n")
+		}
 		content.WriteString(fmt.Sprintf("Press %s to confirm, %s to cancel\n",
 			lipgloss.NewStyle().Bold(true).Render("y"),
 			lipgloss.NewStyle().Bold(true).Render("n")))

@@ -14,17 +14,21 @@ import (
 var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
+		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
 		{Keys: "n", Label: "NEW", Description: "New entry"},
 		{Keys: "s", Label: "STOP", Description: "Stop running entry"},
 		{Keys: "r", Label: "RESUME", Description: "Resume entry"},
 		{Keys: "e", Label: "EDIT", Description: "Edit entry"},
 		{Keys: "d", Label: "DELETE", Description: "Delete entry"},
-		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
 		{Keys: "q", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
+		case "tab":
+			m.SwitchMode(m.StatsMode)
+			return m, nil
+
 		case "n":
 			openNewMode(m)
 			return m, nil
@@ -66,10 +70,6 @@ var ListMode = &Mode{
 			if isValidSelection(m) {
 				openConfirmDelete(m, m.SelectedIdx)
 			}
-			return m, nil
-
-		case "tab":
-			m.SwitchMode(m.StatsMode)
 			return m, nil
 
 		case "?":

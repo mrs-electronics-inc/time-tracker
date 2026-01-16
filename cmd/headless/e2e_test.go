@@ -443,7 +443,7 @@ func TestE2E_StatusBarShowsAllShortcuts(t *testing.T) {
 	state := getState(t, server)
 
 	// Check all expected shortcuts are in the status bar
-	expectedShortcuts := []string{"NEW", "STOP", "RESUME", "EDIT", "DELETE", "STATS", "HELP", "QUIT"}
+	expectedShortcuts := []string{"STATS", "NEW", "STOP", "RESUME", "EDIT", "DELETE", "HELP", "QUIT"}
 
 	for _, shortcut := range expectedShortcuts {
 		if !strings.Contains(state.ANSI, shortcut) {

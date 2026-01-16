@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: complete
 author: Addison Emig, Bennett Moore, Jason Luke
 creation_date: 2025-12-18
 ---
@@ -34,29 +34,29 @@ These shortcuts apply to the list mode
 
 ### Unified Form Infrastructure
 
-- [ ] Create shared form helpers (in start.go or new file)
+- [x] Create shared form helpers (in start.go or new file)
   - `renderFormContent(m *Model, title string)` - renders form with given title
   - `handleFormSubmit(m *Model, mode string)` - handles submit for new/edit/resume
   - `openNewMode(m *Model)` - setup and open new entry form
   - `openEditMode(m *Model, entry TimeEntry)` - setup and open edit form
   - `openResumeMode(m *Model, entry TimeEntry)` - setup and open resume form
-- [ ] Create `NewMode`, `EditMode`, `ResumeMode` using shared helpers
+- [x] Create `NewMode`, `EditMode`, `ResumeMode` using shared helpers
   - Keep `StartMode` for backward compatibility or remove if not used
 
 ### Implement List Shortcuts
 
-- [ ] Implement `n` shortcut in `list.go` - calls `openNewMode()`
-- [ ] Implement `r` shortcut in `list.go` - calls `openResumeMode()`, disabled on blank entries
-- [ ] Implement `e` shortcut in `list.go` - calls `openEditMode()`
-- [ ] Refactor `s` shortcut - only stop running entries, does nothing on blank/non-running
+- [x] Implement `n` shortcut in `list.go` - calls `openNewMode()`
+- [x] Implement `r` shortcut in `list.go` - calls `openResumeMode()`, disabled on blank entries
+- [x] Implement `e` shortcut in `list.go` - calls `openEditMode()`
+- [x] Refactor `s` shortcut - only stop running entries, does nothing on blank/non-running
 
 ### Delete Confirmation Modal
 
-- [ ] Implement `d` shortcut with delete confirmation modal dialog
+- [x] Implement `d` shortcut with delete confirmation modal dialog
   - Create `ConfirmMode` for the modal
   - Shows entry details and Yes/No buttons
 
 ### Polish & Testing
 
-- [ ] Update KeyBindings in list.go to show all shortcuts (n, s, r, e, d)
-- [ ] Add tests for new shortcuts
+- [x] Update KeyBindings in list.go to show all shortcuts (n, s, r, e, d)
+- [x] Add tests for new shortcuts

@@ -15,15 +15,63 @@ var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
 		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
-		{Keys: "k / ↑", Label: "UP", Description: "Move up"},
-		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
-		{Keys: "G", Label: "GO TO CURRENT", Description: "Go to current"},
-		{Keys: "s", Label: "START/STOP", Description: "Start/stop entry"},
+		{Keys: "n", Label: "NEW", Description: "New entry"},
+		{Keys: "s", Label: "STOP", Description: "Stop running entry"},
+		{Keys: "r", Label: "RESUME", Description: "Resume entry"},
+		{Keys: "e", Label: "EDIT", Description: "Edit entry"},
+		{Keys: "d", Label: "DELETE", Description: "Delete entry"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
-		{Keys: "q / Esc", Label: "QUIT", Description: "Quit"},
+		{Keys: "q", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
+		case "tab":
+			m.SwitchMode(m.StatsMode)
+			return m, nil
+
+		case "n":
+			openNewMode(m)
+			return m, nil
+
+		case "s":
+			// Stop only works on running entries
+			if isValidSelection(m) {
+				entry := m.Entries[m.SelectedIdx]
+				if entry.IsRunning() {
+					if _, err := m.TaskManager.StopEntry(); err != nil {
+						m.Status = "Error stopping entry: " + err.Error()
+					} else {
+						m.Status = "Entry stopped"
+					}
+					if err := m.LoadEntries(); err != nil {
+						m.Err = err
+					}
+				}
+			}
+			return m, nil
+
+		case "r":
+			if isValidSelection(m) {
+				entry := m.Entries[m.SelectedIdx]
+				if !entry.IsBlank() {
+					openResumeMode(m, entry)
+				}
+			}
+			return m, nil
+
+		case "e":
+			if isValidSelection(m) {
+				entry := m.Entries[m.SelectedIdx]
+				openEditMode(m, entry, m.SelectedIdx)
+			}
+			return m, nil
+
+		case "d":
+			if isValidSelection(m) {
+				openConfirmDelete(m, m.SelectedIdx)
+			}
+			return m, nil
+
 		case "?":
 			m.PreviousMode = m.CurrentMode
 			m.CurrentMode = m.HelpMode
@@ -52,32 +100,6 @@ var ListMode = &Mode{
 			}
 			m.Status = ""
 			return m, nil
-
-		case "s":
-			if len(m.Entries) == 0 {
-				openStartModeBlank(m)
-			} else if m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries) {
-				entry := m.Entries[m.SelectedIdx]
-				if entry.IsRunning() {
-					if _, err := m.TaskManager.StopEntry(); err != nil {
-						m.Status = "Error stopping entry: " + err.Error()
-					} else {
-						m.Status = "Entry stopped"
-					}
-				} else if !entry.IsBlank() {
-					openStartMode(m, entry)
-				} else {
-					openStartModeBlank(m)
-				}
-				if err := m.LoadEntries(); err != nil {
-					m.Err = err
-				}
-			}
-			return m, nil
-
-		case "tab":
-			m.SwitchMode(m.StatsMode)
-			return m, nil
 		}
 		return m, nil
 	},
@@ -97,6 +119,11 @@ var ListMode = &Mode{
 	},
 }
 
+// isValidSelection checks if the selected index is valid
+func isValidSelection(m *Model) bool {
+	return len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries)
+}
+
 // renderLoading renders a loading indicator
 func renderLoading() string {
 	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
@@ -110,13 +137,8 @@ func renderLoading() string {
 	return "\n\n" + loadingText + "\n"
 }
 
-// renderTableHeader renders just the table header
-func renderTableHeader(m *Model) string {
-	if len(m.Entries) == 0 {
-		return ""
-	}
-
-	// Get column widths
+// getColumnWidthsWithPadding calculates column widths with padding applied
+func getColumnWidthsWithPadding(m *Model) (int, int, int, int, int) {
 	startWidth, endWidth, projectWidth, titleWidth, durationWidth := m.GetColumnWidths()
 
 	// Add some padding
@@ -130,6 +152,17 @@ func renderTableHeader(m *Model) string {
 	fixedWidth := startWidth + endWidth + projectWidth + durationWidth + 4 // 4 for column separators
 	availableTitleWidth := max(m.Width-fixedWidth, len("Title")+padding)
 	titleWidth = availableTitleWidth
+
+	return startWidth, endWidth, projectWidth, titleWidth, durationWidth
+}
+
+// renderTableHeader renders just the table header
+func renderTableHeader(m *Model) string {
+	if len(m.Entries) == 0 {
+		return ""
+	}
+
+	startWidth, endWidth, projectWidth, titleWidth, durationWidth := getColumnWidthsWithPadding(m)
 
 	// Render header
 	headerText := fmt.Sprintf(
@@ -154,24 +187,11 @@ func renderTableHeader(m *Model) string {
 func renderTableRows(m *Model, maxHeight int) string {
 	if len(m.Entries) == 0 {
 		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
-		msg := "No time entries found. Press 's' to start tracking.\n"
+		msg := "No time entries found. Press 'n' to start tracking.\n"
 		return emptyStyle.Render(msg)
 	}
 
-	// Get column widths
-	startWidth, endWidth, projectWidth, titleWidth, durationWidth := m.GetColumnWidths()
-
-	// Add some padding
-	padding := 1
-	startWidth += padding
-	endWidth += padding
-	projectWidth += padding
-	durationWidth += padding
-
-	// Calculate available width for title column
-	fixedWidth := startWidth + endWidth + projectWidth + durationWidth + 4 // 4 for column separators
-	availableTitleWidth := max(m.Width-fixedWidth, len("Title")+padding)
-	titleWidth = availableTitleWidth
+	startWidth, endWidth, projectWidth, titleWidth, durationWidth := getColumnWidthsWithPadding(m)
 
 	var output strings.Builder
 

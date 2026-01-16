@@ -112,3 +112,44 @@ func (tm *TaskManager) ListEntries() ([]models.TimeEntry, error) {
 
 	return entries, nil
 }
+
+// UpdateEntry updates an existing entry's project, title, and start time
+func (tm *TaskManager) UpdateEntry(idx int, project, title string, startTime time.Time) error {
+	entries, err := tm.storage.Load()
+	if err != nil {
+		return err
+	}
+
+	if idx < 0 || idx >= len(entries) {
+		return fmt.Errorf("invalid entry index: %d", idx)
+	}
+
+	entries[idx].Project = project
+	entries[idx].Title = title
+	entries[idx].Start = startTime
+
+	return tm.storage.Save(entries)
+}
+
+// DeleteEntry removes blank entries or converts non-blank entries to blank
+func (tm *TaskManager) DeleteEntry(idx int) error {
+	entries, err := tm.storage.Load()
+	if err != nil {
+		return err
+	}
+
+	if idx < 0 || idx >= len(entries) {
+		return fmt.Errorf("invalid entry index: %d", idx)
+	}
+
+	if entries[idx].IsBlank() {
+		// Remove blank entries from the slice
+		entries = append(entries[:idx], entries[idx+1:]...)
+	} else {
+		// Convert non-blank entries to blank
+		entries[idx].Project = ""
+		entries[idx].Title = ""
+	}
+
+	return tm.storage.Save(entries)
+}

@@ -62,10 +62,20 @@ type Model struct {
 	Loading bool // Whether we're waiting for a data operation
 
 	// Mode references for navigation
-	ListMode  *Mode
-	StartMode *Mode
-	HelpMode  *Mode
-	StatsMode *Mode
+	ListMode   *Mode
+	StartMode  *Mode
+	HelpMode   *Mode
+	StatsMode  *Mode
+	NewMode     *Mode
+	EditMode    *Mode
+	ResumeMode  *Mode
+	ConfirmMode *Mode
+
+	// Form state for new/edit/resume modes
+	FormState FormState
+
+	// Confirm state for delete confirmation
+	ConfirmState ConfirmState
 }
 
 // LoadEntries loads time entries from storage

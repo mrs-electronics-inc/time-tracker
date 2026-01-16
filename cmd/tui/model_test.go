@@ -4,10 +4,20 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/utils"
 )
+
+// mustParseTime parses a time string or panics
+func mustParseTime(s string) time.Time {
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
 
 // Helper to create a test model
 func newTestModel() *Model {
@@ -47,21 +57,21 @@ func TestWindowSizeUpdate(t *testing.T) {
 	}
 }
 
-// TestModeTransitionFromListToStart verifies navigation to start mode
-func TestModeTransitionFromListToStart(t *testing.T) {
+// TestModeTransitionFromListToNew verifies navigation to new mode
+func TestModeTransitionFromListToNew(t *testing.T) {
 	m := newTestModel()
 	// Load no entries first
 	if err := m.LoadEntries(); err != nil {
 		t.Fatalf("Failed to load entries: %v", err)
 	}
 
-	// Simulate 's' key in list mode (should open start mode blank)
-	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}}
+	// Simulate 'n' key in list mode (should open new mode)
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}}
 	updated, _ := m.Update(msg)
 	model := updated.(*Model)
 
-	if model.CurrentMode != model.StartMode {
-		t.Error("Expected mode to switch to start mode after 's' key")
+	if model.CurrentMode != model.NewMode {
+		t.Error("Expected mode to switch to new mode after 'n' key")
 	}
 }
 
@@ -78,6 +88,154 @@ func TestModeTransitionFromStartToList(t *testing.T) {
 
 	if model.CurrentMode != model.ListMode {
 		t.Error("Expected mode to return to list mode after Esc")
+	}
+}
+
+// TestResumeShortcutOnNonBlankEntry verifies r opens resume mode on non-blank entry
+func TestResumeShortcutOnNonBlankEntry(t *testing.T) {
+	m := newTestModel()
+	// Create an entry to resume
+	m.TaskManager.StartEntryAt("test-project", "test-task", mustParseTime("2025-01-01T10:00:00Z"))
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+
+	// Press 'r' on the entry
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	if model.CurrentMode != model.ResumeMode {
+		t.Error("Expected mode to switch to resume mode after 'r' key on non-blank entry")
+	}
+	// Check that project is pre-filled
+	if model.Inputs[0].Value() != "test-project" {
+		t.Errorf("Expected project to be pre-filled, got %q", model.Inputs[0].Value())
+	}
+}
+
+// TestResumeShortcutOnBlankEntry verifies r does nothing on blank entry
+func TestResumeShortcutOnBlankEntry(t *testing.T) {
+	m := newTestModel()
+	// Create and stop an entry to make a blank
+	m.TaskManager.StartEntryAt("test-project", "test-task", mustParseTime("2025-01-01T10:00:00Z"))
+	m.TaskManager.StopEntry()
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+	// Select the blank entry (last one)
+	m.SelectedIdx = len(m.Entries) - 1
+
+	// Press 'r' on the blank entry
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	// Should stay in list mode
+	if model.CurrentMode != model.ListMode {
+		t.Error("Expected to stay in list mode after 'r' key on blank entry")
+	}
+}
+
+// TestEditShortcut verifies e opens edit mode
+func TestEditShortcut(t *testing.T) {
+	m := newTestModel()
+	// Create an entry to edit
+	m.TaskManager.StartEntryAt("test-project", "test-task", mustParseTime("2025-01-01T10:00:00Z"))
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+
+	// Press 'e' on the entry
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	if model.CurrentMode != model.EditMode {
+		t.Error("Expected mode to switch to edit mode after 'e' key")
+	}
+	// Check that fields are pre-filled
+	if model.Inputs[0].Value() != "test-project" {
+		t.Errorf("Expected project to be pre-filled, got %q", model.Inputs[0].Value())
+	}
+	if model.Inputs[2].Value() != "10" {
+		t.Errorf("Expected hour to be pre-filled with entry time, got %q", model.Inputs[2].Value())
+	}
+}
+
+// TestDeleteShortcut verifies d opens confirm mode
+func TestDeleteShortcut(t *testing.T) {
+	m := newTestModel()
+	// Create an entry to delete
+	m.TaskManager.StartEntryAt("test-project", "test-task", mustParseTime("2025-01-01T10:00:00Z"))
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+
+	// Press 'd' on the entry
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	if model.CurrentMode != model.ConfirmMode {
+		t.Error("Expected mode to switch to confirm mode after 'd' key")
+	}
+}
+
+// TestStopShortcutOnRunningEntry verifies s stops running entry
+func TestStopShortcutOnRunningEntry(t *testing.T) {
+	m := newTestModel()
+	// Create a running entry
+	m.TaskManager.StartEntryAt("test-project", "test-task", mustParseTime("2025-01-01T10:00:00Z"))
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+
+	// Verify entry is running
+	if !m.Entries[0].IsRunning() {
+		t.Fatal("Expected entry to be running")
+	}
+
+	// Press 's' on the running entry
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	// Should still be in list mode
+	if model.CurrentMode != model.ListMode {
+		t.Error("Expected to stay in list mode after stopping")
+	}
+	// Status should indicate stopped
+	if !strings.Contains(model.Status, "stopped") {
+		t.Errorf("Expected status to mention 'stopped', got %q", model.Status)
+	}
+}
+
+// TestStopShortcutOnNonRunningEntry verifies s does nothing on non-running entry
+func TestStopShortcutOnNonRunningEntry(t *testing.T) {
+	m := newTestModel()
+	// Create and stop an entry
+	m.TaskManager.StartEntryAt("test-project", "test-task", mustParseTime("2025-01-01T10:00:00Z"))
+	m.TaskManager.StopEntry()
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+	m.SelectedIdx = 0 // Select the stopped entry
+
+	originalStatus := m.Status
+
+	// Press 's' on non-running entry
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	// Should stay in list mode
+	if model.CurrentMode != model.ListMode {
+		t.Error("Expected to stay in list mode")
+	}
+	// Status should not change (s does nothing on non-running)
+	if model.Status != originalStatus {
+		t.Errorf("Expected status unchanged, got %q", model.Status)
 	}
 }
 

@@ -1,21 +1,26 @@
 package modes
 
 import (
-	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"time-tracker/models"
 	"time-tracker/utils"
 )
 
-// ConfirmState holds the state for confirmation dialogs
 type ConfirmState struct {
-	DeletingIdx int  // Index of entry being deleted
-	Confirmed   bool // Whether user selected yes
+	DeletingIdx int
 }
 
-// ConfirmMode is the delete confirmation modal
+var (
+	titleStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("1"))
+	labelStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
+	valueStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
+	warningStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("11")).Bold(true)
+	boldStyle    = lipgloss.NewStyle().Bold(true)
+)
+
 var ConfirmMode = &Mode{
 	Name: "confirm",
 	KeyBindings: []KeyBinding{
@@ -25,7 +30,6 @@ var ConfirmMode = &Mode{
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
 		case "y", "Y":
-			// Delete the entry (convert to blank)
 			if err := m.TaskManager.DeleteEntry(m.ConfirmState.DeletingIdx); err != nil {
 				m.Status = "Error deleting entry: " + err.Error()
 			} else {
@@ -36,7 +40,6 @@ var ConfirmMode = &Mode{
 			}
 			m.CurrentMode = m.ListMode
 			return m, nil
-
 		case "n", "N", "esc":
 			m.CurrentMode = m.ListMode
 			m.Status = ""
@@ -44,62 +47,58 @@ var ConfirmMode = &Mode{
 		}
 		return m, nil
 	},
-	RenderContent: func(m *Model, availableHeight int) string {
-		_ = availableHeight
-
-		// Get the entry being deleted
-		if m.ConfirmState.DeletingIdx < 0 || m.ConfirmState.DeletingIdx >= len(m.Entries) {
+	RenderContent: func(m *Model, _ int) string {
+		idx := m.ConfirmState.DeletingIdx
+		if idx < 0 || idx >= len(m.Entries) {
 			return "Invalid entry"
 		}
-		entry := m.Entries[m.ConfirmState.DeletingIdx]
-
-		// Styles
-		titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("1")) // Red
-		labelStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))
-		valueStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
-		warningStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("11")).Bold(true)
-
-		var content strings.Builder
-		// Determine if this is a blank entry
-		isBlank := entry.IsBlank()
-
-		if isBlank {
-			content.WriteString(titleStyle.Render("Remove Gap?") + "\n\n")
-		} else {
-			content.WriteString(titleStyle.Render("Delete Entry?") + "\n\n")
+		entry := &m.Entries[idx]
+		if entry.IsBlank() {
+			return renderBlankConfirmDialog(entry)
 		}
-
-		// Entry details (skip for blank entries)
-		if !isBlank {
-			content.WriteString(labelStyle.Render("Project: ") + valueStyle.Render(entry.Project) + "\n")
-			content.WriteString(labelStyle.Render("Task: ") + valueStyle.Render(entry.Title) + "\n")
-		}
-		content.WriteString(labelStyle.Render("Start: ") + valueStyle.Render(entry.Start.Format("2006-01-02 15:04")) + "\n")
-		if entry.End != nil {
-			content.WriteString(labelStyle.Render("End: ") + valueStyle.Render(entry.End.Format("2006-01-02 15:04")) + "\n")
-		} else if !isBlank {
-			content.WriteString(labelStyle.Render("End: ") + valueStyle.Render("running") + "\n")
-		}
-		if !isBlank {
-			content.WriteString(labelStyle.Render("Duration: ") + valueStyle.Render(utils.FormatDuration(entry.Duration())) + "\n\n")
-		} else {
-			content.WriteString("\n")
-		}
-
-		if isBlank {
-			content.WriteString(warningStyle.Render("This will remove the gap.") + "\n\n")
-		} else {
-			content.WriteString(warningStyle.Render("This will convert the entry to a gap.") + "\n\n")
-		}
-		content.WriteString(fmt.Sprintf("Press %s to confirm, %s to cancel\n",
-			lipgloss.NewStyle().Bold(true).Render("y"),
-			lipgloss.NewStyle().Bold(true).Render("n")))
-
-		return content.String()
+		return renderNonBlankConfirmDialog(entry)
 	},
 }
 
-// openConfirmDelete opens the delete confirmation modal
+func renderBlankConfirmDialog(entry *models.TimeEntry) string {
+	var out strings.Builder
+
+	out.WriteString(titleStyle.Render("Remove Gap?") + "\n\n")
+	out.WriteString(labelStyle.Render("Start: ") + valueStyle.Render(entry.Start.Format("2006-01-02 15:04")) + "\n")
+
+	if entry.End != nil {
+		out.WriteString(labelStyle.Render("End: ") + valueStyle.Render(entry.End.Format("2006-01-02 15:04")) + "\n")
+	}
+
+	writeConfirmFooter(&out, "This will remove the gap.")
+	return out.String()
+}
+
+func renderNonBlankConfirmDialog(entry *models.TimeEntry) string {
+	var out strings.Builder
+
+	out.WriteString(titleStyle.Render("Delete Entry?") + "\n\n")
+	out.WriteString(labelStyle.Render("Project: ") + valueStyle.Render(entry.Project) + "\n")
+	out.WriteString(labelStyle.Render("Task: ") + valueStyle.Render(entry.Title) + "\n")
+	out.WriteString(labelStyle.Render("Start: ") + valueStyle.Render(entry.Start.Format("2006-01-02 15:04")) + "\n")
+
+	if entry.End != nil {
+		out.WriteString(labelStyle.Render("End: ") + valueStyle.Render(entry.End.Format("2006-01-02 15:04")) + "\n")
+	} else {
+		out.WriteString(labelStyle.Render("End: ") + valueStyle.Render("running") + "\n")
+	}
+
+	out.WriteString(labelStyle.Render("Duration: ") + valueStyle.Render(utils.FormatDuration(entry.Duration())) + "\n")
+
+	writeConfirmFooter(&out, "This will convert the entry to a gap.")
+	return out.String()
+}
+
+func writeConfirmFooter(out *strings.Builder, warning string) {
+	out.WriteString("\n" + warningStyle.Render(warning) + "\n")
+	out.WriteString("\nPress " + boldStyle.Render("y") + " to confirm, " + boldStyle.Render("n") + " to cancel\n")
+}
+
 func openConfirmDelete(m *Model, idx int) {
 	m.CurrentMode = m.ConfirmMode
 	m.ConfirmState = ConfirmState{DeletingIdx: idx}

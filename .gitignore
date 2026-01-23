@@ -38,3 +38,5 @@ data/
 
 # vendor directory
 vendor/
+
+.envrc

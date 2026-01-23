@@ -1,5 +1,5 @@
 ---
-status: complete
+status: completed
 author: Addison Emig, Bennett Moore, Jason Luke
 creation_date: 2025-12-18
 ---

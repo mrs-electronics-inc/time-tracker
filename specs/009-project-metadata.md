@@ -45,11 +45,11 @@ Projects are stored in a top-level `projects` array in `data.json`:
 
 ## Project Metadata Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | yes | Human-readable display name |
-| `code` | string | no | External system identifier (e.g., project number) |
-| `category` | string | no | Free-form category (e.g., "Engineering", "Support") |
+| Field      | Type   | Required | Description                                         |
+| ---------- | ------ | -------- | --------------------------------------------------- |
+| `name`     | string | yes      | Human-readable display name                         |
+| `code`     | string | no       | External system identifier (e.g., project number)   |
+| `category` | string | no       | Free-form category (e.g., "Engineering", "Support") |
 
 ## Export Format Changes
 

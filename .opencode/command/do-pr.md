@@ -33,4 +33,3 @@ Error handling and constraints
 
 - The command must NOT prompt the user for extra confirmation during the flow. If an operation would normally require input (for example, `gh pr create` in interactive mode), invoke the non-interactive flags and provide the input programmatically (HEREDOC or CLI flags).
 - If network push or GH CLI operations fail, surface the error and abort; do not attempt destructive recovery automatically.
-

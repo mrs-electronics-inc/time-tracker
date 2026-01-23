@@ -3,7 +3,7 @@ description: Update agent documentation to avoid repeating mistakes in the futur
 agent: build
 ---
 
-You just made a mistake. 
+You just made a mistake.
 
 First, ask for clarification about where you went wrong. Do NOT assume.
 

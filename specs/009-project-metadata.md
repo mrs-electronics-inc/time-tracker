@@ -55,7 +55,7 @@ Projects are stored in a top-level `projects` array in `data.json`:
 
 Update the `daily-projects` export format to include project metadata. Format is **TSV** (tab-delimited).
 
-**New columns:** `ProjectName`, `ProjectCode`, `ProjectCategory`, `Date`, `Duration`, `Description`
+**Changes:** Replace `Project` with `ProjectName`, add `ProjectCode`, and add `ProjectCategory`
 
 Example output:
 

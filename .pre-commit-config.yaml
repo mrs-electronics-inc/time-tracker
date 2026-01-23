@@ -23,3 +23,8 @@ repos:
         language: system
         types: [go]
         pass_filenames: false
+
+  - repo: https://github.com/specture-system/specture
+    rev: v0.0.1
+    hooks:
+      - id: validate-specs

@@ -9,7 +9,7 @@ creation_date: 2026-03-13
 
 ## Overview
 
-Once spec 9 (Project Metadata) ships, the edit form’s `Project` input should stop being a free-form field and only accept values from the managed project list. This spec introduces inline autocomplete powered exclusively by the metadata-backed project list so edited entries stay aligned with the canonical names exports and integrations rely on. There is no fallback to historical entries; the feature depends on the metadata list already existing.
+Once [Project Metadata](./project-autocomplete-in-edit-form.md) ships, the edit form’s `Project` input should stop being a free-form field and only accept values from the managed project list. This spec introduces inline autocomplete powered exclusively by the metadata-backed project list so edited entries stay aligned with the canonical names exports and integrations rely on. There is no fallback to historical entries; the feature depends on the metadata list already existing.
 
 ## User Flow
 
@@ -22,16 +22,16 @@ Once spec 9 (Project Metadata) ships, the edit form’s `Project` input should s
 ## Design Decisions
 
 1. **Suggestion source**
-   - *Options*: (A) fallback to historical projects, (B) rely solely on the metadata list from spec 9.
-   - *Decision*: choose option B so edited entries match the authoritative project definitions that exports use. This enforces consistency immediately after metadata is available.
+   - _Options_: (A) fallback to historical projects, (B) rely solely on the metadata list from spec 9.
+   - _Decision_: choose option B so edited entries match the authoritative project definitions that exports use. This enforces consistency immediately after metadata is available.
 
 2. **Matching strategy**
-   - *Options*: prefix-only or fuzzy matching.
-   - *Decision*: fuzzy matching so users can locate projects using any memorable substring or partial words instead of needing exact prefixes.
+   - _Options_: prefix-only or fuzzy matching.
+   - _Decision_: fuzzy matching so users can locate projects using any memorable substring or partial words instead of needing exact prefixes.
 
 3. **Interaction model**
-   - *Options*: reuse Tab for suggestions or keep Tab cycling inputs.
-   - *Decision*: keep Tab exclusively for field navigation (as it is now) while using arrow keys + Enter for suggestion selection to preserve existing muscle memory.
+   - _Options_: reuse Tab for suggestions or keep Tab cycling inputs.
+   - _Decision_: keep Tab exclusively for field navigation (as it is now) while using arrow keys + Enter for suggestion selection to preserve existing muscle memory.
 
 ## Task List
 

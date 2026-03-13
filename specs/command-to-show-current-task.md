@@ -1,4 +1,5 @@
 ---
+number: 4
 status: completed
 author: Bennett Moore
 creation_date: 2025-12-18

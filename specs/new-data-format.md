@@ -1,4 +1,5 @@
 ---
+number: 1
 status: completed
 author: Addison Emig
 creation_date: 2025-11-26

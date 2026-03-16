@@ -62,6 +62,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		Storage:     storage,
 		TaskManager: taskManager,
 		Entries:     []models.TimeEntry{},
+		Projects:    []models.Project{},
 		SelectedIdx: 0,
 		Inputs:      inputs,
 		FocusIndex:  0,
@@ -87,6 +88,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	modesModel.StartMode = modes.StartMode
 	modesModel.HelpMode = modes.HelpMode
 	modesModel.StatsMode = modes.StatsMode
+	modesModel.ProjectsMode = modes.ProjectsMode
 	modesModel.NewMode = modes.NewMode
 	modesModel.EditMode = modes.EditMode
 	modesModel.ResumeMode = modes.ResumeMode

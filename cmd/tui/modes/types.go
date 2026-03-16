@@ -44,6 +44,7 @@ type Model struct {
 	Storage     models.Storage     // Persistent storage backend
 	TaskManager *utils.TaskManager // Task management operations
 	Entries     []models.TimeEntry // Loaded time entries
+	Projects    []models.Project   // Loaded project metadata
 	SelectedIdx int                // Index of currently selected entry (list mode)
 	ViewportTop int                // Index of first visible row (list mode) or viewport scroll position (stats mode)
 	Err         error              // Error state
@@ -62,14 +63,15 @@ type Model struct {
 	Loading bool // Whether we're waiting for a data operation
 
 	// Mode references for navigation
-	ListMode    *Mode
-	StartMode   *Mode
-	HelpMode    *Mode
-	StatsMode   *Mode
-	NewMode     *Mode
-	EditMode    *Mode
-	ResumeMode  *Mode
-	ConfirmMode *Mode
+	ListMode     *Mode
+	StartMode    *Mode
+	HelpMode     *Mode
+	StatsMode    *Mode
+	ProjectsMode *Mode
+	NewMode      *Mode
+	EditMode     *Mode
+	ResumeMode   *Mode
+	ConfirmMode  *Mode
 
 	// Form state for new/edit/resume modes
 	FormState FormState
@@ -84,8 +86,13 @@ func (m *Model) LoadEntries() error {
 	if err != nil {
 		return err
 	}
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		return err
+	}
 
 	m.Entries = entries
+	m.Projects = projects
 
 	// Select most recent entry (last item)
 	if len(m.Entries) > 0 {

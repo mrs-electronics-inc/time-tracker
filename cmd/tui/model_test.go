@@ -42,6 +42,33 @@ func TestModelInitialization(t *testing.T) {
 	if m.SelectedIdx != 0 {
 		t.Error("Expected scroll offset to be 0")
 	}
+	if m.ProjectsMode == nil || m.ProjectsMode.Name != "projects" {
+		t.Error("Expected projects mode to be initialized")
+	}
+}
+
+func TestProjectsViewRendersProjectMetadata(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	m.Width = 80
+	m.Height = 20
+
+	view := m.View()
+	if !strings.Contains(view, "Name") || !strings.Contains(view, "Code") || !strings.Contains(view, "Category") {
+		t.Fatal("Expected projects view to render metadata columns")
+	}
+	if !strings.Contains(view, "API Updates") || !strings.Contains(view, "12573") || !strings.Contains(view, "Backend") {
+		t.Fatal("Expected projects view to render project metadata values")
+	}
 }
 
 // TestWindowSizeUpdate verifies window size messages are handled

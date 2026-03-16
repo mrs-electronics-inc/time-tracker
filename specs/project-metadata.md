@@ -160,10 +160,10 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 ### Project Management Commands
 
-- [ ] Implement `project list` command with columns `Name`, `Code`, `Category`, sorted case-insensitively by name.
-- [ ] Implement `project add <name> [--code <code>] [--category <category>]` with trim + validation and case-insensitive uniqueness enforcement.
-- [ ] Implement `project edit <name> [--name <new-name>] [--code <code>] [--category <category>]` with rename/merge semantics and rewrite count reporting for rename operations.
-- [ ] Implement `project remove <name>` with reference blocking and reference-count error.
+- [x] Implement `project list` command with columns `Name`, `Code`, `Category`, sorted case-insensitively by name.
+- [x] Implement `project add <name> [--code <code>] [--category <category>]` with trim + validation and case-insensitive uniqueness enforcement.
+- [x] Implement `project edit <name> [--name <new-name>] [--code <code>] [--category <category>]` with rename/merge semantics and rewrite count reporting for rename operations.
+- [x] Implement `project remove <name>` with reference blocking and reference-count error.
 
 ### Export Columns
 

@@ -24,6 +24,9 @@ type TaskManager struct {
 type ProjectMutationResult struct {
 	RewrittenEntries int
 	Merged           bool
+	Renamed          bool
+	SourceName       string
+	TargetName       string
 }
 
 type ProjectInUseError struct {
@@ -228,6 +231,7 @@ func (tm *TaskManager) EditProject(name, newName, code, category string) (*Proje
 	}
 
 	source := projects[sourceIndex]
+	originalSourceName := source.Name
 	if newName == "" {
 		newName = source.Name
 	}
@@ -267,7 +271,13 @@ func (tm *TaskManager) EditProject(name, newName, code, category string) (*Proje
 			return nil, err
 		}
 
-		return &ProjectMutationResult{RewrittenEntries: rewrittenEntries, Merged: true}, nil
+		return &ProjectMutationResult{
+			RewrittenEntries: rewrittenEntries,
+			Merged:           true,
+			Renamed:          true,
+			SourceName:       originalSourceName,
+			TargetName:       targetName,
+		}, nil
 	}
 
 	renamed := source.Name != newName
@@ -298,7 +308,13 @@ func (tm *TaskManager) EditProject(name, newName, code, category string) (*Proje
 		}
 	}
 
-	return &ProjectMutationResult{RewrittenEntries: rewrittenEntries, Merged: false}, nil
+	return &ProjectMutationResult{
+		RewrittenEntries: rewrittenEntries,
+		Merged:           false,
+		Renamed:          renamed,
+		SourceName:       originalSourceName,
+		TargetName:       source.Name,
+	}, nil
 }
 
 func (tm *TaskManager) RemoveProject(name string) error {

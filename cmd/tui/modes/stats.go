@@ -65,7 +65,7 @@ func StatsDailySeparatorRow(date time.Time, totalMinutes int) StatsRow {
 var StatsMode = &Mode{
 	Name: "stats",
 	KeyBindings: []KeyBinding{
-		{Keys: "Tab", Label: "LIST", Description: "Switch mode"},
+		{Keys: "Tab", Label: "PROJECTS", Description: "Switch mode"},
 		{Keys: "k / ↑", Label: "UP", Description: "Move up"},
 		{Keys: "j / ↓", Label: "DOWN", Description: "Move down"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
@@ -86,7 +86,7 @@ var StatsMode = &Mode{
 			return m, tea.Quit
 
 		case "tab":
-			m.SwitchMode(m.ListMode)
+			m.SwitchMode(m.ProjectsMode)
 			return m, nil
 
 		case "k", "up":

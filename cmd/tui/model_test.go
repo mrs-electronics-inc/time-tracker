@@ -493,6 +493,37 @@ func TestInputFieldNavigation(t *testing.T) {
 	}
 }
 
+// TestTabCyclesListStatsProjects verifies tab cycles through primary modes
+func TestTabCyclesListStatsProjects(t *testing.T) {
+	m := newTestModel()
+
+	if m.CurrentMode != m.ListMode {
+		t.Fatalf("Expected to start in list mode, got %q", m.CurrentMode.Name)
+	}
+
+	msg := tea.KeyMsg{Type: tea.KeyTab}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	if model.CurrentMode != model.StatsMode {
+		t.Fatalf("Expected tab in list mode to switch to stats mode, got %q", model.CurrentMode.Name)
+	}
+
+	updated, _ = model.Update(msg)
+	model = updated.(*Model)
+
+	if model.CurrentMode != model.ProjectsMode {
+		t.Fatalf("Expected tab in stats mode to switch to projects mode, got %q", model.CurrentMode.Name)
+	}
+
+	updated, _ = model.Update(msg)
+	model = updated.(*Model)
+
+	if model.CurrentMode != model.ListMode {
+		t.Fatalf("Expected tab in projects mode to switch to list mode, got %q", model.CurrentMode.Name)
+	}
+}
+
 // TestHelpModeToggle verifies help mode navigation
 func TestHelpModeToggle(t *testing.T) {
 	m := newTestModel()

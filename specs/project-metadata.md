@@ -177,7 +177,7 @@ Empty cells: If a project has no code or category defined, those columns will be
 ### TUI Updates
 
 - [x] Add `projects` view alongside `list` and `stats` views.
-- [ ] Implement `Tab` cycle across `list`, `stats`, and `projects` modes.
+- [x] Implement `Tab` cycle across `list`, `stats`, and `projects` modes.
 - [ ] In `projects` view: scroll through all projects, sorted case-insensitively by name.
 - [ ] In `projects` view: add and edit projects via project form (`Name`, `Code`, `Category`).
 - [ ] In `projects` view: delete projects with the same reference-blocking behavior as CLI.

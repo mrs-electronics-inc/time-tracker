@@ -242,3 +242,36 @@ func TestFileStorage_SaveProjectsPreservesEntries(t *testing.T) {
 		t.Fatalf("Expected entries to be preserved, got %+v", gotEntries)
 	}
 }
+
+func TestCurrentVersionIsV4(t *testing.T) {
+	if models.CurrentVersion != 4 {
+		t.Fatalf("Expected CurrentVersion to be 4, got %d", models.CurrentVersion)
+	}
+}
+
+func TestFileStorage_LoadSupportsV4Data(t *testing.T) {
+	tempDir := t.TempDir()
+	dataFile := filepath.Join(tempDir, "data.json")
+
+	initialData := `{"version":4,"time-entries":[{"start":"2026-03-16T09:00:00Z","project":"Acme","title":"Build"}],"projects":[{"name":"Acme","code":"ACM","category":"Client"}]}`
+	if err := os.WriteFile(dataFile, []byte(initialData), 0644); err != nil {
+		t.Fatalf("Failed to write data file: %v", err)
+	}
+
+	storage, err := NewFileStorage(dataFile)
+	if err != nil {
+		t.Fatalf("Failed to create file storage: %v", err)
+	}
+
+	entries, err := storage.Load()
+	if err != nil {
+		t.Fatalf("Failed to load v4 entries: %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("Expected 1 entry, got %d", len(entries))
+	}
+	if entries[0].Project != "Acme" || entries[0].Title != "Build" {
+		t.Fatalf("Expected loaded entry fields to match, got %+v", entries[0])
+	}
+}

@@ -34,3 +34,17 @@ type V3Entry struct {
 	Project string    `json:"project"`
 	Title   string    `json:"title"`
 }
+
+// V4Entry is the format after V3->V4 migration.
+type V4Entry struct {
+	Start   time.Time `json:"start"`
+	Project string    `json:"project"`
+	Title   string    `json:"title"`
+}
+
+// V4Project is the project metadata format in v4.
+type V4Project struct {
+	Name     string `json:"name"`
+	Code     string `json:"code"`
+	Category string `json:"category"`
+}

@@ -14,8 +14,8 @@ import (
 
 type fileData struct {
 	Version     int                `json:"version"`
-	TimeEntries []models.TimeEntry `json:"time-entries"`
-	Projects    []models.Project   `json:"projects"`
+	TimeEntries []models.V4Entry   `json:"time-entries"`
+	Projects    []models.V4Project `json:"projects"`
 }
 
 type loadData struct {
@@ -41,8 +41,8 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		// File does not exist, create it with initial data
 		initialData := fileData{
 			Version:     models.CurrentVersion,
-			TimeEntries: []models.TimeEntry{},
-			Projects:    []models.Project{},
+			TimeEntries: []models.V4Entry{},
+			Projects:    []models.V4Project{},
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")
 		if err != nil {
@@ -78,6 +78,7 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	var v1Entries []models.V1Entry
 	var v2Entries []models.V2Entry
 	var v3Entries []models.V3Entry
+	var v4Entries []models.V4Entry
 
 	// Step 1: Unmarshal based on version
 	switch loadData.Version {
@@ -97,8 +98,12 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		if err := json.Unmarshal(loadData.TimeEntries, &v3Entries); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal v3 data: %w", err)
 		}
+	case 4:
+		if err := json.Unmarshal(loadData.TimeEntries, &v4Entries); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal v4 data: %w", err)
+		}
 	default:
-		if loadData.Version > 3 {
+		if loadData.Version > 4 {
 			return nil, fmt.Errorf("unknown version: %d", loadData.Version)
 		}
 	}
@@ -113,6 +118,8 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 			v2Entries, err = TransformV1ToV2(v1Entries)
 		case 2:
 			v3Entries, err = TransformV2ToV3(v2Entries)
+		case 3:
+			v4Entries, err = TransformV3ToV4(v3Entries)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("migration from version %d failed: %w", v, err)
@@ -120,11 +127,11 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	}
 
 	var entries []models.TimeEntry
-	for _, v3 := range v3Entries {
+	for _, v4 := range v4Entries {
 		entries = append(entries, models.TimeEntry{
-			Start:   v3.Start,
-			Project: v3.Project,
-			Title:   v3.Title,
+			Start:   v4.Start,
+			Project: v4.Project,
+			Title:   v4.Title,
 		})
 	}
 
@@ -151,34 +158,108 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return err
 	}
 
+	return fs.saveEntriesAndProjects(entries, projects)
+}
+
+func (fs *FileStorage) saveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
+	saved := toSortedV4Entries(entries)
+
+	data := fileData{
+		Version:     models.CurrentVersion,
+		TimeEntries: saved,
+		Projects:    toV4Projects(projects),
+	}
+
+	return fs.writeDataAtomic(data)
+}
+
+func toSortedV4Entries(entries []models.TimeEntry) []models.V4Entry {
 	// Sort entries by start time before saving
 	sorted := append([]models.TimeEntry(nil), entries...)
 	sort.Slice(sorted, func(i, j int) bool {
 		return sorted[i].Start.Before(sorted[j].Start)
 	})
 
-	saved := make([]models.V3Entry, len(sorted))
+	saved := make([]models.V4Entry, len(sorted))
 	for i, entry := range sorted {
-		saved[i] = models.V3Entry{
+		saved[i] = models.V4Entry{
 			Start:   entry.Start,
 			Project: entry.Project,
 			Title:   entry.Title,
 		}
 	}
 
-	data := map[string]any{
-		"version":      models.CurrentVersion,
-		"time-entries": saved,
-		"projects":     projects,
+	return saved
+}
+
+func toV4Projects(projects []models.Project) []models.V4Project {
+	out := make([]models.V4Project, len(projects))
+	for i, project := range projects {
+		out[i] = models.V4Project{
+			Name:     project.Name,
+			Code:     project.Code,
+			Category: project.Category,
+		}
 	}
+	return out
+}
+
+func fromV4Projects(projects []models.V4Project) []models.Project {
+	out := make([]models.Project, len(projects))
+	for i, project := range projects {
+		out[i] = models.Project{
+			Name:     project.Name,
+			Code:     project.Code,
+			Category: project.Category,
+		}
+	}
+	return out
+}
+
+func (fs *FileStorage) writeDataAtomic(data fileData) error {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
-		return fmt.Errorf("failed to write data file: %w", err)
+	dir := filepath.Dir(fs.FilePath)
+	tmpFile, err := os.CreateTemp(dir, ".time-tracker-*.json")
+	if err != nil {
+		return fmt.Errorf("failed to create temp data file: %w", err)
 	}
+
+	tmpPath := tmpFile.Name()
+	cleanup := true
+	defer func() {
+		if cleanup {
+			_ = os.Remove(tmpPath)
+		}
+	}()
+
+	if err := tmpFile.Chmod(0644); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("failed to set temp file permissions: %w", err)
+	}
+
+	if _, err := tmpFile.Write(jsonData); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("failed to write temp data file: %w", err)
+	}
+
+	if err := tmpFile.Sync(); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("failed to sync temp data file: %w", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp data file: %w", err)
+	}
+
+	if err := os.Rename(tmpPath, fs.FilePath); err != nil {
+		return fmt.Errorf("failed to atomically replace data file: %w", err)
+	}
+
+	cleanup = false
 	return nil
 }
 
@@ -189,7 +270,7 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 	}
 
 	var data struct {
-		Projects []models.Project `json:"projects"`
+		Projects []models.V4Project `json:"projects"`
 	}
 	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
@@ -198,7 +279,7 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 		return []models.Project{}, nil
 	}
 
-	return data.Projects, nil
+	return fromV4Projects(data.Projects), nil
 }
 
 func (fs *FileStorage) SaveProjects(projects []models.Project) error {
@@ -207,33 +288,5 @@ func (fs *FileStorage) SaveProjects(projects []models.Project) error {
 		return err
 	}
 
-	sorted := append([]models.TimeEntry(nil), entries...)
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Start.Before(sorted[j].Start)
-	})
-
-	saved := make([]models.V3Entry, len(sorted))
-	for i, entry := range sorted {
-		saved[i] = models.V3Entry{
-			Start:   entry.Start,
-			Project: entry.Project,
-			Title:   entry.Title,
-		}
-	}
-
-	data := map[string]any{
-		"version":      models.CurrentVersion,
-		"time-entries": saved,
-		"projects":     projects,
-	}
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %w", err)
-	}
-
-	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
-		return fmt.Errorf("failed to write data file: %w", err)
-	}
-
-	return nil
+	return fs.saveEntriesAndProjects(entries, projects)
 }

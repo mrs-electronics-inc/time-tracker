@@ -15,6 +15,7 @@ import (
 type fileData struct {
 	Version     int                `json:"version"`
 	TimeEntries []models.TimeEntry `json:"time-entries"`
+	Projects    []models.Project   `json:"projects"`
 }
 
 type loadData struct {
@@ -41,6 +42,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		initialData := fileData{
 			Version:     models.CurrentVersion,
 			TimeEntries: []models.TimeEntry{},
+			Projects:    []models.Project{},
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")
 		if err != nil {
@@ -162,6 +164,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	data := map[string]any{
 		"version":      models.CurrentVersion,
 		"time-entries": saved,
+		"projects":     []models.Project{},
 	}
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

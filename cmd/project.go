@@ -22,6 +22,10 @@ type projectAddManager interface {
 	AddProject(name, code, category string) (*models.Project, error)
 }
 
+type projectEditManager interface {
+	EditProject(name, newName, code, category string) (*utils.ProjectMutationResult, error)
+}
+
 var projectCmd = &cobra.Command{
 	Use:   "project",
 	Short: "Manage projects",
@@ -67,6 +71,41 @@ var projectAddCmd = &cobra.Command{
 	},
 }
 
+var projectEditCmd = &cobra.Command{
+	Use:   "edit <name>",
+	Short: "Edit a project",
+	Long:  "Edit a project's name, code, or category.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		newName, err := cmd.Flags().GetString("name")
+		if err != nil {
+			return fmt.Errorf("failed to parse name flag: %w", err)
+		}
+
+		code, err := cmd.Flags().GetString("code")
+		if err != nil {
+			return fmt.Errorf("failed to parse code flag: %w", err)
+		}
+
+		category, err := cmd.Flags().GetString("category")
+		if err != nil {
+			return fmt.Errorf("failed to parse category flag: %w", err)
+		}
+
+		nameChanged := cmd.Flags().Changed("name")
+		codeChanged := cmd.Flags().Changed("code")
+		categoryChanged := cmd.Flags().Changed("category")
+
+		storage, err := utils.NewFileStorage(config.DataFilePath())
+		if err != nil {
+			return fmt.Errorf("failed to initialize storage: %w", err)
+		}
+
+		taskManager := utils.NewTaskManager(storage)
+		return editProject(storage, taskManager, args[0], newName, code, category, nameChanged, codeChanged, categoryChanged, os.Stdout)
+	},
+}
+
 func addProject(taskManager projectAddManager, name, code, category string, out io.Writer) error {
 	project, err := taskManager.AddProject(name, code, category)
 	if err != nil {
@@ -74,6 +113,68 @@ func addProject(taskManager projectAddManager, name, code, category string, out 
 	}
 
 	fmt.Fprintf(out, "Added project %q\n", project.Name)
+	return nil
+}
+
+func findProjectByName(projects []models.Project, name string) (models.Project, bool) {
+	lookupName := strings.TrimSpace(name)
+	for _, project := range projects {
+		if strings.EqualFold(project.Name, lookupName) {
+			return project, true
+		}
+	}
+
+	return models.Project{}, false
+}
+
+func editProject(
+	storage projectListStorage,
+	taskManager projectEditManager,
+	name, newName, code, category string,
+	nameChanged, codeChanged, categoryChanged bool,
+	out io.Writer,
+) error {
+	if !nameChanged && !codeChanged && !categoryChanged {
+		return fmt.Errorf("at least one flag must be provided: --name, --code, or --category")
+	}
+
+	if !codeChanged || !categoryChanged {
+		projects, err := storage.LoadProjects()
+		if err != nil {
+			return fmt.Errorf("failed to load projects: %w", err)
+		}
+
+		source, found := findProjectByName(projects, name)
+		if found {
+			if !codeChanged {
+				code = source.Code
+			}
+			if !categoryChanged {
+				category = source.Category
+			}
+		}
+	}
+
+	if !nameChanged {
+		newName = ""
+	}
+
+	result, err := taskManager.EditProject(name, newName, code, category)
+	if err != nil {
+		return fmt.Errorf("failed to edit project: %w", err)
+	}
+
+	if result.Merged {
+		fmt.Fprintf(out, "Merged project %q into %q (%d entries rewritten)\n", result.SourceName, result.TargetName, result.RewrittenEntries)
+		return nil
+	}
+
+	if result.Renamed {
+		fmt.Fprintf(out, "Renamed project %q to %q (%d entries rewritten)\n", result.SourceName, result.TargetName, result.RewrittenEntries)
+		return nil
+	}
+
+	fmt.Fprintf(out, "Updated project %q\n", result.SourceName)
 	return nil
 }
 
@@ -112,8 +213,12 @@ func listProjects(storage projectListStorage, out io.Writer) error {
 func init() {
 	projectAddCmd.Flags().String("code", "", "external project code")
 	projectAddCmd.Flags().String("category", "", "project category")
+	projectEditCmd.Flags().String("name", "", "new project name")
+	projectEditCmd.Flags().String("code", "", "external project code")
+	projectEditCmd.Flags().String("category", "", "project category")
 
 	projectCmd.AddCommand(projectAddCmd)
+	projectCmd.AddCommand(projectEditCmd)
 	projectCmd.AddCommand(projectListCmd)
 	rootCmd.AddCommand(projectCmd)
 }

@@ -18,6 +18,10 @@ type projectListStorage interface {
 	LoadProjects() ([]models.Project, error)
 }
 
+type projectAddManager interface {
+	AddProject(name, code, category string) (*models.Project, error)
+}
+
 var projectCmd = &cobra.Command{
 	Use:   "project",
 	Short: "Manage projects",
@@ -35,6 +39,42 @@ var projectListCmd = &cobra.Command{
 
 		return listProjects(storage, os.Stdout)
 	},
+}
+
+var projectAddCmd = &cobra.Command{
+	Use:   "add <name>",
+	Short: "Add a project",
+	Long:  "Add a project with optional code and category metadata.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		code, err := cmd.Flags().GetString("code")
+		if err != nil {
+			return fmt.Errorf("failed to parse code flag: %w", err)
+		}
+
+		category, err := cmd.Flags().GetString("category")
+		if err != nil {
+			return fmt.Errorf("failed to parse category flag: %w", err)
+		}
+
+		storage, err := utils.NewFileStorage(config.DataFilePath())
+		if err != nil {
+			return fmt.Errorf("failed to initialize storage: %w", err)
+		}
+
+		taskManager := utils.NewTaskManager(storage)
+		return addProject(taskManager, args[0], code, category, os.Stdout)
+	},
+}
+
+func addProject(taskManager projectAddManager, name, code, category string, out io.Writer) error {
+	project, err := taskManager.AddProject(name, code, category)
+	if err != nil {
+		return fmt.Errorf("failed to add project: %w", err)
+	}
+
+	fmt.Fprintf(out, "Added project %q\n", project.Name)
+	return nil
 }
 
 func listProjects(storage projectListStorage, out io.Writer) error {
@@ -70,6 +110,10 @@ func listProjects(storage projectListStorage, out io.Writer) error {
 }
 
 func init() {
+	projectAddCmd.Flags().String("code", "", "external project code")
+	projectAddCmd.Flags().String("category", "", "project category")
+
+	projectCmd.AddCommand(projectAddCmd)
 	projectCmd.AddCommand(projectListCmd)
 	rootCmd.AddCommand(projectCmd)
 }

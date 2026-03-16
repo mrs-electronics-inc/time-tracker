@@ -96,6 +96,36 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 	return result
 }
 
+// ApplyProjectMetadata enriches aggregated entries with project code/category.
+// Entries whose project has no metadata remain in the result with empty metadata fields.
+func ApplyProjectMetadata(entries []ProjectDateEntry, projects []models.Project) []ProjectDateEntry {
+	if len(entries) == 0 {
+		return []ProjectDateEntry{}
+	}
+
+	byName := make(map[string]models.Project, len(projects))
+	for _, project := range projects {
+		byName[project.Name] = project
+	}
+
+	result := make([]ProjectDateEntry, len(entries))
+	copy(result, entries)
+
+	for i := range result {
+		project, ok := byName[result[i].Project]
+		if !ok {
+			result[i].ProjectCode = ""
+			result[i].ProjectCategory = ""
+			continue
+		}
+
+		result[i].ProjectCode = project.Code
+		result[i].ProjectCategory = project.Category
+	}
+
+	return result
+}
+
 // GetWeekSeparators returns indices in the aggregated slice where week boundaries occur.
 // Returns indices where a new week starts (where a weekly separator row should be inserted before).
 // Week is Monday to Sunday (Monday = start).

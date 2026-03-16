@@ -156,7 +156,7 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 ### Domain Logic
 
-- [ ] Implement project mutation logic in `TaskManager` and keep command handlers thin.
+- [x] Implement project mutation logic in `TaskManager` and keep command handlers thin.
 
 ### Project Management Commands
 

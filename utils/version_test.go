@@ -243,6 +243,51 @@ func TestFileStorage_SaveProjectsPreservesEntries(t *testing.T) {
 	}
 }
 
+func TestFileStorage_SaveEntriesAndProjectsPersistsBoth(t *testing.T) {
+	tempDir := t.TempDir()
+	dataFile := filepath.Join(tempDir, "data.json")
+
+	storage, err := NewFileStorage(dataFile)
+	if err != nil {
+		t.Fatalf("Failed to create file storage: %v", err)
+	}
+
+	entries := []models.TimeEntry{{
+		Start:   time.Date(2026, 3, 16, 9, 0, 0, 0, time.UTC),
+		Project: "Acme",
+		Title:   "Build",
+	}}
+	projects := []models.Project{{Name: "Acme", Code: "ACM", Category: "Client"}}
+
+	if err := storage.SaveEntriesAndProjects(entries, projects); err != nil {
+		t.Fatalf("Failed to save entries and projects together: %v", err)
+	}
+
+	gotEntries, err := storage.Load()
+	if err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+	if len(gotEntries) != len(entries) {
+		t.Fatalf("Expected %d entries, got %d", len(entries), len(gotEntries))
+	}
+	if !gotEntries[0].Start.Equal(entries[0].Start) ||
+		gotEntries[0].Project != entries[0].Project ||
+		gotEntries[0].Title != entries[0].Title {
+		t.Fatalf("Expected entries to match, got %+v", gotEntries)
+	}
+
+	gotProjects, err := storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+	if len(gotProjects) != len(projects) {
+		t.Fatalf("Expected %d projects, got %d", len(projects), len(gotProjects))
+	}
+	if gotProjects[0] != projects[0] {
+		t.Fatalf("Expected projects to match, got %+v", gotProjects)
+	}
+}
+
 func TestCurrentVersionIsV4(t *testing.T) {
 	if models.CurrentVersion != 4 {
 		t.Fatalf("Expected CurrentVersion to be 4, got %d", models.CurrentVersion)

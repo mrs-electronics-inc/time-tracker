@@ -13,9 +13,9 @@ import (
 )
 
 type fileData struct {
-	Version     int                `json:"version"`
-	TimeEntries []models.TimeEntry `json:"time-entries"`
-	Projects    []models.Project   `json:"projects"`
+	Version     int              `json:"version"`
+	TimeEntries []models.V4Entry `json:"time-entries"`
+	Projects    []models.Project `json:"projects"`
 }
 
 type loadData struct {
@@ -41,7 +41,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		// File does not exist, create it with initial data
 		initialData := fileData{
 			Version:     models.CurrentVersion,
-			TimeEntries: []models.TimeEntry{},
+			TimeEntries: []models.V4Entry{},
 			Projects:    []models.Project{},
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")
@@ -158,6 +158,22 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return err
 	}
 
+	return fs.SaveEntriesAndProjects(entries, projects)
+}
+
+func (fs *FileStorage) SaveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
+	saved := toSortedV4Entries(entries)
+
+	data := fileData{
+		Version:     models.CurrentVersion,
+		TimeEntries: saved,
+		Projects:    projects,
+	}
+
+	return fs.writeDataAtomic(data)
+}
+
+func toSortedV4Entries(entries []models.TimeEntry) []models.V4Entry {
 	// Sort entries by start time before saving
 	sorted := append([]models.TimeEntry(nil), entries...)
 	sort.Slice(sorted, func(i, j int) bool {
@@ -173,19 +189,53 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		}
 	}
 
-	data := map[string]any{
-		"version":      models.CurrentVersion,
-		"time-entries": saved,
-		"projects":     projects,
-	}
+	return saved
+}
+
+func (fs *FileStorage) writeDataAtomic(data fileData) error {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
-		return fmt.Errorf("failed to write data file: %w", err)
+	dir := filepath.Dir(fs.FilePath)
+	tmpFile, err := os.CreateTemp(dir, ".time-tracker-*.json")
+	if err != nil {
+		return fmt.Errorf("failed to create temp data file: %w", err)
 	}
+
+	tmpPath := tmpFile.Name()
+	cleanup := true
+	defer func() {
+		if cleanup {
+			_ = os.Remove(tmpPath)
+		}
+	}()
+
+	if err := tmpFile.Chmod(0644); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("failed to set temp file permissions: %w", err)
+	}
+
+	if _, err := tmpFile.Write(jsonData); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("failed to write temp data file: %w", err)
+	}
+
+	if err := tmpFile.Sync(); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("failed to sync temp data file: %w", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp data file: %w", err)
+	}
+
+	if err := os.Rename(tmpPath, fs.FilePath); err != nil {
+		return fmt.Errorf("failed to atomically replace data file: %w", err)
+	}
+
+	cleanup = false
 	return nil
 }
 
@@ -214,33 +264,5 @@ func (fs *FileStorage) SaveProjects(projects []models.Project) error {
 		return err
 	}
 
-	sorted := append([]models.TimeEntry(nil), entries...)
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Start.Before(sorted[j].Start)
-	})
-
-	saved := make([]models.V4Entry, len(sorted))
-	for i, entry := range sorted {
-		saved[i] = models.V4Entry{
-			Start:   entry.Start,
-			Project: entry.Project,
-			Title:   entry.Title,
-		}
-	}
-
-	data := map[string]any{
-		"version":      models.CurrentVersion,
-		"time-entries": saved,
-		"projects":     projects,
-	}
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %w", err)
-	}
-
-	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
-		return fmt.Errorf("failed to write data file: %w", err)
-	}
-
-	return nil
+	return fs.SaveEntriesAndProjects(entries, projects)
 }

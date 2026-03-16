@@ -14,6 +14,7 @@ type Storage interface {
 	Save([]models.TimeEntry) error
 	LoadProjects() ([]models.Project, error)
 	SaveProjects([]models.Project) error
+	SaveEntriesAndProjects([]models.TimeEntry, []models.Project) error
 }
 
 type TaskManager struct {

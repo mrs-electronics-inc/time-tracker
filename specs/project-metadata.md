@@ -152,7 +152,7 @@ Empty cells: If a project has no code or category defined, those columns will be
 ### Versioning and Persistence
 
 - [x] Bump `CurrentVersion` to 4 and extend migration/load-save paths for v4 data.
-- [ ] Implement atomic persistence for operations that update entries and projects together.
+- [x] Implement atomic persistence for operations that update entries and projects together.
 
 ### Domain Logic
 

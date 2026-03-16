@@ -8,4 +8,5 @@ type Storage interface {
 	Save([]TimeEntry) error
 	LoadProjects() ([]Project, error)
 	SaveProjects([]Project) error
+	SaveEntriesAndProjects([]TimeEntry, []Project) error
 }

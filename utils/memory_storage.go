@@ -42,3 +42,13 @@ func (ms *MemoryStorage) SaveProjects(projects []models.Project) error {
 	copy(ms.projects, projects)
 	return nil
 }
+
+func (ms *MemoryStorage) SaveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
+	ms.data = make([]models.TimeEntry, len(entries))
+	copy(ms.data, entries)
+
+	ms.projects = make([]models.Project, len(projects))
+	copy(ms.projects, projects)
+
+	return nil
+}

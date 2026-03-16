@@ -13,9 +13,9 @@ import (
 )
 
 type fileData struct {
-	Version     int              `json:"version"`
-	TimeEntries []models.V4Entry `json:"time-entries"`
-	Projects    []models.Project `json:"projects"`
+	Version     int                `json:"version"`
+	TimeEntries []models.V4Entry   `json:"time-entries"`
+	Projects    []models.V4Project `json:"projects"`
 }
 
 type loadData struct {
@@ -42,7 +42,7 @@ func NewFileStorage(filePath string) (*FileStorage, error) {
 		initialData := fileData{
 			Version:     models.CurrentVersion,
 			TimeEntries: []models.V4Entry{},
-			Projects:    []models.Project{},
+			Projects:    []models.V4Project{},
 		}
 		jsonData, err := json.MarshalIndent(initialData, "", "  ")
 		if err != nil {
@@ -158,16 +158,16 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return err
 	}
 
-	return fs.SaveEntriesAndProjects(entries, projects)
+	return fs.saveEntriesAndProjects(entries, projects)
 }
 
-func (fs *FileStorage) SaveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
+func (fs *FileStorage) saveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
 	saved := toSortedV4Entries(entries)
 
 	data := fileData{
 		Version:     models.CurrentVersion,
 		TimeEntries: saved,
-		Projects:    projects,
+		Projects:    toV4Projects(projects),
 	}
 
 	return fs.writeDataAtomic(data)
@@ -190,6 +190,30 @@ func toSortedV4Entries(entries []models.TimeEntry) []models.V4Entry {
 	}
 
 	return saved
+}
+
+func toV4Projects(projects []models.Project) []models.V4Project {
+	out := make([]models.V4Project, len(projects))
+	for i, project := range projects {
+		out[i] = models.V4Project{
+			Name:     project.Name,
+			Code:     project.Code,
+			Category: project.Category,
+		}
+	}
+	return out
+}
+
+func fromV4Projects(projects []models.V4Project) []models.Project {
+	out := make([]models.Project, len(projects))
+	for i, project := range projects {
+		out[i] = models.Project{
+			Name:     project.Name,
+			Code:     project.Code,
+			Category: project.Category,
+		}
+	}
+	return out
 }
 
 func (fs *FileStorage) writeDataAtomic(data fileData) error {
@@ -246,7 +270,7 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 	}
 
 	var data struct {
-		Projects []models.Project `json:"projects"`
+		Projects []models.V4Project `json:"projects"`
 	}
 	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
@@ -255,7 +279,7 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 		return []models.Project{}, nil
 	}
 
-	return data.Projects, nil
+	return fromV4Projects(data.Projects), nil
 }
 
 func (fs *FileStorage) SaveProjects(projects []models.Project) error {
@@ -264,5 +288,5 @@ func (fs *FileStorage) SaveProjects(projects []models.Project) error {
 		return err
 	}
 
-	return fs.SaveEntriesAndProjects(entries, projects)
+	return fs.saveEntriesAndProjects(entries, projects)
 }

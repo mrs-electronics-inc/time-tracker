@@ -41,3 +41,10 @@ type V4Entry struct {
 	Project string    `json:"project"`
 	Title   string    `json:"title"`
 }
+
+// V4Project is the project metadata format in v4.
+type V4Project struct {
+	Name     string `json:"name"`
+	Code     string `json:"code"`
+	Category string `json:"category"`
+}

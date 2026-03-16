@@ -1,6 +1,6 @@
 ---
 number: 9
-status: approved
+status: in-progress
 author: Addison Emig
 creation_date: 2026-01-22
 approved_by: Addison Emig
@@ -144,7 +144,7 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 ### Storage Foundation
 
-- [ ] Define `Project` struct with `Name`, `Code`, and `Category` fields.
+- [x] Define `Project` struct with `Name`, `Code`, and `Category` fields.
 - [ ] Add `projects` key to `data.json` schema.
 - [ ] Extend storage interfaces and implementations with `LoadProjects`/`SaveProjects`.
 - [ ] Handle missing `projects` key gracefully (empty project list).

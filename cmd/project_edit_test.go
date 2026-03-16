@@ -24,6 +24,25 @@ func TestEditProject_RequiresAtLeastOneFlag(t *testing.T) {
 	}
 }
 
+func TestEditProject_RejectsWhitespaceOnlyNewName(t *testing.T) {
+	storage := utils.NewMemoryStorage()
+	tm := utils.NewTaskManager(storage)
+
+	if err := storage.SaveProjects([]models.Project{{Name: "Acme", Code: "A1", Category: "Client"}}); err != nil {
+		t.Fatalf("failed to seed projects: %v", err)
+	}
+
+	var out bytes.Buffer
+	err := editProject(storage, tm, "Acme", "   ", "", "", true, false, false, &out)
+	if err == nil {
+		t.Fatal("expected error for whitespace-only --name")
+	}
+
+	if !strings.Contains(err.Error(), "project name cannot be empty") {
+		t.Fatalf("expected empty-name validation error, got: %v", err)
+	}
+}
+
 func TestEditProject_MetadataOnlyPreservesOmittedFieldsAndPrintsSimpleMessage(t *testing.T) {
 	storage := utils.NewMemoryStorage()
 	tm := utils.NewTaskManager(storage)

@@ -158,6 +158,10 @@ func editProject(
 		return fmt.Errorf("at least one flag must be provided: --name, --code, or --category")
 	}
 
+	if nameChanged && strings.TrimSpace(newName) == "" {
+		return fmt.Errorf("project name cannot be empty")
+	}
+
 	if !codeChanged || !categoryChanged {
 		projects, err := storage.LoadProjects()
 		if err != nil {

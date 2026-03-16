@@ -151,6 +151,100 @@ func TestProjectsViewScrollsThroughAllProjects(t *testing.T) {
 	}
 }
 
+func TestProjectsModeAddProjectViaForm(t *testing.T) {
+	m := newTestModel()
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-new" {
+		t.Fatalf("Expected mode to switch to project-new after 'n', got %q", m.CurrentMode.Name)
+	}
+
+	m.ProjectInputs[0].SetValue("Website Redesign")
+	m.ProjectInputs[1].SetValue("12580")
+	m.ProjectInputs[2].SetValue("Design")
+
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode != m.ProjectsMode {
+		t.Fatalf("Expected mode to return to projects after submit, got %q", m.CurrentMode.Name)
+	}
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 1 {
+		t.Fatalf("Expected exactly one project, got %d", len(projects))
+	}
+
+	if projects[0].Name != "Website Redesign" || projects[0].Code != "12580" || projects[0].Category != "Design" {
+		t.Fatalf("Unexpected project data: %+v", projects[0])
+	}
+}
+
+func TestProjectsModeEditProjectViaForm(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-edit" {
+		t.Fatalf("Expected mode to switch to project-edit after 'e', got %q", m.CurrentMode.Name)
+	}
+
+	if m.ProjectInputs[0].Value() != "API Updates" || m.ProjectInputs[1].Value() != "12573" || m.ProjectInputs[2].Value() != "Backend" {
+		t.Fatalf("Expected form to be pre-filled, got name=%q code=%q category=%q", m.ProjectInputs[0].Value(), m.ProjectInputs[1].Value(), m.ProjectInputs[2].Value())
+	}
+
+	m.ProjectInputs[0].SetValue("API Platform")
+	m.ProjectInputs[1].SetValue("12599")
+	m.ProjectInputs[2].SetValue("Core")
+
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode != m.ProjectsMode {
+		t.Fatalf("Expected mode to return to projects after submit, got %q", m.CurrentMode.Name)
+	}
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 1 {
+		t.Fatalf("Expected exactly one project, got %d", len(projects))
+	}
+
+	if projects[0].Name != "API Platform" || projects[0].Code != "12599" || projects[0].Category != "Core" {
+		t.Fatalf("Unexpected project data after edit: %+v", projects[0])
+	}
+}
+
 // TestWindowSizeUpdate verifies window size messages are handled
 func TestWindowSizeUpdate(t *testing.T) {
 	m := newTestModel()

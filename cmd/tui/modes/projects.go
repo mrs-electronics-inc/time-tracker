@@ -15,6 +15,8 @@ var ProjectsMode = &Mode{
 	Name: "projects",
 	KeyBindings: []KeyBinding{
 		{Keys: "Tab", Label: "LIST", Description: "Switch mode"},
+		{Keys: "n", Label: "NEW", Description: "Add project"},
+		{Keys: "e", Label: "EDIT", Description: "Edit project"},
 		{Keys: "k / ↑", Label: "UP", Description: "Scroll up"},
 		{Keys: "j / ↓", Label: "DOWN", Description: "Scroll down"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
@@ -34,7 +36,22 @@ var ProjectsMode = &Mode{
 			m.SwitchMode(m.ListMode)
 			return m, nil
 
+		case "n":
+			openProjectNewMode(m)
+			return m, nil
+
+		case "e":
+			if len(m.Projects) > 0 {
+				projects := sortedProjectsByName(m.Projects)
+				selected := clampSelectedProjectIndex(m, len(projects))
+				openProjectEditMode(m, projects[selected])
+			}
+			return m, nil
+
 		case "k", "up":
+			if m.SelectedIdx > 0 {
+				m.SelectedIdx--
+			}
 			if m.ViewportTop > 0 {
 				m.ViewportTop--
 			}
@@ -42,7 +59,12 @@ var ProjectsMode = &Mode{
 			return m, nil
 
 		case "j", "down":
-			if len(m.Projects) > 0 {
+			if m.SelectedIdx < len(m.Projects)-1 {
+				m.SelectedIdx++
+			}
+			maxRows := projectVisibleRows(m)
+			maxTop := max(len(m.Projects)-maxRows, 0)
+			if m.ViewportTop < maxTop {
 				m.ViewportTop++
 			}
 			m.Status = ""
@@ -59,10 +81,11 @@ var ProjectsMode = &Mode{
 func renderProjectsContent(m *Model, availableHeight int) string {
 	if len(m.Projects) == 0 {
 		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
-		return emptyStyle.Render("No projects found.\n")
+		return emptyStyle.Render("No projects found. Press 'n' to add one.\n")
 	}
 
 	projects := sortedProjectsByName(m.Projects)
+	selected := clampSelectedProjectIndex(m, len(projects))
 	headerHeight := 2
 	maxRows := max(availableHeight-headerHeight, 1)
 	maxTop := max(len(projects)-maxRows, 0)
@@ -105,7 +128,11 @@ func renderProjectsContent(m *Model, availableHeight int) string {
 	for i := m.ViewportTop; i < end; i++ {
 		project := projects[i]
 		row := fmt.Sprintf("%-*s %-*s %s", nameWidth, project.Name, codeWidth, project.Code, project.Category)
-		output.WriteString(m.Styles.Unselected.Render(row))
+		if i == selected {
+			output.WriteString(lipgloss.NewStyle().Bold(true).Reverse(true).Render(row))
+		} else {
+			output.WriteString(m.Styles.Unselected.Render(row))
+		}
 		output.WriteString("\n")
 	}
 
@@ -123,4 +150,47 @@ func sortedProjectsByName(projects []models.Project) []models.Project {
 		return left < right
 	})
 	return sorted
+}
+
+func clampSelectedProjectIndex(m *Model, projectCount int) int {
+	if projectCount <= 0 {
+		m.SelectedIdx = 0
+		return 0
+	}
+	if m.SelectedIdx < 0 {
+		m.SelectedIdx = 0
+	}
+	if m.SelectedIdx >= projectCount {
+		m.SelectedIdx = projectCount - 1
+	}
+	return m.SelectedIdx
+}
+
+func setSelectedProjectByName(m *Model, name string) {
+	if len(m.Projects) == 0 {
+		m.SelectedIdx = 0
+		return
+	}
+
+	projects := sortedProjectsByName(m.Projects)
+	if name == "" {
+		m.SelectedIdx = clampSelectedProjectIndex(m, len(projects))
+		return
+	}
+
+	for i, project := range projects {
+		if strings.EqualFold(project.Name, name) {
+			m.SelectedIdx = i
+			return
+		}
+	}
+
+	m.SelectedIdx = clampSelectedProjectIndex(m, len(projects))
+}
+
+func projectVisibleRows(m *Model) int {
+	statusBarHeight := 1
+	availableHeight := max(m.Height-statusBarHeight, 1)
+	headerHeight := 2
+	return max(availableHeight-headerHeight, 1)
 }

@@ -54,27 +54,34 @@ type Model struct {
 	Height      int                // Terminal height
 
 	// Mode state
-	CurrentMode  *Mode             // Current TUI mode
-	PreviousMode *Mode             // Previous mode (used for help context)
-	Inputs       []textinput.Model // Text inputs for project, title, hour, minute
-	FocusIndex   int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	CurrentMode       *Mode             // Current TUI mode
+	PreviousMode      *Mode             // Previous mode (used for help context)
+	Inputs            []textinput.Model // Text inputs for project, title, hour, minute
+	FocusIndex        int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	ProjectInputs     []textinput.Model // Text inputs for project metadata form (name, code, category)
+	ProjectFocusIndex int               // Currently focused metadata input
 
 	// Loading state
 	Loading bool // Whether we're waiting for a data operation
 
 	// Mode references for navigation
-	ListMode     *Mode
-	StartMode    *Mode
-	HelpMode     *Mode
-	StatsMode    *Mode
-	ProjectsMode *Mode
-	NewMode      *Mode
-	EditMode     *Mode
-	ResumeMode   *Mode
-	ConfirmMode  *Mode
+	ListMode        *Mode
+	StartMode       *Mode
+	HelpMode        *Mode
+	StatsMode       *Mode
+	ProjectsMode    *Mode
+	NewMode         *Mode
+	EditMode        *Mode
+	ResumeMode      *Mode
+	ConfirmMode     *Mode
+	ProjectNewMode  *Mode
+	ProjectEditMode *Mode
 
 	// Form state for new/edit/resume modes
 	FormState FormState
+
+	// Form state for project metadata add/edit modes
+	ProjectFormState ProjectFormState
 
 	// Confirm state for delete confirmation
 	ConfirmState ConfirmState

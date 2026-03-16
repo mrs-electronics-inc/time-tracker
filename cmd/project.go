@@ -26,6 +26,10 @@ type projectEditManager interface {
 	EditProject(name, newName, code, category string) (*utils.ProjectMutationResult, error)
 }
 
+type projectRemoveManager interface {
+	RemoveProject(name string) error
+}
+
 var projectCmd = &cobra.Command{
 	Use:   "project",
 	Short: "Manage projects",
@@ -106,6 +110,22 @@ var projectEditCmd = &cobra.Command{
 	},
 }
 
+var projectRemoveCmd = &cobra.Command{
+	Use:   "remove <name>",
+	Short: "Remove a project",
+	Long:  "Remove a project if it is not referenced by any time entries.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		storage, err := utils.NewFileStorage(config.DataFilePath())
+		if err != nil {
+			return fmt.Errorf("failed to initialize storage: %w", err)
+		}
+
+		taskManager := utils.NewTaskManager(storage)
+		return removeProject(taskManager, args[0], os.Stdout)
+	},
+}
+
 func addProject(taskManager projectAddManager, name, code, category string, out io.Writer) error {
 	project, err := taskManager.AddProject(name, code, category)
 	if err != nil {
@@ -178,6 +198,16 @@ func editProject(
 	return nil
 }
 
+func removeProject(taskManager projectRemoveManager, name string, out io.Writer) error {
+	trimmedName := strings.TrimSpace(name)
+	if err := taskManager.RemoveProject(trimmedName); err != nil {
+		return fmt.Errorf("failed to remove project: %w", err)
+	}
+
+	fmt.Fprintf(out, "Removed project %q\n", trimmedName)
+	return nil
+}
+
 func listProjects(storage projectListStorage, out io.Writer) error {
 	projects, err := storage.LoadProjects()
 	if err != nil {
@@ -219,6 +249,7 @@ func init() {
 
 	projectCmd.AddCommand(projectAddCmd)
 	projectCmd.AddCommand(projectEditCmd)
+	projectCmd.AddCommand(projectRemoveCmd)
 	projectCmd.AddCommand(projectListCmd)
 	rootCmd.AddCommand(projectCmd)
 }

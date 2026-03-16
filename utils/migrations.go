@@ -85,3 +85,15 @@ func TransformV2ToV3(entries []models.V2Entry) ([]models.V3Entry, error) {
 	}
 	return v3Entries, nil
 }
+
+func TransformV3ToV4(entries []models.V3Entry) ([]models.V4Entry, error) {
+	v4Entries := make([]models.V4Entry, len(entries))
+	for i, entry := range entries {
+		v4Entries[i] = models.V4Entry{
+			Start:   entry.Start,
+			Project: entry.Project,
+			Title:   entry.Title,
+		}
+	}
+	return v4Entries, nil
+}

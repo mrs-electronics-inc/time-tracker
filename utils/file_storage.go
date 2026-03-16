@@ -78,6 +78,7 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	var v1Entries []models.V1Entry
 	var v2Entries []models.V2Entry
 	var v3Entries []models.V3Entry
+	var v4Entries []models.V4Entry
 
 	// Step 1: Unmarshal based on version
 	switch loadData.Version {
@@ -97,8 +98,12 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 		if err := json.Unmarshal(loadData.TimeEntries, &v3Entries); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal v3 data: %w", err)
 		}
+	case 4:
+		if err := json.Unmarshal(loadData.TimeEntries, &v4Entries); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal v4 data: %w", err)
+		}
 	default:
-		if loadData.Version > 3 {
+		if loadData.Version > 4 {
 			return nil, fmt.Errorf("unknown version: %d", loadData.Version)
 		}
 	}
@@ -113,6 +118,8 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 			v2Entries, err = TransformV1ToV2(v1Entries)
 		case 2:
 			v3Entries, err = TransformV2ToV3(v2Entries)
+		case 3:
+			v4Entries, err = TransformV3ToV4(v3Entries)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("migration from version %d failed: %w", v, err)
@@ -120,11 +127,11 @@ func (fs *FileStorage) Load() ([]models.TimeEntry, error) {
 	}
 
 	var entries []models.TimeEntry
-	for _, v3 := range v3Entries {
+	for _, v4 := range v4Entries {
 		entries = append(entries, models.TimeEntry{
-			Start:   v3.Start,
-			Project: v3.Project,
-			Title:   v3.Title,
+			Start:   v4.Start,
+			Project: v4.Project,
+			Title:   v4.Title,
 		})
 	}
 
@@ -157,9 +164,9 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return sorted[i].Start.Before(sorted[j].Start)
 	})
 
-	saved := make([]models.V3Entry, len(sorted))
+	saved := make([]models.V4Entry, len(sorted))
 	for i, entry := range sorted {
-		saved[i] = models.V3Entry{
+		saved[i] = models.V4Entry{
 			Start:   entry.Start,
 			Project: entry.Project,
 			Title:   entry.Title,
@@ -212,9 +219,9 @@ func (fs *FileStorage) SaveProjects(projects []models.Project) error {
 		return sorted[i].Start.Before(sorted[j].Start)
 	})
 
-	saved := make([]models.V3Entry, len(sorted))
+	saved := make([]models.V4Entry, len(sorted))
 	for i, entry := range sorted {
-		saved[i] = models.V3Entry{
+		saved[i] = models.V4Entry{
 			Start:   entry.Start,
 			Project: entry.Project,
 			Title:   entry.Title,

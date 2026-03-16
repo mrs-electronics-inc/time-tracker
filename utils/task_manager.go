@@ -15,7 +15,6 @@ type Storage interface {
 	Save([]models.TimeEntry) error
 	LoadProjects() ([]models.Project, error)
 	SaveProjects([]models.Project) error
-	SaveEntriesAndProjects([]models.TimeEntry, []models.Project) error
 }
 
 type TaskManager struct {
@@ -265,7 +264,10 @@ func (tm *TaskManager) EditProject(name, newName, code, category string) (*Proje
 		}
 
 		projects = append(projects[:sourceIndex], projects[sourceIndex+1:]...)
-		if err := tm.storage.SaveEntriesAndProjects(entries, projects); err != nil {
+		if err := tm.storage.Save(entries); err != nil {
+			return nil, err
+		}
+		if err := tm.storage.SaveProjects(projects); err != nil {
 			return nil, err
 		}
 
@@ -294,7 +296,10 @@ func (tm *TaskManager) EditProject(name, newName, code, category string) (*Proje
 	projects[sourceIndex] = source
 
 	if renamed {
-		if err := tm.storage.SaveEntriesAndProjects(entries, projects); err != nil {
+		if err := tm.storage.Save(entries); err != nil {
+			return nil, err
+		}
+		if err := tm.storage.SaveProjects(projects); err != nil {
 			return nil, err
 		}
 	} else {

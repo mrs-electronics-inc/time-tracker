@@ -71,6 +71,86 @@ func TestProjectsViewRendersProjectMetadata(t *testing.T) {
 	}
 }
 
+func TestProjectsViewSortsCaseInsensitiveByName(t *testing.T) {
+	m := newTestModel()
+
+	projects := []struct {
+		name     string
+		code     string
+		category string
+	}{
+		{name: "zeta", code: "003", category: "Ops"},
+		{name: "Alpha", code: "001", category: "Core"},
+		{name: "beta", code: "002", category: "Infra"},
+	}
+
+	for _, project := range projects {
+		if _, err := m.TaskManager.AddProject(project.name, project.code, project.category); err != nil {
+			t.Fatalf("Failed to add project %q: %v", project.name, err)
+		}
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	m.Width = 80
+	m.Height = 20
+
+	view := m.View()
+
+	alphaIdx := strings.Index(view, "Alpha")
+	betaIdx := strings.Index(view, "beta")
+	zetaIdx := strings.Index(view, "zeta")
+
+	if alphaIdx == -1 || betaIdx == -1 || zetaIdx == -1 {
+		t.Fatalf("Expected all projects in view, got:\n%s", view)
+	}
+
+	if !(alphaIdx < betaIdx && betaIdx < zetaIdx) {
+		t.Fatalf("Expected case-insensitive name sort order Alpha, beta, zeta; got:\n%s", view)
+	}
+}
+
+func TestProjectsViewScrollsThroughAllProjects(t *testing.T) {
+	m := newTestModel()
+
+	for i := 1; i <= 6; i++ {
+		name := fmt.Sprintf("Project %d", i)
+		if _, err := m.TaskManager.AddProject(name, fmt.Sprintf("%03d", i), "Category"); err != nil {
+			t.Fatalf("Failed to add project %q: %v", name, err)
+		}
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	m.Width = 80
+	m.Height = 6 // 5 content lines: 2 header + 3 project rows
+
+	view := m.View()
+	if !strings.Contains(view, "Project 1") {
+		t.Fatal("Expected Project 1 to be visible initially")
+	}
+	if strings.Contains(view, "Project 6") {
+		t.Fatal("Expected Project 6 to require scrolling")
+	}
+
+	for i := 0; i < 3; i++ {
+		msg := tea.KeyMsg{Type: tea.KeyDown}
+		updated, _ := m.Update(msg)
+		m = updated.(*Model)
+	}
+
+	view = m.View()
+	if !strings.Contains(view, "Project 6") {
+		t.Fatalf("Expected Project 6 to be visible after scrolling, got:\n%s", view)
+	}
+}
+
 // TestWindowSizeUpdate verifies window size messages are handled
 func TestWindowSizeUpdate(t *testing.T) {
 	m := newTestModel()

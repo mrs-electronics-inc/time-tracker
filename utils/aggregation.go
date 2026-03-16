@@ -8,11 +8,13 @@ import (
 
 // ProjectDateEntry represents an aggregated group of time entries for a (project, date) combination
 type ProjectDateEntry struct {
-	Project     string
-	Date        time.Time
-	Duration    time.Duration
-	Tasks       []string // Deduplicated task titles
-	RawDuration time.Duration
+	Project         string
+	ProjectCode     string
+	ProjectCategory string
+	Date            time.Time
+	Duration        time.Duration
+	Tasks           []string // Deduplicated task titles
+	RawDuration     time.Duration
 }
 
 // AggregateByProjectDate groups time entries by (project, date) and collects task descriptions.

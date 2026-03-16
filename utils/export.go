@@ -12,7 +12,7 @@ import (
 // ExportDailyProjects exports aggregated daily project entries as TSV format.
 // Assumes entries are already aggregated and filtered (e.g., via AggregateByProjectDate).
 // Running and blank entries are already excluded in the aggregation step.
-// Returns a TSV string with columns: Project, Date, Duration, Description
+// Returns a TSV string with columns: ProjectName, ProjectCode, ProjectCategory, Date, Duration, Description
 // Returns an error if any write operation fails.
 func ExportDailyProjects(entries []ProjectDateEntry) (string, error) {
 	var buf bytes.Buffer
@@ -20,7 +20,7 @@ func ExportDailyProjects(entries []ProjectDateEntry) (string, error) {
 	writer.Comma = '\t'
 
 	// Write header
-	if err := writer.Write([]string{"Project", "Date", "Duration", "Description"}); err != nil {
+	if err := writer.Write([]string{"ProjectName", "ProjectCode", "ProjectCategory", "Date", "Duration", "Description"}); err != nil {
 		return "", fmt.Errorf("failed to write header: %w", err)
 	}
 
@@ -32,6 +32,8 @@ func ExportDailyProjects(entries []ProjectDateEntry) (string, error) {
 
 		if err := writer.Write([]string{
 			entry.Project,
+			entry.ProjectCode,
+			entry.ProjectCategory,
 			dateStr,
 			fmt.Sprintf("%d", durationMin),
 			description,

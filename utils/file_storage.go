@@ -194,6 +194,9 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
+	if data.Projects == nil {
+		return []models.Project{}, nil
+	}
 
 	return data.Projects, nil
 }

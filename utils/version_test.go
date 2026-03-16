@@ -148,6 +148,32 @@ func TestFileStorage_SaveAndLoadProjects(t *testing.T) {
 	}
 }
 
+func TestFileStorage_LoadProjectsMissingKeyReturnsEmptySlice(t *testing.T) {
+	tempDir := t.TempDir()
+	dataFile := filepath.Join(tempDir, "data.json")
+
+	initialData := `{"version":3,"time-entries":[]}`
+	if err := os.WriteFile(dataFile, []byte(initialData), 0644); err != nil {
+		t.Fatalf("Failed to write data file: %v", err)
+	}
+
+	storage, err := NewFileStorage(dataFile)
+	if err != nil {
+		t.Fatalf("Failed to create file storage: %v", err)
+	}
+
+	projects, err := storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+	if projects == nil {
+		t.Fatalf("Expected missing projects key to load as empty slice, got nil")
+	}
+	if len(projects) != 0 {
+		t.Fatalf("Expected no projects, got %d", len(projects))
+	}
+}
+
 func TestFileStorage_SaveEntriesPreservesProjects(t *testing.T) {
 	tempDir := t.TempDir()
 	dataFile := filepath.Join(tempDir, "data.json")

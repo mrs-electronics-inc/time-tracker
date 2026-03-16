@@ -140,14 +140,21 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 ## Task List
 
-### Project Storage
+### Storage Foundation
 
 - [ ] Define `Project` struct with `Name`, `Code`, and `Category` fields.
-- [ ] Add `projects` key to `data.json` schema
-- [ ] Bump `CurrentVersion` to 4 and extend migration/load-save paths for v4 data.
+- [ ] Add `projects` key to `data.json` schema.
 - [ ] Extend storage interfaces and implementations with `LoadProjects`/`SaveProjects`.
-- [ ] Handle missing `projects` key gracefully (empty project list)
+- [ ] Handle missing `projects` key gracefully (empty project list).
+
+### Versioning and Persistence
+
+- [ ] Bump `CurrentVersion` to 4 and extend migration/load-save paths for v4 data.
 - [ ] Implement atomic persistence for operations that update entries and projects together.
+
+### Domain Logic
+
+- [ ] Implement project mutation logic in `TaskManager` and keep command handlers thin.
 
 ### Project Management Commands
 
@@ -155,17 +162,19 @@ Empty cells: If a project has no code or category defined, those columns will be
 - [ ] Implement `project add <name> [--code <code>] [--category <category>]` with trim + validation and case-insensitive uniqueness enforcement.
 - [ ] Implement `project edit <name> [--name <new-name>] [--code <code>] [--category <category>]` with rename/merge semantics and rewrite count reporting for rename operations.
 - [ ] Implement `project remove <name>` with reference blocking and reference-count error.
-- [ ] Implement project mutation logic in `TaskManager` and keep command handlers thin.
 
-### Export Updates
+### Export Columns
 
-- [ ] Update `ExportDailyProjects` to output `ProjectName`, `ProjectCode`, and `ProjectCategory` columns
-- [ ] Implement `--category` filter for export command to show only entries from specified category
-- [ ] Ensure backward compatibility with entries using undefined projects
+- [ ] Update `ExportDailyProjects` to output `ProjectName`, `ProjectCode`, and `ProjectCategory` columns.
+- [ ] Ensure backward compatibility with entries using undefined projects.
+
+### Category Filter
+
+- [ ] Implement `--category` filter for export command to show only entries from specified category.
 
 ### TUI Updates
 
-- [ ] Add `projects` view alongside `list` and `stats` views
+- [ ] Add `projects` view alongside `list` and `stats` views.
 - [ ] Implement `Tab` cycle across `list`, `stats`, and `projects` modes.
 - [ ] In `projects` view: scroll through all projects, sorted case-insensitively by name.
 - [ ] In `projects` view: add and edit projects via project form (`Name`, `Code`, `Category`).

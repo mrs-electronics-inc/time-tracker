@@ -15,6 +15,8 @@ The command could be `current`, aliases `curr` and `c`.
 
 ## Task List
 
+### Current Command
+
 - [x] Create convenience function to return current running task
 - [x] Output something like:
 

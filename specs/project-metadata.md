@@ -75,51 +75,99 @@ Empty cells: If a project has no code or category defined, those columns will be
 - **Decision**: Store project metadata under a `projects` key inside `data.json`
 - **Rationale**: Single data file to manage; projects and time entries stay together
 
-### Project Matching and Rename Behavior
+### Data and Persistence Contract
 
-- **Decision**: Time entries store project name. Export looks up code by exact name match. Project names are case-sensitive and must be unique. When renaming a project, update the project entry name AND rewrite all matching time entries to the new name.
-- **Rationale**: Simple, deterministic matching. Single source of truth per project name. Rename is non-breaking because all entries stay consistent.
+- **Decision**: Bump storage format to version 4.
+- **Decision**: Keep existing time-entry methods and extend storage with project-specific methods:
+  - `Load() ([]TimeEntry, error)`
+  - `Save([]TimeEntry) error`
+  - `LoadProjects() ([]Project, error)`
+  - `SaveProjects([]Project) error`
+- **Decision**: `Project` has `name`, `code`, and `category` string fields; missing optional values are stored as explicit empty strings (`""`), not omitted.
+- **Decision**: Continue current migration behavior: migrate older versions in memory on load, persist v4 on next save.
+- **Decision**: Operations that mutate both entries and projects (rename/merge) must persist atomically in one file write.
+- **Rationale**: Aligns with existing code patterns while adding project support safely and without broad interface churn.
+
+### Naming, Validation, and Matching
+
+- **Decision**: Project name uniqueness is case-insensitive, while preserving original casing for display and storage.
+- **Decision**: Add/edit/rename trim leading/trailing whitespace before validation.
+- **Decision**: Empty name after trim is invalid; empty `code` and `category` are allowed.
+- **Decision**: Time entries continue to store project name strings. Matching from entries to metadata uses exact, case-sensitive name equality.
+- **Rationale**: Prevents confusing near-duplicates while keeping deterministic matching behavior.
+
+### Rename and Merge Behavior
+
+- **Decision**: Renaming to a non-existing name rewrites all exact old-name entry references to the new name.
+- **Decision**: Renaming to an existing name is a merge:
+  - Rewrite all exact old-name entry references to the target name.
+  - Remove the source project metadata record.
+  - Keep target metadata canonical; on conflict, target `code`/`category` win.
+- **Decision**: Case-only renames are valid and rewrite exact old-name matches.
+- **Decision**: Successful rename operations (including merge) report rewritten entry count.
+- **Decision**: Metadata-only edits report a simple success message without rewrite count.
+- **Rationale**: Keeps data consistent and gives users clear, predictable outcomes.
+
+### Remove Behavior
+
+- **Decision**: Removing a project is blocked when any time entries reference it.
+- **Decision**: Blocked remove returns a consistent error in CLI and TUI that includes reference count.
+- **Rationale**: Avoids silently orphaning metadata-backed workflows.
+
+### Export Behavior
 
 ### Backward Compatibility
 
 - **Decision**: Projects without metadata entries continue to work; they just won't have a code in exports
 - **Rationale**: Non-breaking change; users can adopt project metadata incrementally
+- **Decision**: `daily-projects` header becomes: `ProjectName`, `ProjectCode`, `ProjectCategory`, `Date`, `Duration`, `Description`.
+- **Decision**: Add `export --category <value>` filter:
+  - Input is trimmed.
+  - Whitespace-only value is invalid.
+  - Match is exact string and case-insensitive (`strings.EqualFold` semantics).
+  - Without `--category`, include all rows.
+  - With `--category`, include only rows whose project metadata exists and matches; undefined projects are excluded.
+- **Rationale**: Keeps exports backward compatible by default while enabling reliable category-focused subsets.
+
+### TUI Navigation and Scope
+
+- **Decision**: Spec 9 includes a full `projects` TUI view.
+- **Decision**: Mode switching uses `Tab` cycle: `list -> stats -> projects -> list`.
+- **Decision**: `projects` mode uses `j/k` (and arrows) for navigation and `n/e/d` for add/edit/delete.
+- **Decision**: Add/edit project actions use a dedicated project form with fields `Name` (required), `Code` (optional), and `Category` (optional).
+- **Decision**: Time-entry forms remain free-form in spec 9; autocomplete/strict project selection is deferred to spec 12.
+- **Rationale**: Preserves current interaction patterns while delivering project management in the TUI.
 
 ## Task List
 
 ### Project Storage
 
-- [ ] Define `Project` struct with `Name` and `Code` fields
+- [ ] Define `Project` struct with `Name`, `Code`, and `Category` fields.
 - [ ] Add `projects` key to `data.json` schema
-- [ ] Update storage to load/save projects from `data.json`
-- [ ] Test: Load projects from `data.json`
-- [ ] Test: Save projects to `data.json`
-- [ ] Test: Handle missing `projects` key gracefully (empty project list)
+- [ ] Bump `CurrentVersion` to 4 and extend migration/load-save paths for v4 data.
+- [ ] Extend storage interfaces and implementations with `LoadProjects`/`SaveProjects`.
+- [ ] Handle missing `projects` key gracefully (empty project list)
+- [ ] Implement atomic persistence for operations that update entries and projects together.
 
 ### Project Management Commands
 
-- [ ] Implement `project list` command to display all projects
-- [ ] Implement `project add <name> [--code <code>]` command
-- [ ] Implement `project edit <name> [--code <code>]` command
-- [ ] Implement `project remove <name>` command
-- [ ] Test: Add project with name only
-- [ ] Test: Add project with name and code
-- [ ] Test: Edit project code
-- [ ] Test: Remove project
+- [ ] Implement `project list` command with columns `Name`, `Code`, `Category`, sorted case-insensitively by name.
+- [ ] Implement `project add <name> [--code <code>] [--category <category>]` with trim + validation and case-insensitive uniqueness enforcement.
+- [ ] Implement `project edit <name> [--name <new-name>] [--code <code>] [--category <category>]` with rename/merge semantics and rewrite count reporting for rename operations.
+- [ ] Implement `project remove <name>` with reference blocking and reference-count error.
+- [ ] Implement project mutation logic in `TaskManager` and keep command handlers thin.
 
 ### Export Updates
 
 - [ ] Update `ExportDailyProjects` to output `ProjectName`, `ProjectCode`, and `ProjectCategory` columns
 - [ ] Implement `--category` filter for export command to show only entries from specified category
-- [ ] Test: Export includes `ProjectCode` and `ProjectCategory` when project has metadata
-- [ ] Test: Export has empty `ProjectCode` and `ProjectCategory` when project has no metadata
-- [ ] Test: `--category` filter works correctly
-- [ ] Test: Backward compatible with entries using undefined projects
+- [ ] Ensure backward compatibility with entries using undefined projects
 
 ### TUI Updates
 
 - [ ] Add `projects` view alongside `list` and `stats` views
-- [ ] In `projects` view: scroll through all projects
-- [ ] In `projects` view: add new projects (name, code, category)
-- [ ] In `projects` view: edit existing projects (name, code, category)
-- [ ] Consider project autocomplete from defined projects when creating entries
+- [ ] Implement `Tab` cycle across `list`, `stats`, and `projects` modes.
+- [ ] In `projects` view: scroll through all projects, sorted case-insensitively by name.
+- [ ] In `projects` view: add and edit projects via project form (`Name`, `Code`, `Category`).
+- [ ] In `projects` view: delete projects with the same reference-blocking behavior as CLI.
+- [ ] Keep time-entry project fields free-form in this spec; project autocomplete remains in spec 12.

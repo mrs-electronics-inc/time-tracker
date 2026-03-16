@@ -6,4 +6,6 @@ const CurrentVersion = 3
 type Storage interface {
 	Load() ([]TimeEntry, error)
 	Save([]TimeEntry) error
+	LoadProjects() ([]Project, error)
+	SaveProjects([]Project) error
 }

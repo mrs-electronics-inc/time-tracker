@@ -146,6 +146,11 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	// older version and migrated, this will upgrade the on-disk format to
 	// include migrated changes (e.g., blank entries).
 
+	projects, err := fs.LoadProjects()
+	if err != nil {
+		return err
+	}
+
 	// Sort entries by start time before saving
 	sorted := append([]models.TimeEntry(nil), entries...)
 	sort.Slice(sorted, func(i, j int) bool {
@@ -164,7 +169,7 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	data := map[string]any{
 		"version":      models.CurrentVersion,
 		"time-entries": saved,
-		"projects":     []models.Project{},
+		"projects":     projects,
 	}
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
@@ -174,5 +179,58 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
 		return fmt.Errorf("failed to write data file: %w", err)
 	}
+	return nil
+}
+
+func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
+	jsonData, err := os.ReadFile(fs.FilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read data file: %w", err)
+	}
+
+	var data struct {
+		Projects []models.Project `json:"projects"`
+	}
+	if err := json.Unmarshal(jsonData, &data); err != nil {
+		return nil, fmt.Errorf("failed to parse data: %w", err)
+	}
+
+	return data.Projects, nil
+}
+
+func (fs *FileStorage) SaveProjects(projects []models.Project) error {
+	entries, err := fs.Load()
+	if err != nil {
+		return err
+	}
+
+	sorted := append([]models.TimeEntry(nil), entries...)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Start.Before(sorted[j].Start)
+	})
+
+	saved := make([]models.V3Entry, len(sorted))
+	for i, entry := range sorted {
+		saved[i] = models.V3Entry{
+			Start:   entry.Start,
+			Project: entry.Project,
+			Title:   entry.Title,
+		}
+	}
+
+	data := map[string]any{
+		"version":      models.CurrentVersion,
+		"time-entries": saved,
+		"projects":     projects,
+	}
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %w", err)
+	}
+
+	if err := os.WriteFile(fs.FilePath, jsonData, 0644); err != nil {
+		return fmt.Errorf("failed to write data file: %w", err)
+	}
+
 	return nil
 }

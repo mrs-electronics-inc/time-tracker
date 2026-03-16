@@ -146,7 +146,7 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 - [x] Define `Project` struct with `Name`, `Code`, and `Category` fields.
 - [x] Add `projects` key to `data.json` schema.
-- [ ] Extend storage interfaces and implementations with `LoadProjects`/`SaveProjects`.
+- [x] Extend storage interfaces and implementations with `LoadProjects`/`SaveProjects`.
 - [ ] Handle missing `projects` key gracefully (empty project list).
 
 ### Versioning and Persistence

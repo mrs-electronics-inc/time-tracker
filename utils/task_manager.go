@@ -12,6 +12,8 @@ import (
 type Storage interface {
 	Load() ([]models.TimeEntry, error)
 	Save([]models.TimeEntry) error
+	LoadProjects() ([]models.Project, error)
+	SaveProjects([]models.Project) error
 }
 
 type TaskManager struct {

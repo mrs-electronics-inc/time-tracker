@@ -158,10 +158,10 @@ func (fs *FileStorage) Save(entries []models.TimeEntry) error {
 		return err
 	}
 
-	return fs.SaveEntriesAndProjects(entries, projects)
+	return fs.saveEntriesAndProjects(entries, projects)
 }
 
-func (fs *FileStorage) SaveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
+func (fs *FileStorage) saveEntriesAndProjects(entries []models.TimeEntry, projects []models.Project) error {
 	saved := toSortedV4Entries(entries)
 
 	data := fileData{
@@ -264,5 +264,5 @@ func (fs *FileStorage) SaveProjects(projects []models.Project) error {
 		return err
 	}
 
-	return fs.SaveEntriesAndProjects(entries, projects)
+	return fs.saveEntriesAndProjects(entries, projects)
 }

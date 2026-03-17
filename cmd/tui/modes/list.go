@@ -15,6 +15,7 @@ var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
 		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
+		{Keys: "/", Label: "SEARCH", Description: "Focus search"},
 		{Keys: "n", Label: "NEW", Description: "New entry"},
 		{Keys: "s", Label: "STOP", Description: "Stop running entry"},
 		{Keys: "r", Label: "RESUME", Description: "Resume entry"},
@@ -247,7 +248,12 @@ func ensureSelectionVisibleInRows(m *Model, rows []VisibleEntry, maxVisibleRows 
 }
 
 func renderSearchInputBar(m *Model) string {
-	return m.Styles.Footer.Render("Search: "+m.SearchQueryDraft) + "\n"
+	searchText := "Search: " + m.SearchQueryDraft
+	if m.SearchInputFocused {
+		return m.Styles.InputFocused.Render(searchText) + "\n"
+	}
+
+	return m.Styles.Footer.Render(searchText) + "\n"
 }
 
 // isValidSelection checks if the selected index is valid

@@ -24,10 +24,11 @@ func TestRenderContentShowsSearchInputBarWhenSearchModeIsActive(t *testing.T) {
 		Entries: []models.TimeEntry{
 			{Project: "Backend", Title: "Build API"},
 		},
-		SelectedIdx:      0,
-		SearchActive:     true,
-		SearchQueryDraft: "backend",
-		Width:            120,
+		SelectedIdx:        0,
+		SearchActive:       true,
+		SearchInputFocused: false,
+		SearchQueryDraft:   "backend",
+		Width:              120,
 	}
 
 	content := ListMode.RenderContent(m, 6)
@@ -40,6 +41,43 @@ func TestRenderContentShowsSearchInputBarWhenSearchModeIsActive(t *testing.T) {
 	searchIndex := strings.Index(content, "Search: backend")
 	if rowIndex == -1 || searchIndex == -1 || searchIndex < rowIndex {
 		t.Fatalf("expected search input bar after rows, got:\n%s", content)
+	}
+}
+
+func TestRenderContentShowsFocusedSearchInputWithoutPipeCursor(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SelectedIdx:        0,
+		SearchActive:       true,
+		SearchInputFocused: true,
+		SearchQueryDraft:   "backend",
+		Width:              120,
+	}
+
+	content := ListMode.RenderContent(m, 6)
+
+	if !strings.Contains(content, "Search: backend") {
+		t.Fatalf("expected focused search input text, got:\n%s", content)
+	}
+
+	if strings.Contains(content, "Search: backend|") {
+		t.Fatalf("expected no pipe cursor in focused search input, got:\n%s", content)
+	}
+}
+
+func TestListModeKeyBindingsIncludeSearchShortcut(t *testing.T) {
+	found := false
+	for _, binding := range ListMode.KeyBindings {
+		if binding.Keys == "/" && binding.Label == "SEARCH" {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Fatal("expected list mode keybindings to include / SEARCH shortcut")
 	}
 }
 

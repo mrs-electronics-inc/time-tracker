@@ -245,6 +245,63 @@ func TestProjectsModeEditProjectViaForm(t *testing.T) {
 	}
 }
 
+func TestProjectsModeAddProjectRejectsEmptyName(t *testing.T) {
+	m := newTestModel()
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	m.ProjectInputs[0].SetValue("   ")
+	m.ProjectInputs[1].SetValue("123")
+	m.ProjectInputs[2].SetValue("Client")
+
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-new" {
+		t.Fatalf("Expected to stay in project-new mode on validation error, got %q", m.CurrentMode.Name)
+	}
+
+	if m.Status != "Error adding project: project name cannot be empty" {
+		t.Fatalf("Expected validation error status, got %q", m.Status)
+	}
+}
+
+func TestProjectsModeEditProjectRejectsEmptyName(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	m.ProjectInputs[0].SetValue("  ")
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-edit" {
+		t.Fatalf("Expected to stay in project-edit mode on validation error, got %q", m.CurrentMode.Name)
+	}
+
+	if m.Status != "Error editing project: project name cannot be empty" {
+		t.Fatalf("Expected validation error status, got %q", m.Status)
+	}
+}
+
 func TestProjectsModeDeleteProject(t *testing.T) {
 	m := newTestModel()
 

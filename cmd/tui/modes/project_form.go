@@ -115,6 +115,16 @@ func handleProjectFormSubmit(m *Model, formMode ProjectFormMode) (*Model, tea.Cm
 	name := m.ProjectInputs[0].Value()
 	code := m.ProjectInputs[1].Value()
 	category := m.ProjectInputs[2].Value()
+	trimmedName := strings.TrimSpace(name)
+
+	if trimmedName == "" {
+		if formMode == ProjectFormModeNew {
+			m.Status = "Error adding project: project name cannot be empty"
+		} else {
+			m.Status = "Error editing project: project name cannot be empty"
+		}
+		return m, nil
+	}
 
 	switch formMode {
 	case ProjectFormModeNew:
@@ -137,7 +147,7 @@ func handleProjectFormSubmit(m *Model, formMode ProjectFormMode) (*Model, tea.Cm
 	}
 
 	m.CurrentMode = m.ProjectsMode
-	setSelectedProjectByName(m, strings.TrimSpace(name))
+	setSelectedProjectByName(m, trimmedName)
 	return m, nil
 }
 

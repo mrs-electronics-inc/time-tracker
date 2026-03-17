@@ -177,3 +177,15 @@ func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 		}
 	}
 }
+
+func TestSlashInListModeActivatesSearchInput(t *testing.T) {
+	m := &Model{
+		SearchActive: false,
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+
+	if !updatedModel.SearchActive {
+		t.Fatal("SearchActive = false, expected true")
+	}
+}

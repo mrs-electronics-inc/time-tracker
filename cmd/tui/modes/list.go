@@ -31,6 +31,10 @@ var ListMode = &Mode{
 			}
 			return m, nil
 
+		case "/":
+			m.SearchActive = true
+			return m, nil
+
 		case "tab":
 			m.SwitchMode(m.StatsMode)
 			return m, nil

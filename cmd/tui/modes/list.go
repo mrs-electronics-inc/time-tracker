@@ -155,12 +155,18 @@ var ListMode = &Mode{
 
 		header := renderTableHeader(m)
 		rows := renderTableRows(m, listRowHeight)
+		rowsLineCount := strings.Count(rows, "\n")
+		rowsBottomPadding := ""
+		if rowsLineCount < listRowHeight {
+			rowsBottomPadding = strings.Repeat("\n", listRowHeight-rowsLineCount)
+		}
+
 		searchInputBar := ""
 		if m.SearchActive {
 			searchInputBar = renderSearchInputBar(m)
 		}
 
-		return header + rows + searchInputBar
+		return header + rows + rowsBottomPadding + searchInputBar
 	},
 }
 

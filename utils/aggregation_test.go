@@ -269,6 +269,16 @@ func TestGetWeeklyTotal(t *testing.T) {
 }
 
 func TestApplyProjectMetadata(t *testing.T) {
+	t.Run("empty entries returns empty", func(t *testing.T) {
+		var entries []ProjectDateEntry
+		projects := []models.Project{{Name: "Known", Code: "K-100", Category: "Client"}}
+
+		result := ApplyProjectMetadata(entries, projects)
+		if len(result) != 0 {
+			t.Fatalf("expected empty result, got %d rows", len(result))
+		}
+	})
+
 	t.Run("keeps undefined projects and leaves metadata empty", func(t *testing.T) {
 		date := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 		entries := []ProjectDateEntry{

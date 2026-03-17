@@ -100,7 +100,7 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 // Entries whose project has no metadata remain in the result with empty metadata fields.
 func ApplyProjectMetadata(entries []ProjectDateEntry, projects []models.Project) []ProjectDateEntry {
 	if len(entries) == 0 {
-		return []ProjectDateEntry{}
+		return entries
 	}
 
 	byName := make(map[string]models.Project, len(projects))
@@ -108,22 +108,19 @@ func ApplyProjectMetadata(entries []ProjectDateEntry, projects []models.Project)
 		byName[project.Name] = project
 	}
 
-	result := make([]ProjectDateEntry, len(entries))
-	copy(result, entries)
-
-	for i := range result {
-		project, ok := byName[result[i].Project]
+	for i := range entries {
+		project, ok := byName[entries[i].Project]
 		if !ok {
-			result[i].ProjectCode = ""
-			result[i].ProjectCategory = ""
+			entries[i].ProjectCode = ""
+			entries[i].ProjectCategory = ""
 			continue
 		}
 
-		result[i].ProjectCode = project.Code
-		result[i].ProjectCategory = project.Category
+		entries[i].ProjectCode = project.Code
+		entries[i].ProjectCategory = project.Category
 	}
 
-	return result
+	return entries
 }
 
 // GetWeekSeparators returns indices in the aggregated slice where week boundaries occur.

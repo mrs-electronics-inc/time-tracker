@@ -83,7 +83,14 @@ var ListMode = &Mode{
 			m.CurrentMode = m.HelpMode
 			return m, nil
 
-		case "q", "esc":
+		case "esc":
+			if m.SearchActive {
+				clearSearch(m)
+				return m, nil
+			}
+			return m, tea.Quit
+
+		case "q":
 			return m, tea.Quit
 
 		case "k", "up":

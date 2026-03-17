@@ -133,3 +133,47 @@ func TestApplySearchOnEnterUpdatesAppliedQueryAndFilteredEntries(t *testing.T) {
 		)
 	}
 }
+
+func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEsc})
+
+	if updatedModel.SearchActive {
+		t.Fatal("SearchActive = true, expected false")
+	}
+
+	if updatedModel.SearchQueryDraft != "" {
+		t.Fatalf("SearchQueryDraft = %q, expected empty string", updatedModel.SearchQueryDraft)
+	}
+
+	if updatedModel.SearchAppliedQuery != "" {
+		t.Fatalf("SearchAppliedQuery = %q, expected empty string", updatedModel.SearchAppliedQuery)
+	}
+
+	if len(updatedModel.FilteredEntries) != len(updatedModel.Entries) {
+		t.Fatalf("FilteredEntries length = %d, expected %d", len(updatedModel.FilteredEntries), len(updatedModel.Entries))
+	}
+
+	for i, visible := range updatedModel.FilteredEntries {
+		if visible.SourceIndex != i {
+			t.Fatalf("FilteredEntries[%d].SourceIndex = %d, expected %d", i, visible.SourceIndex, i)
+		}
+		if visible.Entry != updatedModel.Entries[i] {
+			t.Fatalf("FilteredEntries[%d].Entry = %+v, expected %+v", i, visible.Entry, updatedModel.Entries[i])
+		}
+	}
+}

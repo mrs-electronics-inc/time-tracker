@@ -42,3 +42,10 @@ func applySearch(m *Model) {
 	m.SearchAppliedQuery = m.SearchQueryDraft
 	m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
 }
+
+func clearSearch(m *Model) {
+	m.SearchQueryDraft = ""
+	m.SearchAppliedQuery = ""
+	m.SearchActive = false
+	m.FilteredEntries = filterVisibleEntries(m.Entries, "")
+}

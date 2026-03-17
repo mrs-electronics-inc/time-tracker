@@ -1,11 +1,36 @@
 package modes
 
 import (
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/models"
 )
+
+func TestRenderContentShowsSearchInputBarWhenSearchModeIsActive(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SelectedIdx:      0,
+		SearchActive:     true,
+		SearchQueryDraft: "backend",
+		Width:            120,
+	}
+
+	content := ListMode.RenderContent(m, 6)
+
+	if !strings.Contains(content, "Search: backend") {
+		t.Fatalf("expected search input bar to be rendered, got:\n%s", content)
+	}
+
+	rowIndex := strings.Index(content, "Build API")
+	searchIndex := strings.Index(content, "Search: backend")
+	if rowIndex == -1 || searchIndex == -1 || searchIndex < rowIndex {
+		t.Fatalf("expected search input bar after rows, got:\n%s", content)
+	}
+}
 
 func TestEntryMatchesSearchQuery(t *testing.T) {
 	tests := []struct {

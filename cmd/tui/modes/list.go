@@ -126,14 +126,27 @@ var ListMode = &Mode{
 		}
 
 		headerHeight := 2
-		listRowHeight := max(availableHeight-headerHeight, 1)
+		searchBarHeight := 0
+		if m.SearchActive {
+			searchBarHeight = 1
+		}
+
+		listRowHeight := max(availableHeight-headerHeight-searchBarHeight, 1)
 		m.EnsureSelectionVisible(listRowHeight)
 
 		header := renderTableHeader(m)
 		rows := renderTableRows(m, listRowHeight)
+		searchInputBar := ""
+		if m.SearchActive {
+			searchInputBar = renderSearchInputBar(m)
+		}
 
-		return header + rows
+		return header + rows + searchInputBar
 	},
+}
+
+func renderSearchInputBar(m *Model) string {
+	return m.Styles.Footer.Render("Search: "+m.SearchQueryDraft) + "\n"
 }
 
 // isValidSelection checks if the selected index is valid

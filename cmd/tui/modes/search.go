@@ -39,8 +39,21 @@ func entryMatchesSearchQuery(entry models.TimeEntry, query string) bool {
 }
 
 func applySearch(m *Model) {
+	previousSelection := m.SelectedIdx
 	m.SearchAppliedQuery = m.SearchQueryDraft
 	m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
+
+	if len(m.FilteredEntries) == 0 {
+		return
+	}
+
+	for _, visible := range m.FilteredEntries {
+		if visible.SourceIndex == previousSelection {
+			return
+		}
+	}
+
+	m.SelectedIdx = m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex
 }
 
 func clearSearch(m *Model) {

@@ -134,6 +134,46 @@ func TestApplySearchOnEnterUpdatesAppliedQueryAndFilteredEntries(t *testing.T) {
 	}
 }
 
+func TestApplySearchOnEnterPreservesSelectionWhenStillMatched(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        2,
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "",
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}
+
+func TestApplySearchOnEnterSelectsLastFilteredResultWhenSelectionNotMatched(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        1,
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "",
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}
+
 func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 	m := &Model{
 		Entries: []models.TimeEntry{
@@ -175,5 +215,63 @@ func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 		if visible.Entry != updatedModel.Entries[i] {
 			t.Fatalf("FilteredEntries[%d].Entry = %+v, expected %+v", i, visible.Entry, updatedModel.Entries[i])
 		}
+	}
+}
+
+func TestSlashInListModeActivatesSearchInput(t *testing.T) {
+	m := &Model{
+		SearchActive: false,
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+
+	if !updatedModel.SearchActive {
+		t.Fatal("SearchActive = false, expected true")
+	}
+}
+
+func TestListNavigationUsesFilteredEntriesWhenFilterApplied(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        0,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx after j = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}})
+	if updatedModel.SelectedIdx != 0 {
+		t.Fatalf("SelectedIdx after k = %d, expected %d", updatedModel.SelectedIdx, 0)
+	}
+
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'G'}})
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx after G = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}
+
+func TestIsValidSelectionFalseWhenSearchHasZeroFilteredResults(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SelectedIdx:        0,
+		SearchAppliedQuery: "frontend",
+		FilteredEntries:    []VisibleEntry{},
+	}
+
+	if isValidSelection(m) {
+		t.Fatal("isValidSelection() = true, expected false when filtered result count is zero")
 	}
 }

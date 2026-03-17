@@ -278,7 +278,6 @@ func TestApplyProjectMetadata(t *testing.T) {
 			t.Fatalf("expected empty result, got %d rows", len(result))
 		}
 	})
-
 	t.Run("keeps undefined projects and leaves metadata empty", func(t *testing.T) {
 		date := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
 		entries := []ProjectDateEntry{

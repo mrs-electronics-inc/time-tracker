@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time-tracker/config"
+	"time-tracker/models"
 	"time-tracker/utils"
 
 	"github.com/spf13/cobra"
@@ -31,6 +33,12 @@ By default, output is written to stdout. Use --output to write to a file.`,
 			return fmt.Errorf("failed to parse output flag: %w", err)
 		}
 
+		category, err := cmd.Flags().GetString("category")
+		if err != nil {
+			return fmt.Errorf("failed to parse category flag: %w", err)
+		}
+		categoryProvided := cmd.Flags().Changed("category")
+
 		// Validate format
 		if format != "daily-projects" && format != "raw" {
 			return fmt.Errorf("invalid format %q. Must be 'daily-projects' or 'raw'", format)
@@ -42,31 +50,9 @@ By default, output is written to stdout. Use --output to write to a file.`,
 			return fmt.Errorf("failed to initialize storage: %w", err)
 		}
 
-		entries, err := storage.Load()
+		exportData, err := buildExportData(storage, format, category, categoryProvided)
 		if err != nil {
-			return fmt.Errorf("failed to load entries: %w", err)
-		}
-
-		var exportData string
-
-		switch format {
-		case "daily-projects":
-			aggregated := utils.AggregateByProjectDate(entries)
-			projects, err := storage.LoadProjects()
-			if err != nil {
-				return fmt.Errorf("failed to load projects: %w", err)
-			}
-			aggregated = utils.ApplyProjectMetadata(aggregated, projects)
-			exportData, err = utils.ExportDailyProjects(aggregated)
-			if err != nil {
-				return fmt.Errorf("failed to export daily projects: %w", err)
-			}
-
-		case "raw":
-			exportData, err = utils.ExportRaw(entries)
-			if err != nil {
-				return fmt.Errorf("failed to export raw data: %w", err)
-			}
+			return err
 		}
 
 		// Write to output destination
@@ -93,6 +79,92 @@ By default, output is written to stdout. Use --output to write to a file.`,
 func init() {
 	exportCmd.Flags().StringP("format", "f", "daily-projects", "Export format: \"daily-projects\" or \"raw\"")
 	exportCmd.Flags().StringP("output", "o", "", "Output file path (default: stdout)")
+	exportCmd.Flags().String("category", "", "Filter exported rows by project category (case-insensitive)")
 
 	rootCmd.AddCommand(exportCmd)
+}
+
+type exportStorage interface {
+	Load() ([]models.TimeEntry, error)
+	LoadProjects() ([]models.Project, error)
+}
+
+func buildExportData(storage exportStorage, format, category string, categoryProvided bool) (string, error) {
+	entries, err := storage.Load()
+	if err != nil {
+		return "", fmt.Errorf("failed to load entries: %w", err)
+	}
+
+	trimmedCategory := strings.TrimSpace(category)
+	if categoryProvided && trimmedCategory == "" {
+		return "", fmt.Errorf("category cannot be empty or whitespace")
+	}
+
+	switch format {
+	case "daily-projects":
+		aggregated := utils.AggregateByProjectDate(entries)
+		projects, err := storage.LoadProjects()
+		if err != nil {
+			return "", fmt.Errorf("failed to load projects: %w", err)
+		}
+		aggregated = utils.ApplyProjectMetadata(aggregated, projects)
+		if categoryProvided {
+			aggregated = filterAggregatedByCategory(aggregated, trimmedCategory)
+		}
+
+		exportData, err := utils.ExportDailyProjects(aggregated)
+		if err != nil {
+			return "", fmt.Errorf("failed to export daily projects: %w", err)
+		}
+		return exportData, nil
+
+	case "raw":
+		if categoryProvided {
+			projects, err := storage.LoadProjects()
+			if err != nil {
+				return "", fmt.Errorf("failed to load projects: %w", err)
+			}
+			entries = filterEntriesByCategory(entries, projects, trimmedCategory)
+		}
+
+		exportData, err := utils.ExportRaw(entries)
+		if err != nil {
+			return "", fmt.Errorf("failed to export raw data: %w", err)
+		}
+		return exportData, nil
+
+	default:
+		return "", fmt.Errorf("invalid format %q. Must be 'daily-projects' or 'raw'", format)
+	}
+}
+
+func filterAggregatedByCategory(entries []utils.ProjectDateEntry, category string) []utils.ProjectDateEntry {
+	filtered := make([]utils.ProjectDateEntry, 0, len(entries))
+	for _, entry := range entries {
+		if strings.EqualFold(entry.ProjectCategory, category) {
+			filtered = append(filtered, entry)
+		}
+	}
+
+	return filtered
+}
+
+func filterEntriesByCategory(entries []models.TimeEntry, projects []models.Project, category string) []models.TimeEntry {
+	byName := make(map[string]models.Project, len(projects))
+	for _, project := range projects {
+		byName[project.Name] = project
+	}
+
+	filtered := make([]models.TimeEntry, 0, len(entries))
+	for _, entry := range entries {
+		project, ok := byName[entry.Project]
+		if !ok {
+			continue
+		}
+		if strings.EqualFold(project.Category, category) {
+			filtered = append(filtered, entry)
+		}
+	}
+
+	return filtered
 }

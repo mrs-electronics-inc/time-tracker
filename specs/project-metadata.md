@@ -172,7 +172,7 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 ### Category Filter
 
-- [ ] Implement `--category` filter for export command to show only entries from specified category.
+- [x] Implement `--category` filter for export command to show only entries from specified category.
 
 ### TUI Updates
 

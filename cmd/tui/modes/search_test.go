@@ -189,3 +189,34 @@ func TestSlashInListModeActivatesSearchInput(t *testing.T) {
 		t.Fatal("SearchActive = false, expected true")
 	}
 }
+
+func TestListNavigationUsesFilteredEntriesWhenFilterApplied(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        0,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx after j = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}})
+	if updatedModel.SelectedIdx != 0 {
+		t.Fatalf("SelectedIdx after k = %d, expected %d", updatedModel.SelectedIdx, 0)
+	}
+
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'G'}})
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx after G = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}

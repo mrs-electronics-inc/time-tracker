@@ -53,7 +53,7 @@ The search input bar appears between the table rows and the status bar, and rema
 ### List Mode Integration
 
 - [x] Add `/` key handling in list mode to enter/focus search input
-- [ ] Keep normal list navigation (`j`/`k`/`G`) for filtered results outside input-edit focus
+- [x] Keep normal list navigation (`j`/`k`/`G`) for filtered results outside input-edit focus
 - [ ] Preserve current selection on apply when still matched; otherwise select last filtered result
 - [ ] Ensure selection is non-actionable when filtered result count is zero
 

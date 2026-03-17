@@ -98,21 +98,21 @@ var ListMode = &Mode{
 			return m, tea.Quit
 
 		case "k", "up":
-			if m.SelectedIdx > 0 {
+			if !moveSelectionInFilteredEntries(m, -1) && m.SelectedIdx > 0 {
 				m.SelectedIdx--
 			}
 			m.Status = ""
 			return m, nil
 
 		case "j", "down":
-			if m.SelectedIdx < len(m.Entries)-1 {
+			if !moveSelectionInFilteredEntries(m, 1) && m.SelectedIdx < len(m.Entries)-1 {
 				m.SelectedIdx++
 			}
 			m.Status = ""
 			return m, nil
 
 		case "G":
-			if len(m.Entries) > 0 {
+			if !moveSelectionToFilteredEnd(m) && len(m.Entries) > 0 {
 				m.SelectedIdx = len(m.Entries) - 1
 			}
 			m.Status = ""
@@ -139,6 +139,41 @@ var ListMode = &Mode{
 // isValidSelection checks if the selected index is valid
 func isValidSelection(m *Model) bool {
 	return len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries)
+}
+
+func moveSelectionInFilteredEntries(m *Model, direction int) bool {
+	if m.SearchAppliedQuery == "" || len(m.FilteredEntries) == 0 {
+		return false
+	}
+
+	currentFilteredIndex := -1
+	for i, visible := range m.FilteredEntries {
+		if visible.SourceIndex == m.SelectedIdx {
+			currentFilteredIndex = i
+			break
+		}
+	}
+
+	if currentFilteredIndex == -1 {
+		return false
+	}
+
+	nextIndex := currentFilteredIndex + direction
+	if nextIndex < 0 || nextIndex >= len(m.FilteredEntries) {
+		return true
+	}
+
+	m.SelectedIdx = m.FilteredEntries[nextIndex].SourceIndex
+	return true
+}
+
+func moveSelectionToFilteredEnd(m *Model) bool {
+	if m.SearchAppliedQuery == "" || len(m.FilteredEntries) == 0 {
+		return false
+	}
+
+	m.SelectedIdx = m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex
+	return true
 }
 
 // renderLoading renders a loading indicator

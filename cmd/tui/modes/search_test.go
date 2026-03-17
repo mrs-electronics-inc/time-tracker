@@ -320,7 +320,6 @@ func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 		}
 	}
 }
-
 func TestSlashInListModeActivatesSearchInput(t *testing.T) {
 	m := &Model{
 		SearchActive: false,

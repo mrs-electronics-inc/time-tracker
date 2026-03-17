@@ -45,6 +45,15 @@ func TestModelInitialization(t *testing.T) {
 	if m.ProjectsMode == nil || m.ProjectsMode.Name != "projects" {
 		t.Error("Expected projects mode to be initialized")
 	}
+	if m.SearchActive {
+		t.Error("Expected search to be inactive initially")
+	}
+	if m.SearchQueryDraft != "" {
+		t.Error("Expected search draft query to be empty initially")
+	}
+	if m.SearchAppliedQuery != "" {
+		t.Error("Expected search applied query to be empty initially")
+	}
 }
 
 func TestProjectsViewRendersProjectMetadata(t *testing.T) {

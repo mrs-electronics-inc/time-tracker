@@ -25,6 +25,12 @@ var ListMode = &Mode{
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
 		switch msg.String() {
+		case "enter":
+			if m.SearchActive {
+				applySearch(m)
+			}
+			return m, nil
+
 		case "tab":
 			m.SwitchMode(m.StatsMode)
 			return m, nil
@@ -77,7 +83,14 @@ var ListMode = &Mode{
 			m.CurrentMode = m.HelpMode
 			return m, nil
 
-		case "q", "esc":
+		case "esc":
+			if m.SearchActive {
+				clearSearch(m)
+				return m, nil
+			}
+			return m, tea.Quit
+
+		case "q":
 			return m, tea.Quit
 
 		case "k", "up":

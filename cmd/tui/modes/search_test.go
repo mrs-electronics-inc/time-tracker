@@ -159,6 +159,31 @@ func TestApplySearchOnEnterUpdatesAppliedQueryAndFilteredEntries(t *testing.T) {
 	}
 }
 
+func TestSearchInputBarRemainsVisibleAfterApplyingFilter(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:      2,
+		SearchActive:     true,
+		SearchQueryDraft: "backend",
+		Width:            120,
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if !updatedModel.SearchActive {
+		t.Fatal("SearchActive = false, expected true after applying filter")
+	}
+
+	content := ListMode.RenderContent(updatedModel, 6)
+	if !strings.Contains(content, "Search: backend") {
+		t.Fatalf("expected search input bar to remain visible after apply, got:\n%s", content)
+	}
+}
+
 func TestApplySearchOnEnterPreservesSelectionWhenStillMatched(t *testing.T) {
 	m := &Model{
 		Entries: []models.TimeEntry{

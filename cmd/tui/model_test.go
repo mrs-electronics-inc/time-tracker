@@ -42,6 +42,329 @@ func TestModelInitialization(t *testing.T) {
 	if m.SelectedIdx != 0 {
 		t.Error("Expected scroll offset to be 0")
 	}
+	if m.ProjectsMode == nil || m.ProjectsMode.Name != "projects" {
+		t.Error("Expected projects mode to be initialized")
+	}
+}
+
+func TestProjectsViewRendersProjectMetadata(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	m.Width = 80
+	m.Height = 20
+
+	view := m.View()
+	if !strings.Contains(view, "Name") || !strings.Contains(view, "Code") || !strings.Contains(view, "Category") {
+		t.Fatal("Expected projects view to render metadata columns")
+	}
+	if !strings.Contains(view, "API Updates") || !strings.Contains(view, "12573") || !strings.Contains(view, "Backend") {
+		t.Fatal("Expected projects view to render project metadata values")
+	}
+}
+
+func TestProjectsViewSortsCaseInsensitiveByName(t *testing.T) {
+	m := newTestModel()
+
+	projects := []struct {
+		name     string
+		code     string
+		category string
+	}{
+		{name: "zeta", code: "003", category: "Ops"},
+		{name: "Alpha", code: "001", category: "Core"},
+		{name: "beta", code: "002", category: "Infra"},
+	}
+
+	for _, project := range projects {
+		if _, err := m.TaskManager.AddProject(project.name, project.code, project.category); err != nil {
+			t.Fatalf("Failed to add project %q: %v", project.name, err)
+		}
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	m.Width = 80
+	m.Height = 20
+
+	view := m.View()
+
+	alphaIdx := strings.Index(view, "Alpha")
+	betaIdx := strings.Index(view, "beta")
+	zetaIdx := strings.Index(view, "zeta")
+
+	if alphaIdx == -1 || betaIdx == -1 || zetaIdx == -1 {
+		t.Fatalf("Expected all projects in view, got:\n%s", view)
+	}
+
+	if !(alphaIdx < betaIdx && betaIdx < zetaIdx) {
+		t.Fatalf("Expected case-insensitive name sort order Alpha, beta, zeta; got:\n%s", view)
+	}
+}
+
+func TestProjectsViewScrollsThroughAllProjects(t *testing.T) {
+	m := newTestModel()
+
+	for i := 1; i <= 6; i++ {
+		name := fmt.Sprintf("Project %d", i)
+		if _, err := m.TaskManager.AddProject(name, fmt.Sprintf("%03d", i), "Category"); err != nil {
+			t.Fatalf("Failed to add project %q: %v", name, err)
+		}
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	m.Width = 80
+	m.Height = 6 // 5 content lines: 2 header + 3 project rows
+
+	view := m.View()
+	if !strings.Contains(view, "Project 1") {
+		t.Fatal("Expected Project 1 to be visible initially")
+	}
+	if strings.Contains(view, "Project 6") {
+		t.Fatal("Expected Project 6 to require scrolling")
+	}
+
+	for i := 0; i < 3; i++ {
+		msg := tea.KeyMsg{Type: tea.KeyDown}
+		updated, _ := m.Update(msg)
+		m = updated.(*Model)
+	}
+
+	view = m.View()
+	if !strings.Contains(view, "Project 6") {
+		t.Fatalf("Expected Project 6 to be visible after scrolling, got:\n%s", view)
+	}
+}
+
+func TestProjectsModeAddProjectViaForm(t *testing.T) {
+	m := newTestModel()
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-new" {
+		t.Fatalf("Expected mode to switch to project-new after 'n', got %q", m.CurrentMode.Name)
+	}
+
+	m.ProjectInputs[0].SetValue("Website Redesign")
+	m.ProjectInputs[1].SetValue("12580")
+	m.ProjectInputs[2].SetValue("Design")
+
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode != m.ProjectsMode {
+		t.Fatalf("Expected mode to return to projects after submit, got %q", m.CurrentMode.Name)
+	}
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 1 {
+		t.Fatalf("Expected exactly one project, got %d", len(projects))
+	}
+
+	if projects[0].Name != "Website Redesign" || projects[0].Code != "12580" || projects[0].Category != "Design" {
+		t.Fatalf("Unexpected project data: %+v", projects[0])
+	}
+}
+
+func TestProjectsModeEditProjectViaForm(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-edit" {
+		t.Fatalf("Expected mode to switch to project-edit after 'e', got %q", m.CurrentMode.Name)
+	}
+
+	if m.ProjectInputs[0].Value() != "API Updates" || m.ProjectInputs[1].Value() != "12573" || m.ProjectInputs[2].Value() != "Backend" {
+		t.Fatalf("Expected form to be pre-filled, got name=%q code=%q category=%q", m.ProjectInputs[0].Value(), m.ProjectInputs[1].Value(), m.ProjectInputs[2].Value())
+	}
+
+	m.ProjectInputs[0].SetValue("API Platform")
+	m.ProjectInputs[1].SetValue("12599")
+	m.ProjectInputs[2].SetValue("Core")
+
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode != m.ProjectsMode {
+		t.Fatalf("Expected mode to return to projects after submit, got %q", m.CurrentMode.Name)
+	}
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 1 {
+		t.Fatalf("Expected exactly one project, got %d", len(projects))
+	}
+
+	if projects[0].Name != "API Platform" || projects[0].Code != "12599" || projects[0].Category != "Core" {
+		t.Fatalf("Unexpected project data after edit: %+v", projects[0])
+	}
+}
+
+func TestProjectsModeAddProjectRejectsEmptyName(t *testing.T) {
+	m := newTestModel()
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	m.ProjectInputs[0].SetValue("   ")
+	m.ProjectInputs[1].SetValue("123")
+	m.ProjectInputs[2].SetValue("Client")
+
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-new" {
+		t.Fatalf("Expected to stay in project-new mode on validation error, got %q", m.CurrentMode.Name)
+	}
+
+	if m.Status != "Error adding project: project name cannot be empty" {
+		t.Fatalf("Expected validation error status, got %q", m.Status)
+	}
+}
+
+func TestProjectsModeEditProjectRejectsEmptyName(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	m.ProjectInputs[0].SetValue("  ")
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	updated, _ = m.Update(msg)
+	m = updated.(*Model)
+
+	if m.CurrentMode.Name != "project-edit" {
+		t.Fatalf("Expected to stay in project-edit mode on validation error, got %q", m.CurrentMode.Name)
+	}
+
+	if m.Status != "Error editing project: project name cannot be empty" {
+		t.Fatalf("Expected validation error status, got %q", m.Status)
+	}
+}
+
+func TestProjectsModeDeleteProject(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 0 {
+		t.Fatalf("Expected all projects removed, got %+v", projects)
+	}
+
+	if m.Status != "Project removed" {
+		t.Fatalf("Expected success status, got %q", m.Status)
+	}
+}
+
+func TestProjectsModeDeleteProjectBlockedWhenInUse(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+	if _, err := m.TaskManager.StartEntryAt("API Updates", "Task A", mustParseTime("2026-03-17T09:00:00Z")); err != nil {
+		t.Fatalf("Failed to start entry: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 1 {
+		t.Fatalf("Expected project to remain after blocked delete, got %+v", projects)
+	}
+
+	if !strings.Contains(m.Status, `Error removing project: cannot remove project "API Updates": referenced by 1 time entries`) {
+		t.Fatalf("Expected reference-blocking status, got %q", m.Status)
+	}
 }
 
 // TestWindowSizeUpdate verifies window size messages are handled
@@ -463,6 +786,37 @@ func TestInputFieldNavigation(t *testing.T) {
 
 	if model.FocusIndex != 1 {
 		t.Errorf("Expected focus to move back to field 1, got %d", model.FocusIndex)
+	}
+}
+
+// TestTabCyclesListStatsProjects verifies tab cycles through primary modes
+func TestTabCyclesListStatsProjects(t *testing.T) {
+	m := newTestModel()
+
+	if m.CurrentMode != m.ListMode {
+		t.Fatalf("Expected to start in list mode, got %q", m.CurrentMode.Name)
+	}
+
+	msg := tea.KeyMsg{Type: tea.KeyTab}
+	updated, _ := m.Update(msg)
+	model := updated.(*Model)
+
+	if model.CurrentMode != model.StatsMode {
+		t.Fatalf("Expected tab in list mode to switch to stats mode, got %q", model.CurrentMode.Name)
+	}
+
+	updated, _ = model.Update(msg)
+	model = updated.(*Model)
+
+	if model.CurrentMode != model.ProjectsMode {
+		t.Fatalf("Expected tab in stats mode to switch to projects mode, got %q", model.CurrentMode.Name)
+	}
+
+	updated, _ = model.Update(msg)
+	model = updated.(*Model)
+
+	if model.CurrentMode != model.ListMode {
+		t.Fatalf("Expected tab in projects mode to switch to list mode, got %q", model.CurrentMode.Name)
 	}
 }
 

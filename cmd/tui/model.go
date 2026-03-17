@@ -58,14 +58,40 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[3].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[3].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
+	projectInputs := make([]textinput.Model, 3)
+
+	projectInputs[0] = textinput.New()
+	projectInputs[0].Placeholder = "Name"
+	projectInputs[0].CharLimit = 128
+	projectInputs[0].Width = 40
+	projectInputs[0].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	projectInputs[0].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
+	projectInputs[1] = textinput.New()
+	projectInputs[1].Placeholder = "Code"
+	projectInputs[1].CharLimit = 128
+	projectInputs[1].Width = 40
+	projectInputs[1].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	projectInputs[1].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	projectInputs[2] = textinput.New()
+	projectInputs[2].Placeholder = "Category"
+	projectInputs[2].CharLimit = 128
+	projectInputs[2].Width = 40
+	projectInputs[2].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	projectInputs[2].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
 	modesModel := &modes.Model{
-		Storage:     storage,
-		TaskManager: taskManager,
-		Entries:     []models.TimeEntry{},
-		SelectedIdx: 0,
-		Inputs:      inputs,
-		FocusIndex:  0,
-		Loading:     false,
+		Storage:           storage,
+		TaskManager:       taskManager,
+		Entries:           []models.TimeEntry{},
+		Projects:          []models.Project{},
+		SelectedIdx:       0,
+		Inputs:            inputs,
+		FocusIndex:        0,
+		ProjectInputs:     projectInputs,
+		ProjectFocusIndex: 0,
+		Loading:           false,
 		Styles: modes.Styles{
 			Header:        lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("10")),
 			Footer:        lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
@@ -87,10 +113,13 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	modesModel.StartMode = modes.StartMode
 	modesModel.HelpMode = modes.HelpMode
 	modesModel.StatsMode = modes.StatsMode
+	modesModel.ProjectsMode = modes.ProjectsMode
 	modesModel.NewMode = modes.NewMode
 	modesModel.EditMode = modes.EditMode
 	modesModel.ResumeMode = modes.ResumeMode
 	modesModel.ConfirmMode = modes.ConfirmMode
+	modesModel.ProjectNewMode = modes.ProjectNewMode
+	modesModel.ProjectEditMode = modes.ProjectEditMode
 	modesModel.CurrentMode = modesModel.ListMode
 
 	return &Model{Model: modesModel}

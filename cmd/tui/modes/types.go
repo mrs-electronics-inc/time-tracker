@@ -44,6 +44,7 @@ type Model struct {
 	Storage     models.Storage     // Persistent storage backend
 	TaskManager *utils.TaskManager // Task management operations
 	Entries     []models.TimeEntry // Loaded time entries
+	Projects    []models.Project   // Loaded project metadata
 	SelectedIdx int                // Index of currently selected entry (list mode)
 	ViewportTop int                // Index of first visible row (list mode) or viewport scroll position (stats mode)
 	Err         error              // Error state
@@ -53,26 +54,34 @@ type Model struct {
 	Height      int                // Terminal height
 
 	// Mode state
-	CurrentMode  *Mode             // Current TUI mode
-	PreviousMode *Mode             // Previous mode (used for help context)
-	Inputs       []textinput.Model // Text inputs for project, title, hour, minute
-	FocusIndex   int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	CurrentMode       *Mode             // Current TUI mode
+	PreviousMode      *Mode             // Previous mode (used for help context)
+	Inputs            []textinput.Model // Text inputs for project, title, hour, minute
+	FocusIndex        int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	ProjectInputs     []textinput.Model // Text inputs for project metadata form (name, code, category)
+	ProjectFocusIndex int               // Currently focused metadata input
 
 	// Loading state
 	Loading bool // Whether we're waiting for a data operation
 
 	// Mode references for navigation
-	ListMode    *Mode
-	StartMode   *Mode
-	HelpMode    *Mode
-	StatsMode   *Mode
-	NewMode     *Mode
-	EditMode    *Mode
-	ResumeMode  *Mode
-	ConfirmMode *Mode
+	ListMode        *Mode
+	StartMode       *Mode
+	HelpMode        *Mode
+	StatsMode       *Mode
+	ProjectsMode    *Mode
+	NewMode         *Mode
+	EditMode        *Mode
+	ResumeMode      *Mode
+	ConfirmMode     *Mode
+	ProjectNewMode  *Mode
+	ProjectEditMode *Mode
 
 	// Form state for new/edit/resume modes
 	FormState FormState
+
+	// Form state for project metadata add/edit modes
+	ProjectFormState ProjectFormState
 
 	// Confirm state for delete confirmation
 	ConfirmState ConfirmState
@@ -84,8 +93,13 @@ func (m *Model) LoadEntries() error {
 	if err != nil {
 		return err
 	}
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		return err
+	}
 
 	m.Entries = entries
+	m.Projects = projects
 
 	// Select most recent entry (last item)
 	if len(m.Entries) > 0 {

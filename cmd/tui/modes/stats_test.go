@@ -121,7 +121,7 @@ func TestStatsKeyBindings(t *testing.T) {
 			keyLabels[kb.Label] = true
 		}
 
-		expectedLabels := []string{"UP", "DOWN", "LIST", "HELP", "QUIT"}
+		expectedLabels := []string{"UP", "DOWN", "PROJECTS", "HELP", "QUIT"}
 		for _, label := range expectedLabels {
 			if !keyLabels[label] {
 				t.Errorf("expected keybinding '%s'", label)

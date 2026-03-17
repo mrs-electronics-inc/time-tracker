@@ -34,6 +34,23 @@ func (ms *MemoryStorage) Save(entries []models.TimeEntry) error {
 func (ms *MemoryStorage) LoadProjects() ([]models.Project, error) {
 	projects := make([]models.Project, len(ms.projects))
 	copy(projects, ms.projects)
+
+	byName := make(map[string]struct{}, len(projects))
+	for _, project := range projects {
+		byName[project.Name] = struct{}{}
+	}
+
+	for _, entry := range ms.data {
+		if entry.Project == "" {
+			continue
+		}
+		if _, ok := byName[entry.Project]; ok {
+			continue
+		}
+		projects = append(projects, models.Project{Name: entry.Project})
+		byName[entry.Project] = struct{}{}
+	}
+
 	return projects, nil
 }
 

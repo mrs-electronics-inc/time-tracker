@@ -48,3 +48,57 @@ func TestEntryMatchesSearchQuery(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterVisibleEntries(t *testing.T) {
+	entries := []models.TimeEntry{
+		{Project: "Backend", Title: "Build API"},
+		{Project: "Frontend", Title: "Polish search bar"},
+		{Project: "Backend", Title: "Review logs"},
+	}
+
+	tests := []struct {
+		name                string
+		query               string
+		expectedSourceIndex []int
+		expectedProjects    []string
+	}{
+		{
+			name:                "empty query includes all entries",
+			query:               "",
+			expectedSourceIndex: []int{0, 1, 2},
+			expectedProjects:    []string{"Backend", "Frontend", "Backend"},
+		},
+		{
+			name:                "query preserves source indices for filtered subset",
+			query:               "backend",
+			expectedSourceIndex: []int{0, 2},
+			expectedProjects:    []string{"Backend", "Backend"},
+		},
+		{
+			name:                "query with no matches returns empty result",
+			query:               "mobile",
+			expectedSourceIndex: []int{},
+			expectedProjects:    []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := filterVisibleEntries(entries, tt.query)
+
+			if len(actual) != len(tt.expectedSourceIndex) {
+				t.Fatalf("filterVisibleEntries() length = %d, expected %d", len(actual), len(tt.expectedSourceIndex))
+			}
+
+			for i, visible := range actual {
+				if visible.SourceIndex != tt.expectedSourceIndex[i] {
+					t.Fatalf("filterVisibleEntries()[%d].SourceIndex = %d, expected %d", i, visible.SourceIndex, tt.expectedSourceIndex[i])
+				}
+
+				if visible.Entry.Project != tt.expectedProjects[i] {
+					t.Fatalf("filterVisibleEntries()[%d].Entry.Project = %q, expected %q", i, visible.Entry.Project, tt.expectedProjects[i])
+				}
+			}
+		})
+	}
+}

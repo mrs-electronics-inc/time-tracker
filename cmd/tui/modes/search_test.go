@@ -296,6 +296,7 @@ func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 			{Project: "Backend", Title: "Review logs"},
 		},
 		SearchActive:       true,
+		SearchInputFocused: true,
 		SearchQueryDraft:   "backend",
 		SearchAppliedQuery: "backend",
 		FilteredEntries: []VisibleEntry{
@@ -340,6 +341,50 @@ func TestSlashInListModeActivatesSearchInput(t *testing.T) {
 
 	if !updatedModel.SearchActive {
 		t.Fatal("SearchActive = false, expected true")
+	}
+	if !updatedModel.SearchInputFocused {
+		t.Fatal("SearchInputFocused = false, expected true")
+	}
+}
+
+func TestTypingInSearchModeUpdatesDraftQuery(t *testing.T) {
+	m := &Model{
+		SearchActive:       true,
+		SearchInputFocused: true,
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}})
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}})
+
+	if updatedModel.SearchQueryDraft != "bee" {
+		t.Fatalf("SearchQueryDraft = %q, expected %q", updatedModel.SearchQueryDraft, "bee")
+	}
+
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyBackspace})
+	if updatedModel.SearchQueryDraft != "be" {
+		t.Fatalf("SearchQueryDraft after backspace = %q, expected %q", updatedModel.SearchQueryDraft, "be")
+	}
+}
+
+func TestEnterAppliesSearchAndExitsInputFocus(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+		},
+		SearchActive:       true,
+		SearchInputFocused: true,
+		SearchQueryDraft:   "backend",
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if updatedModel.SearchAppliedQuery != "backend" {
+		t.Fatalf("SearchAppliedQuery = %q, expected %q", updatedModel.SearchAppliedQuery, "backend")
+	}
+	if updatedModel.SearchInputFocused {
+		t.Fatal("SearchInputFocused = true, expected false after applying search")
 	}
 }
 

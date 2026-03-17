@@ -88,6 +88,7 @@ type Model struct {
 
 	// Search state for list filtering
 	SearchActive       bool
+	SearchInputFocused bool
 	SearchQueryDraft   string
 	SearchAppliedQuery string
 	FilteredEntries    []VisibleEntry
@@ -214,6 +215,7 @@ func (m *Model) SwitchMode(newMode *Mode) {
 	if newMode.Name == "list" {
 		if m.SearchAppliedQuery != "" {
 			m.ViewportTop = 0
+			m.SearchInputFocused = false
 			m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
 			ensureValidFilteredSelection(m)
 			return
@@ -224,5 +226,6 @@ func (m *Model) SwitchMode(newMode *Mode) {
 		return
 	}
 
+	m.SearchInputFocused = false
 	m.ResetScroll()
 }

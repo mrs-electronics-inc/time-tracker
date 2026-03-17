@@ -61,6 +61,7 @@ func clearSearch(m *Model) {
 	m.SearchQueryDraft = ""
 	m.SearchAppliedQuery = ""
 	m.SearchActive = false
+	m.SearchInputFocused = false
 	m.FilteredEntries = filterVisibleEntries(m.Entries, "")
 }
 

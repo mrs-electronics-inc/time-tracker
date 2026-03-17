@@ -24,6 +24,35 @@ var ListMode = &Mode{
 		{Keys: "q", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
+		if m.SearchActive && m.SearchInputFocused {
+			switch msg.String() {
+			case "enter":
+				applySearch(m)
+				m.SearchInputFocused = false
+				return m, nil
+
+			case "esc":
+				clearSearch(m)
+				return m, nil
+
+			case "backspace", "ctrl+h":
+				if m.SearchQueryDraft != "" {
+					runes := []rune(m.SearchQueryDraft)
+					m.SearchQueryDraft = string(runes[:len(runes)-1])
+				}
+				return m, nil
+
+			case "ctrl+u":
+				m.SearchQueryDraft = ""
+				return m, nil
+			}
+
+			if len(msg.Runes) > 0 {
+				m.SearchQueryDraft += string(msg.Runes)
+				return m, nil
+			}
+		}
+
 		switch msg.String() {
 		case "enter":
 			if m.SearchActive {
@@ -33,6 +62,7 @@ var ListMode = &Mode{
 
 		case "/":
 			m.SearchActive = true
+			m.SearchInputFocused = true
 			return m, nil
 
 		case "tab":
@@ -88,7 +118,7 @@ var ListMode = &Mode{
 			return m, nil
 
 		case "esc":
-			if m.SearchActive {
+			if m.SearchActive && m.SearchInputFocused {
 				clearSearch(m)
 				return m, nil
 			}

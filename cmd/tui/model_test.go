@@ -48,6 +48,9 @@ func TestModelInitialization(t *testing.T) {
 	if m.SearchActive {
 		t.Error("Expected search to be inactive initially")
 	}
+	if m.SearchInputFocused {
+		t.Error("Expected search input to be unfocused initially")
+	}
 	if m.SearchQueryDraft != "" {
 		t.Error("Expected search draft query to be empty initially")
 	}

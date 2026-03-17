@@ -15,6 +15,7 @@ var ListMode = &Mode{
 	Name: "list",
 	KeyBindings: []KeyBinding{
 		{Keys: "Tab", Label: "STATS", Description: "Switch mode"},
+		{Keys: "/", Label: "SEARCH", Description: "Focus search"},
 		{Keys: "n", Label: "NEW", Description: "New entry"},
 		{Keys: "s", Label: "STOP", Description: "Stop running entry"},
 		{Keys: "r", Label: "RESUME", Description: "Resume entry"},
@@ -24,6 +25,35 @@ var ListMode = &Mode{
 		{Keys: "q", Label: "QUIT", Description: "Quit"},
 	},
 	HandleKeyMsg: func(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd) {
+		if m.SearchActive && m.SearchInputFocused {
+			switch msg.String() {
+			case "enter":
+				applySearch(m)
+				m.SearchInputFocused = false
+				return m, nil
+
+			case "esc":
+				clearSearch(m)
+				return m, nil
+
+			case "backspace", "ctrl+h":
+				if m.SearchQueryDraft != "" {
+					runes := []rune(m.SearchQueryDraft)
+					m.SearchQueryDraft = string(runes[:len(runes)-1])
+				}
+				return m, nil
+
+			case "ctrl+u":
+				m.SearchQueryDraft = ""
+				return m, nil
+			}
+
+			if len(msg.Runes) > 0 {
+				m.SearchQueryDraft += string(msg.Runes)
+				return m, nil
+			}
+		}
+
 		switch msg.String() {
 		case "enter":
 			if m.SearchActive {
@@ -33,6 +63,7 @@ var ListMode = &Mode{
 
 		case "/":
 			m.SearchActive = true
+			m.SearchInputFocused = true
 			return m, nil
 
 		case "tab":
@@ -88,7 +119,7 @@ var ListMode = &Mode{
 			return m, nil
 
 		case "esc":
-			if m.SearchActive {
+			if m.SearchActive && m.SearchInputFocused {
 				clearSearch(m)
 				return m, nil
 			}
@@ -98,21 +129,39 @@ var ListMode = &Mode{
 			return m, tea.Quit
 
 		case "k", "up":
-			if !moveSelectionInFilteredEntries(m, -1) && m.SelectedIdx > 0 {
+			if m.SearchAppliedQuery != "" {
+				moveSelectionInFilteredEntries(m, -1)
+				m.Status = ""
+				return m, nil
+			}
+
+			if m.SelectedIdx > 0 {
 				m.SelectedIdx--
 			}
 			m.Status = ""
 			return m, nil
 
 		case "j", "down":
-			if !moveSelectionInFilteredEntries(m, 1) && m.SelectedIdx < len(m.Entries)-1 {
+			if m.SearchAppliedQuery != "" {
+				moveSelectionInFilteredEntries(m, 1)
+				m.Status = ""
+				return m, nil
+			}
+
+			if m.SelectedIdx < len(m.Entries)-1 {
 				m.SelectedIdx++
 			}
 			m.Status = ""
 			return m, nil
 
 		case "G":
-			if !moveSelectionToFilteredEnd(m) && len(m.Entries) > 0 {
+			if m.SearchAppliedQuery != "" {
+				moveSelectionToFilteredEnd(m)
+				m.Status = ""
+				return m, nil
+			}
+
+			if len(m.Entries) > 0 {
 				m.SelectedIdx = len(m.Entries) - 1
 			}
 			m.Status = ""
@@ -137,12 +186,18 @@ var ListMode = &Mode{
 
 		header := renderTableHeader(m)
 		rows := renderTableRows(m, listRowHeight)
+		rowsLineCount := strings.Count(rows, "\n")
+		rowsBottomPadding := ""
+		if rowsLineCount < listRowHeight {
+			rowsBottomPadding = strings.Repeat("\n", listRowHeight-rowsLineCount)
+		}
+
 		searchInputBar := ""
 		if m.SearchActive {
 			searchInputBar = renderSearchInputBar(m)
 		}
 
-		return header + rows + searchInputBar
+		return header + rows + rowsBottomPadding + searchInputBar
 	},
 }
 
@@ -193,12 +248,26 @@ func ensureSelectionVisibleInRows(m *Model, rows []VisibleEntry, maxVisibleRows 
 }
 
 func renderSearchInputBar(m *Model) string {
-	return m.Styles.Footer.Render("Search: "+m.SearchQueryDraft) + "\n"
+	searchText := "Search: " + m.SearchQueryDraft
+	if m.SearchInputFocused {
+		return m.Styles.InputFocused.Render(searchText) + "\n"
+	}
+
+	return m.Styles.Footer.Render(searchText) + "\n"
 }
 
 // isValidSelection checks if the selected index is valid
 func isValidSelection(m *Model) bool {
 	if m.SearchAppliedQuery != "" && len(m.FilteredEntries) == 0 {
+		return false
+	}
+
+	if m.SearchAppliedQuery != "" {
+		for _, visible := range m.FilteredEntries {
+			if visible.SourceIndex == m.SelectedIdx {
+				return true
+			}
+		}
 		return false
 	}
 
@@ -219,7 +288,12 @@ func moveSelectionInFilteredEntries(m *Model, direction int) bool {
 	}
 
 	if currentFilteredIndex == -1 {
-		return false
+		if direction >= 0 {
+			m.SelectedIdx = m.FilteredEntries[0].SourceIndex
+		} else {
+			m.SelectedIdx = m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex
+		}
+		return true
 	}
 
 	nextIndex := currentFilteredIndex + direction

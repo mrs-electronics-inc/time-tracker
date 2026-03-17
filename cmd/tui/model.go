@@ -93,6 +93,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		ProjectFocusIndex:  0,
 		Loading:            false,
 		SearchActive:       false,
+		SearchInputFocused: false,
 		SearchQueryDraft:   "",
 		SearchAppliedQuery: "",
 		Styles: modes.Styles{

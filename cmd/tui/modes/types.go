@@ -88,6 +88,7 @@ type Model struct {
 
 	// Search state for list filtering
 	SearchActive       bool
+	SearchInputFocused bool
 	SearchQueryDraft   string
 	SearchAppliedQuery string
 	FilteredEntries    []VisibleEntry
@@ -95,6 +96,8 @@ type Model struct {
 
 // LoadEntries loads time entries from storage
 func (m *Model) LoadEntries() error {
+	previousSelection := m.SelectedIdx
+
 	entries, err := m.Storage.Load()
 	if err != nil {
 		return err
@@ -106,6 +109,15 @@ func (m *Model) LoadEntries() error {
 
 	m.Entries = entries
 	m.Projects = projects
+	m.SelectedIdx = previousSelection
+
+	if m.SearchAppliedQuery != "" {
+		m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
+		ensureValidFilteredSelection(m)
+		return nil
+	}
+
+	m.FilteredEntries = filterVisibleEntries(m.Entries, "")
 
 	// Select most recent entry (last item)
 	if len(m.Entries) > 0 {
@@ -197,11 +209,23 @@ func (m *Model) SelectMostRecentEntry() {
 func (m *Model) SwitchMode(newMode *Mode) {
 	m.PreviousMode = m.CurrentMode
 	m.CurrentMode = newMode
-	m.ResetScroll()
 	m.Status = ""
 
-	// When switching to list mode, select most recent entry
+	// When switching to list mode, preserve active search filter state
 	if newMode.Name == "list" {
+		if m.SearchAppliedQuery != "" {
+			m.ViewportTop = 0
+			m.SearchInputFocused = false
+			m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
+			ensureValidFilteredSelection(m)
+			return
+		}
+
+		m.ResetScroll()
 		m.SelectMostRecentEntry()
+		return
 	}
+
+	m.SearchInputFocused = false
+	m.ResetScroll()
 }

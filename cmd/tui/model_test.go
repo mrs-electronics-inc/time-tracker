@@ -48,6 +48,9 @@ func TestModelInitialization(t *testing.T) {
 	if m.SearchActive {
 		t.Error("Expected search to be inactive initially")
 	}
+	if m.SearchInputFocused {
+		t.Error("Expected search input to be unfocused initially")
+	}
 	if m.SearchQueryDraft != "" {
 		t.Error("Expected search draft query to be empty initially")
 	}
@@ -894,5 +897,33 @@ func TestStatusMessageDisplay(t *testing.T) {
 	// Status should be visible in the rendered view
 	if !strings.Contains(view, "Test message") {
 		t.Error("Expected view to contain the status message")
+	}
+}
+
+func TestSearchBarAnchorsAboveStatusBar(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.StartEntryAt("Backend", "Build API", mustParseTime("2026-03-17T09:00:00Z")); err != nil {
+		t.Fatalf("Failed to create entry: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load entries: %v", err)
+	}
+
+	m.Width = 80
+	m.Height = 10
+	m.SearchActive = true
+	m.SearchQueryDraft = "backend"
+
+	view := m.View()
+	lines := strings.Split(view, "\n")
+	if len(lines) < 2 {
+		t.Fatalf("Expected at least two rendered lines, got %d", len(lines))
+	}
+
+	searchLine := lines[len(lines)-2]
+	if !strings.Contains(searchLine, "Search: backend") {
+		t.Fatalf("Expected search bar directly above status bar, got line: %q", searchLine)
 	}
 }

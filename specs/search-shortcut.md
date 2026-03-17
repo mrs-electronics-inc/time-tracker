@@ -1,6 +1,6 @@
 ---
 number: 10
-status: in-progress
+status: completed
 author: Addison Emig
 creation_date: 2026-03-13
 approved_by: Addison Emig
@@ -66,6 +66,6 @@ The search input bar appears between the table rows and the status bar, and rema
 
 ### Navigation & Selection
 
-- [ ] Update selection/viewport helpers to work with filtered row sets and mapped source indices
-- [ ] Ensure edit/resume/delete/stop actions operate on the correct underlying entry from filtered selection
-- [ ] Persist active filter state across mode switches and list re-entry
+- [x] Update selection/viewport helpers to work with filtered row sets and mapped source indices
+- [x] Ensure edit/resume/delete/stop actions operate on the correct underlying entry from filtered selection
+- [x] Persist active filter state across mode switches and list re-entry

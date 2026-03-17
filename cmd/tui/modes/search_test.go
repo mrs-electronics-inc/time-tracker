@@ -134,6 +134,46 @@ func TestApplySearchOnEnterUpdatesAppliedQueryAndFilteredEntries(t *testing.T) {
 	}
 }
 
+func TestApplySearchOnEnterPreservesSelectionWhenStillMatched(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        2,
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "",
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}
+
+func TestApplySearchOnEnterSelectsLastFilteredResultWhenSelectionNotMatched(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        1,
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "",
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}
+
 func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 	m := &Model{
 		Entries: []models.TimeEntry{

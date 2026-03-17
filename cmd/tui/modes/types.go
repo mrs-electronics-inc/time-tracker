@@ -85,6 +85,11 @@ type Model struct {
 
 	// Confirm state for delete confirmation
 	ConfirmState ConfirmState
+
+	// Search state for list filtering
+	SearchActive       bool
+	SearchQueryDraft   string
+	SearchAppliedQuery string
 }
 
 // LoadEntries loads time entries from storage

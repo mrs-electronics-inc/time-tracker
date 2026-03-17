@@ -37,3 +37,8 @@ func entryMatchesSearchQuery(entry models.TimeEntry, query string) bool {
 
 	return strings.Contains(project, normalizedQuery) || strings.Contains(title, normalizedQuery)
 }
+
+func applySearch(m *Model) {
+	m.SearchAppliedQuery = m.SearchQueryDraft
+	m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
+}

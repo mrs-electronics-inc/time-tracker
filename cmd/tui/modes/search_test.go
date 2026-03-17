@@ -3,6 +3,7 @@ package modes
 import (
 	"testing"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/models"
 )
 
@@ -100,5 +101,35 @@ func TestFilterVisibleEntries(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestApplySearchOnEnterUpdatesAppliedQueryAndFilteredEntries(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "",
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if updatedModel.SearchAppliedQuery != "backend" {
+		t.Fatalf("SearchAppliedQuery = %q, expected %q", updatedModel.SearchAppliedQuery, "backend")
+	}
+
+	if len(updatedModel.FilteredEntries) != 2 {
+		t.Fatalf("FilteredEntries length = %d, expected %d", len(updatedModel.FilteredEntries), 2)
+	}
+
+	if updatedModel.FilteredEntries[0].SourceIndex != 0 || updatedModel.FilteredEntries[1].SourceIndex != 2 {
+		t.Fatalf("FilteredEntries source indices = [%d, %d], expected [0, 2]",
+			updatedModel.FilteredEntries[0].SourceIndex,
+			updatedModel.FilteredEntries[1].SourceIndex,
+		)
 	}
 }

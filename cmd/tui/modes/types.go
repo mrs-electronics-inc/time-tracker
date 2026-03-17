@@ -90,6 +90,7 @@ type Model struct {
 	SearchActive       bool
 	SearchQueryDraft   string
 	SearchAppliedQuery string
+	FilteredEntries    []VisibleEntry
 }
 
 // LoadEntries loads time entries from storage

@@ -151,6 +151,8 @@ func buildExportData(storage exportStorage, format, category string, categoryPro
 }
 
 func filterEntriesByPastDays(entries []models.TimeEntry, days int, now time.Time) []models.TimeEntry {
+	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
 	filtered := make([]models.TimeEntry, 0, len(entries))
 	for _, entry := range entries {
 		daysDiff := int(now.Sub(entry.Start).Hours() / 24)

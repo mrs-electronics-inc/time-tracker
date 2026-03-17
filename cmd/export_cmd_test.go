@@ -156,3 +156,26 @@ func TestBuildExportData_RejectsNonPositiveDays(t *testing.T) {
 		t.Fatalf("expected days validation error, got: %v", err)
 	}
 }
+
+func TestFilterEntriesByPastDays_UsesDayBoundary(t *testing.T) {
+	now := time.Date(2026, 3, 17, 12, 0, 0, 0, time.UTC)
+	includedStart := time.Date(2026, 3, 10, 11, 0, 0, 0, time.UTC)
+	excludedStart := time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC)
+
+	includedEnd := includedStart.Add(30 * time.Minute)
+	excludedEnd := excludedStart.Add(30 * time.Minute)
+
+	entries := []models.TimeEntry{
+		{Start: includedStart, End: &includedEnd, Project: "Alpha", Title: "Include"},
+		{Start: excludedStart, End: &excludedEnd, Project: "Alpha", Title: "Exclude"},
+	}
+
+	filtered := filterEntriesByPastDays(entries, 7, now)
+	if len(filtered) != 1 {
+		t.Fatalf("expected 1 entry after filtering, got %d", len(filtered))
+	}
+
+	if filtered[0].Title != "Include" {
+		t.Fatalf("expected entry %q to be included, got %q", "Include", filtered[0].Title)
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 	"time-tracker/config"
 	"time-tracker/models"
 	"time-tracker/utils"
@@ -39,6 +40,11 @@ By default, output is written to stdout. Use --output to write to a file.`,
 		}
 		categoryProvided := cmd.Flags().Changed("category")
 
+		days, err := cmd.Flags().GetInt("days")
+		if err != nil {
+			return fmt.Errorf("failed to parse days flag: %w", err)
+		}
+
 		// Validate format
 		if format != "daily-projects" && format != "raw" {
 			return fmt.Errorf("invalid format %q. Must be 'daily-projects' or 'raw'", format)
@@ -50,7 +56,7 @@ By default, output is written to stdout. Use --output to write to a file.`,
 			return fmt.Errorf("failed to initialize storage: %w", err)
 		}
 
-		exportData, err := buildExportData(storage, format, category, categoryProvided)
+		exportData, err := buildExportData(storage, format, category, categoryProvided, days, time.Now())
 		if err != nil {
 			return err
 		}
@@ -80,6 +86,7 @@ func init() {
 	exportCmd.Flags().StringP("format", "f", "daily-projects", "Export format: \"daily-projects\" or \"raw\"")
 	exportCmd.Flags().StringP("output", "o", "", "Output file path (default: stdout)")
 	exportCmd.Flags().String("category", "", "Filter exported rows by project category (case-insensitive)")
+	exportCmd.Flags().IntP("days", "d", 7, "Number of past days to include in export")
 
 	rootCmd.AddCommand(exportCmd)
 }
@@ -89,11 +96,16 @@ type exportStorage interface {
 	LoadProjects() ([]models.Project, error)
 }
 
-func buildExportData(storage exportStorage, format, category string, categoryProvided bool) (string, error) {
+func buildExportData(storage exportStorage, format, category string, categoryProvided bool, days int, now time.Time) (string, error) {
 	entries, err := storage.Load()
 	if err != nil {
 		return "", fmt.Errorf("failed to load entries: %w", err)
 	}
+
+	if days <= 0 {
+		return "", fmt.Errorf("days must be a positive integer")
+	}
+	entries = filterEntriesByPastDays(entries, days, now)
 
 	trimmedCategory := strings.TrimSpace(category)
 	if categoryProvided && trimmedCategory == "" {
@@ -136,6 +148,18 @@ func buildExportData(storage exportStorage, format, category string, categoryPro
 	default:
 		return "", fmt.Errorf("invalid format %q. Must be 'daily-projects' or 'raw'", format)
 	}
+}
+
+func filterEntriesByPastDays(entries []models.TimeEntry, days int, now time.Time) []models.TimeEntry {
+	filtered := make([]models.TimeEntry, 0, len(entries))
+	for _, entry := range entries {
+		daysDiff := int(now.Sub(entry.Start).Hours() / 24)
+		if daysDiff >= 0 && daysDiff < days {
+			filtered = append(filtered, entry)
+		}
+	}
+
+	return filtered
 }
 
 func filterAggregatedByCategory(entries []utils.ProjectDateEntry, category string) []utils.ProjectDateEntry {

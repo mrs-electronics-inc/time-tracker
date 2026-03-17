@@ -245,6 +245,71 @@ func TestProjectsModeEditProjectViaForm(t *testing.T) {
 	}
 }
 
+func TestProjectsModeDeleteProject(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 0 {
+		t.Fatalf("Expected all projects removed, got %+v", projects)
+	}
+
+	if m.Status != "Project removed" {
+		t.Fatalf("Expected success status, got %q", m.Status)
+	}
+}
+
+func TestProjectsModeDeleteProjectBlockedWhenInUse(t *testing.T) {
+	m := newTestModel()
+
+	if _, err := m.TaskManager.AddProject("API Updates", "12573", "Backend"); err != nil {
+		t.Fatalf("Failed to add project: %v", err)
+	}
+	if _, err := m.TaskManager.StartEntryAt("API Updates", "Task A", mustParseTime("2026-03-17T09:00:00Z")); err != nil {
+		t.Fatalf("Failed to start entry: %v", err)
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("Failed to load data: %v", err)
+	}
+
+	m.CurrentMode = m.ProjectsMode
+
+	msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}}
+	updated, _ := m.Update(msg)
+	m = updated.(*Model)
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 1 {
+		t.Fatalf("Expected project to remain after blocked delete, got %+v", projects)
+	}
+
+	if !strings.Contains(m.Status, `Error removing project: cannot remove project "API Updates": referenced by 1 time entries`) {
+		t.Fatalf("Expected reference-blocking status, got %q", m.Status)
+	}
+}
+
 // TestWindowSizeUpdate verifies window size messages are handled
 func TestWindowSizeUpdate(t *testing.T) {
 	m := newTestModel()

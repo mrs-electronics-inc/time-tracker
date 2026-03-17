@@ -17,6 +17,7 @@ var ProjectsMode = &Mode{
 		{Keys: "Tab", Label: "LIST", Description: "Switch mode"},
 		{Keys: "n", Label: "NEW", Description: "Add project"},
 		{Keys: "e", Label: "EDIT", Description: "Edit project"},
+		{Keys: "d", Label: "DELETE", Description: "Delete project"},
 		{Keys: "k / ↑", Label: "UP", Description: "Scroll up"},
 		{Keys: "j / ↓", Label: "DOWN", Description: "Scroll down"},
 		{Keys: "?", Label: "HELP", Description: "Toggle help"},
@@ -46,6 +47,29 @@ var ProjectsMode = &Mode{
 				selected := clampSelectedProjectIndex(m, len(projects))
 				openProjectEditMode(m, projects[selected])
 			}
+			return m, nil
+
+		case "d":
+			if len(m.Projects) == 0 {
+				return m, nil
+			}
+
+			projects := sortedProjectsByName(m.Projects)
+			selected := clampSelectedProjectIndex(m, len(projects))
+			name := projects[selected].Name
+
+			if err := m.TaskManager.RemoveProject(name); err != nil {
+				m.Status = "Error removing project: " + err.Error()
+				return m, nil
+			}
+
+			if err := m.LoadEntries(); err != nil {
+				m.Err = err
+				return m, nil
+			}
+
+			m.Status = "Project removed"
+			setSelectedProjectByName(m, "")
 			return m, nil
 
 		case "k", "up":

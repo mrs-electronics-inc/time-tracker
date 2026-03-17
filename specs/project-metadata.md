@@ -1,6 +1,6 @@
 ---
 number: 9
-status: in-progress
+status: completed
 author: Addison Emig
 creation_date: 2026-01-22
 approved_by: Addison Emig
@@ -180,5 +180,5 @@ Empty cells: If a project has no code or category defined, those columns will be
 - [x] Implement `Tab` cycle across `list`, `stats`, and `projects` modes.
 - [x] In `projects` view: scroll through all projects, sorted case-insensitively by name.
 - [x] In `projects` view: add and edit projects via project form (`Name`, `Code`, `Category`).
-- [ ] In `projects` view: delete projects with the same reference-blocking behavior as CLI.
-- [ ] Keep time-entry project fields free-form in this spec; project autocomplete remains in spec 12.
+- [x] In `projects` view: delete projects with the same reference-blocking behavior as CLI.
+- [x] Keep time-entry project fields free-form in this spec; project autocomplete remains in spec 12.

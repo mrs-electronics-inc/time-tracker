@@ -138,6 +138,10 @@ var ListMode = &Mode{
 
 // isValidSelection checks if the selected index is valid
 func isValidSelection(m *Model) bool {
+	if m.SearchAppliedQuery != "" && len(m.FilteredEntries) == 0 {
+		return false
+	}
+
 	return len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries)
 }
 

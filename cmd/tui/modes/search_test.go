@@ -260,3 +260,18 @@ func TestListNavigationUsesFilteredEntriesWhenFilterApplied(t *testing.T) {
 		t.Fatalf("SelectedIdx after G = %d, expected %d", updatedModel.SelectedIdx, 2)
 	}
 }
+
+func TestIsValidSelectionFalseWhenSearchHasZeroFilteredResults(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SelectedIdx:        0,
+		SearchAppliedQuery: "frontend",
+		FilteredEntries:    []VisibleEntry{},
+	}
+
+	if isValidSelection(m) {
+		t.Fatal("isValidSelection() = true, expected false when filtered result count is zero")
+	}
+}

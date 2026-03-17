@@ -138,8 +138,9 @@ func renderProjectsContent(m *Model, availableHeight int) string {
 
 	nameWidth++
 	codeWidth++
+	categoryWidth++
 
-	headerText := fmt.Sprintf("%-*s %-*s %s", nameWidth, "Name", codeWidth, "Code", "Category")
+	headerText := fmt.Sprintf("%-*s %-*s %-*s", nameWidth, "Name", codeWidth, "Code", categoryWidth, "Category")
 	separatorText := strings.Repeat("-", max(lipgloss.Width(headerText), len("Name Code Category")))
 
 	var output strings.Builder
@@ -151,7 +152,7 @@ func renderProjectsContent(m *Model, availableHeight int) string {
 	end := min(m.ViewportTop+maxRows, len(projects))
 	for i := m.ViewportTop; i < end; i++ {
 		project := projects[i]
-		row := fmt.Sprintf("%-*s %-*s %s", nameWidth, project.Name, codeWidth, project.Code, project.Category)
+		row := fmt.Sprintf("%-*s %-*s %-*s", nameWidth, project.Name, codeWidth, project.Code, categoryWidth, project.Category)
 		if i == selected {
 			output.WriteString(lipgloss.NewStyle().Bold(true).Reverse(true).Render(row))
 		} else {

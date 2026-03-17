@@ -276,10 +276,32 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 		return nil, fmt.Errorf("failed to parse data: %w", err)
 	}
 	if data.Projects == nil {
-		return []models.Project{}, nil
+		data.Projects = []models.V4Project{}
 	}
 
-	return fromV4Projects(data.Projects), nil
+	projects := fromV4Projects(data.Projects)
+	byName := make(map[string]struct{}, len(projects))
+	for _, project := range projects {
+		byName[project.Name] = struct{}{}
+	}
+
+	entries, err := fs.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if entry.Project == "" {
+			continue
+		}
+		if _, ok := byName[entry.Project]; ok {
+			continue
+		}
+		projects = append(projects, models.Project{Name: entry.Project})
+		byName[entry.Project] = struct{}{}
+	}
+
+	return projects, nil
 }
 
 func (fs *FileStorage) SaveProjects(projects []models.Project) error {

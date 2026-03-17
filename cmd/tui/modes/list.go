@@ -98,21 +98,39 @@ var ListMode = &Mode{
 			return m, tea.Quit
 
 		case "k", "up":
-			if !moveSelectionInFilteredEntries(m, -1) && m.SelectedIdx > 0 {
+			if m.SearchAppliedQuery != "" {
+				moveSelectionInFilteredEntries(m, -1)
+				m.Status = ""
+				return m, nil
+			}
+
+			if m.SelectedIdx > 0 {
 				m.SelectedIdx--
 			}
 			m.Status = ""
 			return m, nil
 
 		case "j", "down":
-			if !moveSelectionInFilteredEntries(m, 1) && m.SelectedIdx < len(m.Entries)-1 {
+			if m.SearchAppliedQuery != "" {
+				moveSelectionInFilteredEntries(m, 1)
+				m.Status = ""
+				return m, nil
+			}
+
+			if m.SelectedIdx < len(m.Entries)-1 {
 				m.SelectedIdx++
 			}
 			m.Status = ""
 			return m, nil
 
 		case "G":
-			if !moveSelectionToFilteredEnd(m) && len(m.Entries) > 0 {
+			if m.SearchAppliedQuery != "" {
+				moveSelectionToFilteredEnd(m)
+				m.Status = ""
+				return m, nil
+			}
+
+			if len(m.Entries) > 0 {
 				m.SelectedIdx = len(m.Entries) - 1
 			}
 			m.Status = ""
@@ -202,6 +220,15 @@ func isValidSelection(m *Model) bool {
 		return false
 	}
 
+	if m.SearchAppliedQuery != "" {
+		for _, visible := range m.FilteredEntries {
+			if visible.SourceIndex == m.SelectedIdx {
+				return true
+			}
+		}
+		return false
+	}
+
 	return len(m.Entries) > 0 && m.SelectedIdx >= 0 && m.SelectedIdx < len(m.Entries)
 }
 
@@ -219,7 +246,12 @@ func moveSelectionInFilteredEntries(m *Model, direction int) bool {
 	}
 
 	if currentFilteredIndex == -1 {
-		return false
+		if direction >= 0 {
+			m.SelectedIdx = m.FilteredEntries[0].SourceIndex
+		} else {
+			m.SelectedIdx = m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex
+		}
+		return true
 	}
 
 	nextIndex := currentFilteredIndex + direction

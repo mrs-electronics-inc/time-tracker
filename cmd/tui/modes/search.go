@@ -42,6 +42,7 @@ func applySearch(m *Model) {
 	previousSelection := m.SelectedIdx
 	m.SearchAppliedQuery = m.SearchQueryDraft
 	m.FilteredEntries = filterVisibleEntries(m.Entries, m.SearchAppliedQuery)
+	ensureValidFilteredSelection(m)
 
 	if len(m.FilteredEntries) == 0 {
 		return
@@ -61,4 +62,33 @@ func clearSearch(m *Model) {
 	m.SearchAppliedQuery = ""
 	m.SearchActive = false
 	m.FilteredEntries = filterVisibleEntries(m.Entries, "")
+}
+
+func ensureValidFilteredSelection(m *Model) {
+	if len(m.Entries) == 0 {
+		m.SelectedIdx = 0
+		return
+	}
+
+	if m.SearchAppliedQuery == "" {
+		if m.SelectedIdx < 0 || m.SelectedIdx >= len(m.Entries) {
+			m.SelectedIdx = len(m.Entries) - 1
+		}
+		return
+	}
+
+	if len(m.FilteredEntries) == 0 {
+		if m.SelectedIdx < 0 || m.SelectedIdx >= len(m.Entries) {
+			m.SelectedIdx = len(m.Entries) - 1
+		}
+		return
+	}
+
+	for _, visible := range m.FilteredEntries {
+		if visible.SourceIndex == m.SelectedIdx {
+			return
+		}
+	}
+
+	m.SelectedIdx = m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex
 }

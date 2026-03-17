@@ -3,10 +3,21 @@ package modes
 import (
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/models"
+	"time-tracker/utils"
 )
+
+func newSearchTestInputs() []textinput.Model {
+	inputs := make([]textinput.Model, 4)
+	for i := range inputs {
+		inputs[i] = textinput.New()
+	}
+	return inputs
+}
 
 func TestRenderContentShowsSearchInputBarWhenSearchModeIsActive(t *testing.T) {
 	m := &Model{
@@ -375,5 +386,162 @@ func TestIsValidSelectionFalseWhenSearchHasZeroFilteredResults(t *testing.T) {
 
 	if isValidSelection(m) {
 		t.Fatal("isValidSelection() = true, expected false when filtered result count is zero")
+	}
+}
+
+func TestIsValidSelectionFalseWhenSelectionNotInFilteredResults(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        1,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+	}
+
+	if isValidSelection(m) {
+		t.Fatal("isValidSelection() = true, expected false when selected index is not in filtered rows")
+	}
+}
+
+func TestNavigationDoesNotFallBackToUnfilteredSelectionWhenFilterApplied(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        1,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	if updatedModel.SelectedIdx != 0 {
+		t.Fatalf("SelectedIdx after j = %d, expected %d", updatedModel.SelectedIdx, 0)
+	}
+
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'G'}})
+	if updatedModel.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx after G = %d, expected %d", updatedModel.SelectedIdx, 2)
+	}
+}
+
+func TestEditAndDeleteUseUnderlyingSourceIndexWhenFilterApplied(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        2,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+		EditMode:    EditMode,
+		ListMode:    ListMode,
+		ConfirmMode: ConfirmMode,
+		Inputs:      newSearchTestInputs(),
+		Styles:      Styles{},
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'e'}})
+	if updatedModel.FormState.EditingIdx != 2 {
+		t.Fatalf("FormState.EditingIdx = %d, expected %d", updatedModel.FormState.EditingIdx, 2)
+	}
+	if updatedModel.Inputs[0].Value() != "Backend" || updatedModel.Inputs[1].Value() != "Review logs" {
+		t.Fatalf("expected edit form to be prefilled from source index 2, got project=%q title=%q", updatedModel.Inputs[0].Value(), updatedModel.Inputs[1].Value())
+	}
+
+	updatedModel.SelectedIdx = 2
+	updatedModel.ConfirmMode = ConfirmMode
+	updatedModel, _ = ListMode.HandleKeyMsg(updatedModel, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	if updatedModel.ConfirmState.DeletingIdx != 2 {
+		t.Fatalf("ConfirmState.DeletingIdx = %d, expected %d", updatedModel.ConfirmState.DeletingIdx, 2)
+	}
+}
+
+func TestLoadEntriesReappliesFilterAndKeepsSearchState(t *testing.T) {
+	storage := utils.NewMemoryStorage()
+	tm := utils.NewTaskManager(storage)
+
+	if _, err := tm.StartEntryAt("Backend", "Build API", time.Now().Add(-3*time.Hour)); err != nil {
+		t.Fatalf("failed to create first entry: %v", err)
+	}
+	if _, err := tm.StartEntryAt("Frontend", "Polish search bar", time.Now().Add(-2*time.Hour)); err != nil {
+		t.Fatalf("failed to create second entry: %v", err)
+	}
+	if _, err := tm.StartEntryAt("Backend", "Review logs", time.Now().Add(-1*time.Hour)); err != nil {
+		t.Fatalf("failed to create third entry: %v", err)
+	}
+
+	m := &Model{
+		Storage:            storage,
+		TaskManager:        tm,
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "backend",
+		SelectedIdx:        999,
+	}
+
+	if err := m.LoadEntries(); err != nil {
+		t.Fatalf("LoadEntries() error = %v", err)
+	}
+
+	if m.SearchAppliedQuery != "backend" {
+		t.Fatalf("SearchAppliedQuery = %q, expected %q", m.SearchAppliedQuery, "backend")
+	}
+	if !m.SearchActive {
+		t.Fatal("SearchActive = false, expected true")
+	}
+	if len(m.FilteredEntries) != 2 {
+		t.Fatalf("FilteredEntries length = %d, expected %d", len(m.FilteredEntries), 2)
+	}
+	if m.SelectedIdx != m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex {
+		t.Fatalf("SelectedIdx = %d, expected selection to snap to last filtered source index %d", m.SelectedIdx, m.FilteredEntries[len(m.FilteredEntries)-1].SourceIndex)
+	}
+}
+
+func TestSwitchModeBackToListPreservesActiveFilter(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        2,
+		SearchActive:       true,
+		SearchQueryDraft:   "backend",
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+		ListMode:     &Mode{Name: "list"},
+		ProjectsMode: &Mode{Name: "projects"},
+		CurrentMode:  &Mode{Name: "projects"},
+	}
+
+	m.SelectedIdx = 1
+	m.SwitchMode(m.ListMode)
+
+	if m.SearchAppliedQuery != "backend" {
+		t.Fatalf("SearchAppliedQuery = %q, expected %q", m.SearchAppliedQuery, "backend")
+	}
+	if len(m.FilteredEntries) != 2 {
+		t.Fatalf("FilteredEntries length = %d, expected %d", len(m.FilteredEntries), 2)
+	}
+	if m.SelectedIdx != 2 {
+		t.Fatalf("SelectedIdx = %d, expected %d", m.SelectedIdx, 2)
 	}
 }

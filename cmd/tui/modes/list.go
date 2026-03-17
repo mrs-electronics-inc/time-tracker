@@ -254,6 +254,12 @@ func renderTableHeader(m *Model) string {
 
 // renderTableRows renders the rows with viewport scrolling
 func renderTableRows(m *Model, maxHeight int) string {
+	if m.SearchAppliedQuery != "" && len(m.FilteredEntries) == 0 {
+		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
+		msg := "No matching time entries found. Press 'esc' to clear search.\n"
+		return emptyStyle.Render(msg)
+	}
+
 	if len(m.Entries) == 0 {
 		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
 		msg := "No time entries found. Press 'n' to start tracking.\n"

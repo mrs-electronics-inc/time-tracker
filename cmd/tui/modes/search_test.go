@@ -184,6 +184,28 @@ func TestSearchInputBarRemainsVisibleAfterApplyingFilter(t *testing.T) {
 	}
 }
 
+func TestRenderContentShowsSearchSpecificEmptyMessageWhenNoMatches(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SearchActive:       true,
+		SearchAppliedQuery: "frontend",
+		FilteredEntries:    []VisibleEntry{},
+		Width:              120,
+	}
+
+	content := ListMode.RenderContent(m, 6)
+
+	if !strings.Contains(content, "No matching time entries found") {
+		t.Fatalf("expected search-specific empty message, got:\n%s", content)
+	}
+
+	if strings.Contains(content, "No time entries found. Press 'n' to start tracking.") {
+		t.Fatalf("expected search-specific empty message to differ from no-data message, got:\n%s", content)
+	}
+}
+
 func TestApplySearchOnEnterPreservesSelectionWhenStillMatched(t *testing.T) {
 	m := &Model{
 		Entries: []models.TimeEntry{

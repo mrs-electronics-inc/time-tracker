@@ -268,6 +268,48 @@ func TestGetWeeklyTotal(t *testing.T) {
 	})
 }
 
+func TestApplyProjectMetadata(t *testing.T) {
+	t.Run("empty entries returns empty", func(t *testing.T) {
+		var entries []ProjectDateEntry
+		projects := []models.Project{{Name: "Known", Code: "K-100", Category: "Client"}}
+
+		result := ApplyProjectMetadata(entries, projects)
+		if len(result) != 0 {
+			t.Fatalf("expected empty result, got %d rows", len(result))
+		}
+	})
+
+	t.Run("keeps undefined projects and leaves metadata empty", func(t *testing.T) {
+		date := time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC)
+		entries := []ProjectDateEntry{
+			{Project: "Known", Date: date, Duration: 60 * time.Minute, Tasks: []string{"Task A"}},
+			{Project: "LegacyWithoutMetadata", Date: date, Duration: 30 * time.Minute, Tasks: []string{"Task B"}},
+		}
+
+		projects := []models.Project{
+			{Name: "Known", Code: "K-100", Category: "Client"},
+		}
+
+		result := ApplyProjectMetadata(entries, projects)
+
+		if len(result) != 2 {
+			t.Fatalf("expected 2 rows after metadata mapping, got %d", len(result))
+		}
+
+		if result[0].ProjectCode != "K-100" || result[0].ProjectCategory != "Client" {
+			t.Fatalf("expected metadata for known project, got code=%q category=%q", result[0].ProjectCode, result[0].ProjectCategory)
+		}
+
+		if result[1].Project != "LegacyWithoutMetadata" {
+			t.Fatalf("expected undefined project row to remain, got %q", result[1].Project)
+		}
+
+		if result[1].ProjectCode != "" || result[1].ProjectCategory != "" {
+			t.Fatalf("expected empty metadata for undefined project, got code=%q category=%q", result[1].ProjectCode, result[1].ProjectCategory)
+		}
+	})
+}
+
 // Helper function to create a pointer to time.Time
 func timePtr(t time.Time) *time.Time {
 	return &t

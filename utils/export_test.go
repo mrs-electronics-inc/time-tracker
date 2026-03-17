@@ -31,7 +31,7 @@ func TestExportDailyProjectsHeader(t *testing.T) {
 		t.Fatalf("Expected at least header row, got %d rows", len(records))
 	}
 
-	expectedHeader := []string{"Project", "Date", "Duration", "Description"}
+	expectedHeader := []string{"ProjectName", "ProjectCode", "ProjectCategory", "Date", "Duration", "Description"}
 	if !slices.Equal(records[0], expectedHeader) {
 		t.Errorf("Expected header %v, got %v", expectedHeader, records[0])
 	}
@@ -41,16 +41,20 @@ func TestExportDailyProjectsBasic(t *testing.T) {
 	date := time.Date(2025, 12, 23, 0, 0, 0, 0, time.UTC)
 	entries := []ProjectDateEntry{
 		{
-			Project:  "ProjectA",
-			Date:     date,
-			Duration: 90 * time.Minute,
-			Tasks:    []string{"Task1", "Task2"},
+			Project:         "ProjectA",
+			ProjectCode:     "PA-001",
+			ProjectCategory: "Client",
+			Date:            date,
+			Duration:        90 * time.Minute,
+			Tasks:           []string{"Task1", "Task2"},
 		},
 		{
-			Project:  "ProjectB",
-			Date:     date,
-			Duration: 30 * time.Minute,
-			Tasks:    []string{"Task3"},
+			Project:         "ProjectB",
+			ProjectCode:     "",
+			ProjectCategory: "",
+			Date:            date,
+			Duration:        30 * time.Minute,
+			Tasks:           []string{"Task3"},
 		},
 	}
 
@@ -65,13 +69,13 @@ func TestExportDailyProjectsBasic(t *testing.T) {
 	}
 
 	// Check first data row
-	expectedRow0 := []string{"ProjectA", "2025-12-23", "90", "Task1, Task2"}
+	expectedRow0 := []string{"ProjectA", "PA-001", "Client", "2025-12-23", "90", "Task1, Task2"}
 	if !slices.Equal(records[1], expectedRow0) {
 		t.Errorf("Expected row %v, got %v", expectedRow0, records[1])
 	}
 
 	// Check second data row
-	expectedRow1 := []string{"ProjectB", "2025-12-23", "30", "Task3"}
+	expectedRow1 := []string{"ProjectB", "", "", "2025-12-23", "30", "Task3"}
 	if !slices.Equal(records[2], expectedRow1) {
 		t.Errorf("Expected row %v, got %v", expectedRow1, records[2])
 	}
@@ -81,10 +85,12 @@ func TestExportDailyProjectsWithSpecialCharacters(t *testing.T) {
 	date := time.Date(2025, 12, 23, 0, 0, 0, 0, time.UTC)
 	entries := []ProjectDateEntry{
 		{
-			Project:  "Project\tA", // Tab in project name
-			Date:     date,
-			Duration: 60 * time.Minute,
-			Tasks:    []string{"Task\nWith\nNewlines", "Task\"With\"Quotes"},
+			Project:         "Project\tA", // Tab in project name
+			ProjectCode:     "CODE\t1",
+			ProjectCategory: "Cat\nOne",
+			Date:            date,
+			Duration:        60 * time.Minute,
+			Tasks:           []string{"Task\nWith\nNewlines", "Task\"With\"Quotes"},
 		},
 	}
 
@@ -103,8 +109,8 @@ func TestExportDailyProjectsWithSpecialCharacters(t *testing.T) {
 		t.Errorf("Expected project to contain tab, got %q", records[1][0])
 	}
 
-	if !strings.Contains(records[1][3], "Task\nWith\nNewlines") {
-		t.Errorf("Expected description to contain newlines, got %q", records[1][3])
+	if !strings.Contains(records[1][5], "Task\nWith\nNewlines") {
+		t.Errorf("Expected description to contain newlines, got %q", records[1][5])
 	}
 }
 
@@ -130,8 +136,8 @@ func TestExportDailyProjectsEmptyTasks(t *testing.T) {
 	}
 
 	// Description should be empty
-	if records[1][3] != "" {
-		t.Errorf("Expected empty description, got %q", records[1][3])
+	if records[1][5] != "" {
+		t.Errorf("Expected empty description, got %q", records[1][5])
 	}
 }
 
@@ -353,8 +359,8 @@ func TestExportDailyProjectsMultipleDays(t *testing.T) {
 		t.Fatalf("Expected 3 rows, got %d", len(records))
 	}
 
-	if records[1][1] != "2025-12-23" || records[2][1] != "2025-12-24" {
-		t.Errorf("Expected input order preserved: 2025-12-23 then 2025-12-24, got %s and %s", records[1][1], records[2][1])
+	if records[1][3] != "2025-12-23" || records[2][3] != "2025-12-24" {
+		t.Errorf("Expected input order preserved: 2025-12-23 then 2025-12-24, got %s and %s", records[1][3], records[2][3])
 	}
 }
 

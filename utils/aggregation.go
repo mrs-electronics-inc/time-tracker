@@ -8,11 +8,13 @@ import (
 
 // ProjectDateEntry represents an aggregated group of time entries for a (project, date) combination
 type ProjectDateEntry struct {
-	Project     string
-	Date        time.Time
-	Duration    time.Duration
-	Tasks       []string // Deduplicated task titles
-	RawDuration time.Duration
+	Project         string
+	ProjectCode     string
+	ProjectCategory string
+	Date            time.Time
+	Duration        time.Duration
+	Tasks           []string // Deduplicated task titles
+	RawDuration     time.Duration
 }
 
 // AggregateByProjectDate groups time entries by (project, date) and collects task descriptions.
@@ -92,6 +94,33 @@ func AggregateByProjectDate(entries []models.TimeEntry) []ProjectDateEntry {
 	})
 
 	return result
+}
+
+// ApplyProjectMetadata enriches aggregated entries with project code/category.
+// Entries whose project has no metadata remain in the result with empty metadata fields.
+func ApplyProjectMetadata(entries []ProjectDateEntry, projects []models.Project) []ProjectDateEntry {
+	if len(entries) == 0 {
+		return entries
+	}
+
+	byName := make(map[string]models.Project, len(projects))
+	for _, project := range projects {
+		byName[project.Name] = project
+	}
+
+	for i := range entries {
+		project, ok := byName[entries[i].Project]
+		if !ok {
+			entries[i].ProjectCode = ""
+			entries[i].ProjectCategory = ""
+			continue
+		}
+
+		entries[i].ProjectCode = project.Code
+		entries[i].ProjectCategory = project.Category
+	}
+
+	return entries
 }
 
 // GetWeekSeparators returns indices in the aggregated slice where week boundaries occur.

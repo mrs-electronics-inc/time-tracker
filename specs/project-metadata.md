@@ -167,8 +167,8 @@ Empty cells: If a project has no code or category defined, those columns will be
 
 ### Export Columns
 
-- [ ] Update `ExportDailyProjects` to output `ProjectName`, `ProjectCode`, and `ProjectCategory` columns.
-- [ ] Ensure backward compatibility with entries using undefined projects.
+- [x] Update `ExportDailyProjects` to output `ProjectName`, `ProjectCode`, and `ProjectCategory` columns.
+- [x] Ensure backward compatibility with entries using undefined projects.
 
 ### Category Filter
 

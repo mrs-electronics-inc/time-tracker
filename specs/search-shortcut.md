@@ -59,10 +59,10 @@ The search input bar appears between the table rows and the status bar, and rema
 
 ### UI & Rendering
 
-- [ ] Render search input bar between rows and status bar when search mode is active
-- [ ] Keep search input bar visible after filter apply while search mode remains active
-- [ ] Show search-specific empty message when filter has zero matches (distinct from no-data message)
-- [ ] Ensure viewport and row rendering use filtered rows consistently
+- [x] Render search input bar between rows and status bar when search mode is active
+- [x] Keep search input bar visible after filter apply while search mode remains active
+- [x] Show search-specific empty message when filter has zero matches (distinct from no-data message)
+- [x] Ensure viewport and row rendering use filtered rows consistently
 
 ### Navigation & Selection
 

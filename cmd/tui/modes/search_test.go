@@ -1,11 +1,36 @@
 package modes
 
 import (
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/models"
 )
+
+func TestRenderContentShowsSearchInputBarWhenSearchModeIsActive(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SelectedIdx:      0,
+		SearchActive:     true,
+		SearchQueryDraft: "backend",
+		Width:            120,
+	}
+
+	content := ListMode.RenderContent(m, 6)
+
+	if !strings.Contains(content, "Search: backend") {
+		t.Fatalf("expected search input bar to be rendered, got:\n%s", content)
+	}
+
+	rowIndex := strings.Index(content, "Build API")
+	searchIndex := strings.Index(content, "Search: backend")
+	if rowIndex == -1 || searchIndex == -1 || searchIndex < rowIndex {
+		t.Fatalf("expected search input bar after rows, got:\n%s", content)
+	}
+}
 
 func TestEntryMatchesSearchQuery(t *testing.T) {
 	tests := []struct {
@@ -134,6 +159,84 @@ func TestApplySearchOnEnterUpdatesAppliedQueryAndFilteredEntries(t *testing.T) {
 	}
 }
 
+func TestSearchInputBarRemainsVisibleAfterApplyingFilter(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:      2,
+		SearchActive:     true,
+		SearchQueryDraft: "backend",
+		Width:            120,
+	}
+
+	updatedModel, _ := ListMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	if !updatedModel.SearchActive {
+		t.Fatal("SearchActive = false, expected true after applying filter")
+	}
+
+	content := ListMode.RenderContent(updatedModel, 6)
+	if !strings.Contains(content, "Search: backend") {
+		t.Fatalf("expected search input bar to remain visible after apply, got:\n%s", content)
+	}
+}
+
+func TestRenderContentShowsSearchSpecificEmptyMessageWhenNoMatches(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+		},
+		SearchActive:       true,
+		SearchAppliedQuery: "frontend",
+		FilteredEntries:    []VisibleEntry{},
+		Width:              120,
+	}
+
+	content := ListMode.RenderContent(m, 6)
+
+	if !strings.Contains(content, "No matching time entries found") {
+		t.Fatalf("expected search-specific empty message, got:\n%s", content)
+	}
+
+	if strings.Contains(content, "No time entries found. Press 'n' to start tracking.") {
+		t.Fatalf("expected search-specific empty message to differ from no-data message, got:\n%s", content)
+	}
+}
+
+func TestRenderContentUsesFilteredRowsForViewportRendering(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        0,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+		Width: 120,
+	}
+
+	content := ListMode.RenderContent(m, 4)
+
+	if !strings.Contains(content, "Build API") {
+		t.Fatalf("expected first filtered row to render, got:\n%s", content)
+	}
+
+	if !strings.Contains(content, "Review logs") {
+		t.Fatalf("expected second filtered row to render, got:\n%s", content)
+	}
+
+	if strings.Contains(content, "Polish search bar") {
+		t.Fatalf("expected non-matching row to be excluded from filtered render, got:\n%s", content)
+	}
+}
+
 func TestApplySearchOnEnterPreservesSelectionWhenStillMatched(t *testing.T) {
 	m := &Model{
 		Entries: []models.TimeEntry{
@@ -217,7 +320,6 @@ func TestEscWhileSearchActiveClearsSearchAndRestoresFullList(t *testing.T) {
 		}
 	}
 }
-
 func TestSlashInListModeActivatesSearchInput(t *testing.T) {
 	m := &Model{
 		SearchActive: false,

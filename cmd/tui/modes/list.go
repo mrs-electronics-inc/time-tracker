@@ -126,14 +126,74 @@ var ListMode = &Mode{
 		}
 
 		headerHeight := 2
-		listRowHeight := max(availableHeight-headerHeight, 1)
-		m.EnsureSelectionVisible(listRowHeight)
+		searchBarHeight := 0
+		if m.SearchActive {
+			searchBarHeight = 1
+		}
+
+		listRowHeight := max(availableHeight-headerHeight-searchBarHeight, 1)
+		visibleRows := getVisibleRows(m)
+		ensureSelectionVisibleInRows(m, visibleRows, listRowHeight)
 
 		header := renderTableHeader(m)
 		rows := renderTableRows(m, listRowHeight)
+		searchInputBar := ""
+		if m.SearchActive {
+			searchInputBar = renderSearchInputBar(m)
+		}
 
-		return header + rows
+		return header + rows + searchInputBar
 	},
+}
+
+func getVisibleRows(m *Model) []VisibleEntry {
+	if m.SearchAppliedQuery != "" {
+		return m.FilteredEntries
+	}
+
+	visibleRows := make([]VisibleEntry, 0, len(m.Entries))
+	for sourceIndex, entry := range m.Entries {
+		visibleRows = append(visibleRows, VisibleEntry{
+			Entry:       entry,
+			SourceIndex: sourceIndex,
+		})
+	}
+
+	return visibleRows
+}
+
+func ensureSelectionVisibleInRows(m *Model, rows []VisibleEntry, maxVisibleRows int) {
+	if len(rows) == 0 {
+		m.ViewportTop = 0
+		return
+	}
+
+	selectedRowIdx := -1
+	for i, row := range rows {
+		if row.SourceIndex == m.SelectedIdx {
+			selectedRowIdx = i
+			break
+		}
+	}
+
+	if selectedRowIdx >= 0 {
+		if selectedRowIdx < m.ViewportTop {
+			m.ViewportTop = selectedRowIdx
+		} else if selectedRowIdx >= m.ViewportTop+maxVisibleRows {
+			m.ViewportTop = selectedRowIdx - maxVisibleRows + 1
+		}
+	}
+
+	if m.ViewportTop > len(rows)-maxVisibleRows {
+		m.ViewportTop = len(rows) - maxVisibleRows
+	}
+	if m.ViewportTop < 0 {
+		m.ViewportTop = 0
+	}
+}
+
+func renderSearchInputBar(m *Model) string {
+	return m.Styles.Footer.Render("Search: "+m.SearchQueryDraft) + "\n"
 }
 
 // isValidSelection checks if the selected index is valid
@@ -241,6 +301,12 @@ func renderTableHeader(m *Model) string {
 
 // renderTableRows renders the rows with viewport scrolling
 func renderTableRows(m *Model, maxHeight int) string {
+	if m.SearchAppliedQuery != "" && len(m.FilteredEntries) == 0 {
+		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
+		msg := "No matching time entries found. Press 'esc' to clear search.\n"
+		return emptyStyle.Render(msg)
+	}
+
 	if len(m.Entries) == 0 {
 		emptyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Italic(true)
 		msg := "No time entries found. Press 'n' to start tracking.\n"
@@ -248,16 +314,18 @@ func renderTableRows(m *Model, maxHeight int) string {
 	}
 
 	startWidth, endWidth, projectWidth, titleWidth, durationWidth := getColumnWidthsWithPadding(m)
+	visibleRows := getVisibleRows(m)
 
 	var output strings.Builder
 
 	// Render rows from viewport
 	maxRows := maxHeight
 	rowsRendered := 0
-	endIdx := min(m.ViewportTop+maxRows, len(m.Entries))
+	endIdx := min(m.ViewportTop+maxRows, len(visibleRows))
 
 	for i := m.ViewportTop; i < endIdx; i++ {
-		entry := m.Entries[i]
+		visible := visibleRows[i]
+		entry := visible.Entry
 
 		startStr := entry.Start.Format("2006-01-02 15:04")
 
@@ -284,7 +352,7 @@ func renderTableRows(m *Model, maxHeight int) string {
 
 		// Apply styling
 		var styledRow string
-		if i == m.SelectedIdx {
+		if visible.SourceIndex == m.SelectedIdx {
 			// Selected row - highlight with bold and inverse
 			styledRow = lipgloss.NewStyle().
 				Bold(true).

@@ -45,7 +45,7 @@ The search input bar appears between the table rows and the status bar, and rema
 ### Search State & Logic
 
 - [x] Add search state to TUI model (active flag, query draft, applied query)
-- [ ] Implement case-insensitive substring matcher across `project` and `title`
+- [x] Implement case-insensitive substring matcher across `project` and `title`
 - [ ] Add filtering helper that returns visible entries while preserving source entry index mapping
 - [ ] Implement apply-search behavior on `Enter` (update filtered list from applied query)
 - [ ] Implement clear-search behavior on `Esc` while editing (clear query, exit search mode, restore full list)

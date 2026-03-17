@@ -206,6 +206,37 @@ func TestRenderContentShowsSearchSpecificEmptyMessageWhenNoMatches(t *testing.T)
 	}
 }
 
+func TestRenderContentUsesFilteredRowsForViewportRendering(t *testing.T) {
+	m := &Model{
+		Entries: []models.TimeEntry{
+			{Project: "Backend", Title: "Build API"},
+			{Project: "Frontend", Title: "Polish search bar"},
+			{Project: "Backend", Title: "Review logs"},
+		},
+		SelectedIdx:        0,
+		SearchAppliedQuery: "backend",
+		FilteredEntries: []VisibleEntry{
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Build API"}, SourceIndex: 0},
+			{Entry: models.TimeEntry{Project: "Backend", Title: "Review logs"}, SourceIndex: 2},
+		},
+		Width: 120,
+	}
+
+	content := ListMode.RenderContent(m, 4)
+
+	if !strings.Contains(content, "Build API") {
+		t.Fatalf("expected first filtered row to render, got:\n%s", content)
+	}
+
+	if !strings.Contains(content, "Review logs") {
+		t.Fatalf("expected second filtered row to render, got:\n%s", content)
+	}
+
+	if strings.Contains(content, "Polish search bar") {
+		t.Fatalf("expected non-matching row to be excluded from filtered render, got:\n%s", content)
+	}
+}
+
 func TestApplySearchOnEnterPreservesSelectionWhenStillMatched(t *testing.T) {
 	m := &Model{
 		Entries: []models.TimeEntry{

@@ -7,7 +7,7 @@ approved_by: Addison Emig
 approval_date: 2026-03-18
 ---
 
-# Project Autocomplete in Edit Form
+# Project Autocomplete in Entry Forms
 
 ## Overview
 
@@ -26,6 +26,7 @@ Once [Project Metadata](./project-metadata.md) ships, the `Project` input in all
 ### Use Built-in Bubbles Suggestions
 
 - **Decision**: Use the `textinput.SetSuggestions` / `ShowSuggestions` API from `charmbracelet/bubbles` rather than building a custom dropdown. This provides inline ghost-text completion with prefix matching out of the box.
+- **Decision**: Before calling `SetSuggestions`, normalize project names by trimming whitespace, dropping empty names, deduping case-insensitively while preserving the first-seen display casing, and sorting case-insensitively (with raw string tie-breaker) for deterministic ordering.
 
 ### Keybinding Changes
 
@@ -41,5 +42,5 @@ Once [Project Metadata](./project-metadata.md) ships, the `Project` input in all
 ### Project Autocomplete
 
 - [ ] Enable `ShowSuggestions` on the project text input
-- [ ] Load project names via `LoadProjects` and call `SetSuggestions` when opening form modes (new, edit, resume)
+- [ ] Load project names via `LoadProjects`, normalize (trim, drop empty, case-insensitive dedupe preserving first-seen display casing, case-insensitive sort with raw string tie-breaker), and call `SetSuggestions` when opening form modes (new, edit, resume)
 - [ ] When project input is focused and has matched suggestions, let Tab pass through to accept the suggestion instead of navigating fields

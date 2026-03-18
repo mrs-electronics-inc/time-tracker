@@ -1,7 +1,6 @@
 package modes
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -74,41 +73,7 @@ var StartMode = &Mode{
 		return m, tea.Batch(cmds...)
 	},
 	RenderContent: func(m *Model, availableHeight int) string {
-		_ = availableHeight
-
-		title := "Start New Entry"
-		projectLabel := m.Styles.Label.Render("Project:")
-		projectInput := m.Inputs[InputProject].View()
-		titleLabel := m.Styles.Label.Render("Title:")
-		titleInput := m.Inputs[InputTitle].View()
-		dateLabel := m.Styles.Label.Render("Date (YYYY-MM-DD):")
-		yearInput := m.Inputs[InputYear].View()
-		monthInput := m.Inputs[InputMonth].View()
-		dayInput := m.Inputs[InputDay].View()
-		timeLabel := m.Styles.Label.Render("Time (HH:MM):")
-		hourInput := m.Inputs[InputHour].View()
-		minuteInput := m.Inputs[InputMinute].View()
-
-		var content strings.Builder
-		content.WriteString(m.Styles.Title.Render(title) + "\n\n")
-		content.WriteString(projectLabel + "\n")
-		content.WriteString(projectInput + "\n\n")
-		content.WriteString(titleLabel + "\n")
-		content.WriteString(titleInput + "\n\n")
-		content.WriteString(dateLabel + "\n")
-		content.WriteString(yearInput + " - " + monthInput + " - " + dayInput + "\n\n")
-		content.WriteString(timeLabel + "\n")
-		content.WriteString(hourInput + " : " + minuteInput + "\n\n")
-
-		if m.Status != "" {
-			if strings.Contains(strings.ToLower(m.Status), "error") {
-				content.WriteString(m.Styles.StatusError.Render(m.Status) + "\n\n")
-			} else {
-				content.WriteString(m.Styles.StatusSuccess.Render(m.Status) + "\n\n")
-			}
-		}
-
-		return content.String()
+		return renderStartContent(m, availableHeight)
 	},
 }
 
@@ -121,23 +86,10 @@ func openStartMode(m *Model, entry models.TimeEntry) {
 	m.Inputs[InputProject].SetValue(entry.Project)
 	m.Inputs[InputTitle].SetValue(entry.Title)
 
-	// Set current time as default
-	now := time.Now()
-	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
-	setDateDefaults(m, now)
+	// Set current date/time as default
+	setCurrentDateTimeDefaults(m, time.Now())
 
-	// Set focus to first input
-	m.Inputs[InputProject].Focus()
-	m.Inputs[InputProject].PromptStyle = m.Styles.InputFocused
-	m.Inputs[InputProject].TextStyle = m.Styles.InputFocused
-
-	// Blur other inputs
-	for i := InputTitle; i < len(m.Inputs); i++ {
-		m.Inputs[i].Blur()
-		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
-		m.Inputs[i].TextStyle = m.Styles.InputBlurred
-	}
+	setupFormInputs(m)
 }
 
 // openStartModeBlank opens start mode with blank values
@@ -150,23 +102,10 @@ func openStartModeBlank(m *Model) {
 		m.Inputs[i].SetValue("")
 	}
 
-	// Set current time as default
-	now := time.Now()
-	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
-	setDateDefaults(m, now)
+	// Set current date/time as default
+	setCurrentDateTimeDefaults(m, time.Now())
 
-	// Set focus to first input
-	m.Inputs[InputProject].Focus()
-	m.Inputs[InputProject].PromptStyle = m.Styles.InputFocused
-	m.Inputs[InputProject].TextStyle = m.Styles.InputFocused
-
-	// Blur other inputs
-	for i := InputTitle; i < len(m.Inputs); i++ {
-		m.Inputs[i].Blur()
-		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
-		m.Inputs[i].TextStyle = m.Styles.InputBlurred
-	}
+	setupFormInputs(m)
 }
 
 // updateInputFocus updates the focus styling on all inputs
@@ -189,49 +128,10 @@ func updateInputFocus(m *Model) {
 // renderStartContent renders the start mode content
 func renderStartContent(m *Model, availableHeight int) string {
 	_ = availableHeight // Available for future use
-	// Create title
-	title := "Start New Entry"
 
-	// Create project input section
-	projectLabel := m.Styles.Label.Render("Project:")
-	projectInput := m.Inputs[InputProject].View()
-
-	// Create title input section
-	titleLabel := m.Styles.Label.Render("Title:")
-	titleInput := m.Inputs[InputTitle].View()
-
-	// Create date input section
-	dateLabel := m.Styles.Label.Render("Date (YYYY-MM-DD):")
-	yearInput := m.Inputs[InputYear].View()
-	monthInput := m.Inputs[InputMonth].View()
-	dayInput := m.Inputs[InputDay].View()
-
-	// Create time input section
-	timeLabel := m.Styles.Label.Render("Time (HH:MM):")
-	hourInput := m.Inputs[InputHour].View()
-	minuteInput := m.Inputs[InputMinute].View()
-
-	// Build content
 	var content strings.Builder
-	content.WriteString(m.Styles.Title.Render(title) + "\n\n")
-	content.WriteString(projectLabel + "\n")
-	content.WriteString(projectInput + "\n\n")
-	content.WriteString(titleLabel + "\n")
-	content.WriteString(titleInput + "\n\n")
-	content.WriteString(dateLabel + "\n")
-	content.WriteString(yearInput + " - " + monthInput + " - " + dayInput + "\n\n")
-	content.WriteString(timeLabel + "\n")
-	content.WriteString(hourInput + " : " + minuteInput + "\n\n")
-
-	// Show status/error message if present
-	if m.Status != "" {
-		// Determine if it's an error or success based on message content
-		if strings.Contains(strings.ToLower(m.Status), "error") {
-			content.WriteString(m.Styles.StatusError.Render(m.Status) + "\n\n")
-		} else {
-			content.WriteString(m.Styles.StatusSuccess.Render(m.Status) + "\n\n")
-		}
-	}
+	content.WriteString(m.Styles.Title.Render("Start New Entry") + "\n\n")
+	renderEntryFormBody(m, &content)
 
 	return content.String()
 }

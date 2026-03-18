@@ -73,11 +73,8 @@ func openNewMode(m *Model) {
 		m.Inputs[i].SetValue("")
 	}
 
-	// Set current time as default
-	now := time.Now()
-	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
-	setDateDefaults(m, now)
+	// Set current date/time as default
+	setCurrentDateTimeDefaults(m, time.Now())
 
 	setupFormInputs(m)
 }
@@ -108,11 +105,8 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	m.Inputs[InputProject].SetValue(entry.Project)
 	m.Inputs[InputTitle].SetValue(entry.Title)
 
-	// Set current time as default
-	now := time.Now()
-	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
-	setDateDefaults(m, now)
+	// Set current date/time as default
+	setCurrentDateTimeDefaults(m, time.Now())
 
 	setupFormInputs(m)
 }
@@ -222,21 +216,25 @@ func parseFormTime(m *Model) (time.Time, error) {
 		minuteStr = "00"
 	}
 
-	var year, month, day, hour, minute int
-	if n, err := fmt.Sscanf(yearStr, "%d", &year); err != nil || n != 1 || year < 1 || year > 9999 {
-		return time.Time{}, fmt.Errorf("invalid year (1-9999)")
+	year, err := parseRangedInt(yearStr, "year", 1, 9999)
+	if err != nil {
+		return time.Time{}, err
 	}
-	if n, err := fmt.Sscanf(monthStr, "%d", &month); err != nil || n != 1 || month < 1 || month > 12 {
-		return time.Time{}, fmt.Errorf("invalid month (1-12)")
+	month, err := parseRangedInt(monthStr, "month", 1, 12)
+	if err != nil {
+		return time.Time{}, err
 	}
-	if n, err := fmt.Sscanf(dayStr, "%d", &day); err != nil || n != 1 || day < 1 || day > 31 {
-		return time.Time{}, fmt.Errorf("invalid day (1-31)")
+	day, err := parseRangedInt(dayStr, "day", 1, 31)
+	if err != nil {
+		return time.Time{}, err
 	}
-	if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
-		return time.Time{}, fmt.Errorf("invalid hour (0-23)")
+	hour, err := parseRangedInt(hourStr, "hour", 0, 23)
+	if err != nil {
+		return time.Time{}, err
 	}
-	if n, err := fmt.Sscanf(minuteStr, "%d", &minute); err != nil || n != 1 || minute < 0 || minute > 59 {
-		return time.Time{}, fmt.Errorf("invalid minute (0-59)")
+	minute, err := parseRangedInt(minuteStr, "minute", 0, 59)
+	if err != nil {
+		return time.Time{}, err
 	}
 
 	loc := time.Now().Location()
@@ -246,6 +244,15 @@ func parseFormTime(m *Model) (time.Time, error) {
 	}
 
 	return startTime, nil
+}
+
+func parseRangedInt(value, field string, min, max int) (int, error) {
+	var parsed int
+	if n, err := fmt.Sscanf(value, "%d", &parsed); err != nil || n != 1 || parsed < min || parsed > max {
+		return 0, fmt.Errorf("invalid %s (%d-%d)", field, min, max)
+	}
+
+	return parsed, nil
 }
 
 // setupFormInputs sets up form inputs with focus on first field
@@ -268,10 +275,13 @@ func setDateDefaults(m *Model, date time.Time) {
 	m.Inputs[InputDay].SetValue(fmt.Sprintf("%02d", date.Day()))
 }
 
-// renderFormContent renders the form with a given title
-func renderFormContent(m *Model, title string, availableHeight int) string {
-	_ = availableHeight // Available for future use
+func setCurrentDateTimeDefaults(m *Model, now time.Time) {
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	setDateDefaults(m, now)
+}
 
+func renderEntryFormBody(m *Model, content *strings.Builder) {
 	projectLabel := m.Styles.Label.Render("Project:")
 	projectInput := m.Inputs[InputProject].View()
 	titleLabel := m.Styles.Label.Render("Title:")
@@ -284,8 +294,6 @@ func renderFormContent(m *Model, title string, availableHeight int) string {
 	hourInput := m.Inputs[InputHour].View()
 	minuteInput := m.Inputs[InputMinute].View()
 
-	var content strings.Builder
-	content.WriteString(m.Styles.Title.Render(title) + "\n\n")
 	content.WriteString(projectLabel + "\n")
 	content.WriteString(projectInput + "\n\n")
 	content.WriteString(titleLabel + "\n")
@@ -302,6 +310,15 @@ func renderFormContent(m *Model, title string, availableHeight int) string {
 			content.WriteString(m.Styles.StatusSuccess.Render(m.Status) + "\n\n")
 		}
 	}
+}
+
+// renderFormContent renders the form with a given title
+func renderFormContent(m *Model, title string, availableHeight int) string {
+	_ = availableHeight // Available for future use
+
+	var content strings.Builder
+	content.WriteString(m.Styles.Title.Render(title) + "\n\n")
+	renderEntryFormBody(m, &content)
 
 	return content.String()
 }

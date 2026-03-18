@@ -9,48 +9,35 @@ creation_date: 2026-03-13
 
 ## Overview
 
-Once [Project Metadata](./project-autocomplete-in-edit-form.md) ships, the edit form’s `Project` input should stop being a free-form field and only accept values from the managed project list. This spec introduces inline autocomplete powered exclusively by the metadata-backed project list so edited entries stay aligned with the canonical names exports and integrations rely on. There is no fallback to historical entries; the feature depends on the metadata list already existing.
+Once [Project Metadata](./project-metadata.md) ships, the `Project` input in all form modes (new, edit, resume) should offer inline autocomplete suggestions from the project list. The input remains free-text — users can type any project name — but suggestions encourage using canonical names that exports and integrations rely on.
 
 ## User Flow
 
 1. Select an entry in the list and press `e` to open edit mode (with the form defaulting to the entry’s project/title/time).
-2. While the project input remains focused, typing begins to filter the dropdown directly beneath the input showing matching project names.
-3. The autocomplete list performs fuzzy matching (case-insensitive, substring) over the metadata project names and updates in real time, showing only the names (no code/category).
-4. Use Up/Down arrow keys to highlight matches; Enter selects the highlighted name and keeps focus on the project input. Tab/Shift+Tab continue to rotate focus between the four form fields exactly as today.
-5. Clearing the input or moving focus out closes the dropdown; selecting a project hides it until the user types again.
+2. While the project input is focused, typing shows a ghost-text completion inline (the first matching project name, greyed out after the cursor).
+3. Up/Down arrow keys cycle through matching suggestions.
+4. Tab accepts the current suggestion. Tab/Shift+Tab continue to navigate between form fields when there is no active suggestion.
+5. The input remains free-text — the user can ignore suggestions and type any project name.
 
 ## Design Decisions
 
-1. **Suggestion source**
-   - _Options_: (A) fallback to historical projects, (B) rely solely on the metadata list from spec 9.
-   - _Decision_: choose option B so edited entries match the authoritative project definitions that exports use. This enforces consistency immediately after metadata is available.
+### Use Built-in Bubbles Suggestions
 
-2. **Matching strategy**
-   - _Options_: prefix-only or fuzzy matching.
-   - _Decision_: fuzzy matching so users can locate projects using any memorable substring or partial words instead of needing exact prefixes.
+- **Decision**: Use the `textinput.SetSuggestions` / `ShowSuggestions` API from `charmbracelet/bubbles` rather than building a custom dropdown. This provides inline ghost-text completion with prefix matching out of the box.
 
-3. **Interaction model**
-   - _Options_: reuse Tab for suggestions or keep Tab cycling inputs.
-   - _Decision_: keep Tab exclusively for field navigation (as it is now) while using arrow keys + Enter for suggestion selection to preserve existing muscle memory.
+### Keybinding Changes
+
+- **Decision**: Remove Up/Down as field navigation aliases (currently redundant with Tab/Shift+Tab). When the project input has matched suggestions, Up/Down cycle suggestions and Tab accepts. When there are no suggestions, Tab/Shift+Tab navigate fields as before.
 
 ## Task List
 
-### Data plumbing
+### Keybinding Changes
 
-- [ ] Provide a helper that returns the ordered list of project names from the spec 9 metadata store (e.g., a public method on the storage layer or task manager).
-- [ ] Expose that list through the TUI model so form modes (start/edit) can read it while rendering.
-- [ ] Add tests validating the helper’s behavior with populated metadata and when the metadata list is empty.
+- [ ] Remove Up/Down as field navigation aliases from `handleFormKeyMsg`
+- [ ] Update form help text to show only Tab/Shift+Tab for field navigation
 
-### Autocomplete behavior
+### Project Autocomplete
 
-- [ ] Extend the form state to track the current autocomplete matches, the active suggestion index, and whether the dropdown is visible.
-- [ ] Implement fuzzy filtering (case-insensitive substring match) keyed to the project input value.
-- [ ] Render the matching project names in a dropdown below the project input, highlighting the active suggestion with focused styling consistent with the rest of the form.
-- [ ] Handle keyboard navigation: Up/Down move through the list when visible, Enter picks the highlighted suggestion and writes it into the project field, and Tab/Shift+Tab keep cycling form inputs.
-- [ ] Close the dropdown when the project field loses focus or the value is cleared.
-
-### Verification
-
-- [ ] Add headless/integration coverage that types into the project field inside edit mode, asserts the suggestion list updates, navigates it, and confirms Enter populates the value while Tab still changes inputs.
-- [ ] Unit-test the fuzzy matcher so it respects substring matching, ignores case, and tolerates empty metadata lists without panicking.
-- [ ] Document the new behavior in the relevant user-facing guides (e.g., README or TUI help text) once implementation is wired up.
+- [ ] Enable `ShowSuggestions` on the project text input
+- [ ] Load project names via `LoadProjects` and call `SetSuggestions` when opening form modes (new, edit, resume)
+- [ ] When project input is focused and has matched suggestions, let Tab pass through to accept the suggestion instead of navigating fields

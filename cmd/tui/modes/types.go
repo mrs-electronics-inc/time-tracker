@@ -23,6 +23,13 @@ type Mode struct {
 	RenderContent func(*Model, int) string
 }
 
+const (
+	InputProject = iota
+	InputTitle
+	InputHour
+	InputMinute
+)
+
 // Styles defines the visual styling for different UI elements
 type Styles struct {
 	Header        lipgloss.Style // Header row style

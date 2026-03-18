@@ -39,10 +39,10 @@ var StartMode = &Mode{
 			return m, nil
 
 		case "enter":
-			project := m.Inputs[0].Value()
-			title := m.Inputs[1].Value()
-			hourStr := m.Inputs[2].Value()
-			minuteStr := m.Inputs[3].Value()
+			project := m.Inputs[InputProject].Value()
+			title := m.Inputs[InputTitle].Value()
+			hourStr := m.Inputs[InputHour].Value()
+			minuteStr := m.Inputs[InputMinute].Value()
 
 			if project == "" || title == "" {
 				m.Status = "Project and title are required"
@@ -100,12 +100,12 @@ var StartMode = &Mode{
 
 		title := "Start New Entry"
 		projectLabel := m.Styles.Label.Render("Project:")
-		projectInput := m.Inputs[0].View()
+		projectInput := m.Inputs[InputProject].View()
 		titleLabel := m.Styles.Label.Render("Title:")
-		titleInput := m.Inputs[1].View()
+		titleInput := m.Inputs[InputTitle].View()
 		timeLabel := m.Styles.Label.Render("Time (HH:MM):")
-		hourInput := m.Inputs[2].View()
-		minuteInput := m.Inputs[3].View()
+		hourInput := m.Inputs[InputHour].View()
+		minuteInput := m.Inputs[InputMinute].View()
 
 		var content strings.Builder
 		content.WriteString(m.Styles.Title.Render(title) + "\n\n")
@@ -131,24 +131,24 @@ var StartMode = &Mode{
 // openStartMode opens start mode with pre-filled values from an entry
 func openStartMode(m *Model, entry models.TimeEntry) {
 	m.CurrentMode = m.StartMode
-	m.FocusIndex = 0
+	m.FocusIndex = InputProject
 
 	// Pre-fill the inputs with the selected entry's values
-	m.Inputs[0].SetValue(entry.Project)
-	m.Inputs[1].SetValue(entry.Title)
+	m.Inputs[InputProject].SetValue(entry.Project)
+	m.Inputs[InputTitle].SetValue(entry.Title)
 
 	// Set current time as default
 	now := time.Now()
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
 
 	// Set focus to first input
-	m.Inputs[0].Focus()
-	m.Inputs[0].PromptStyle = m.Styles.InputFocused
-	m.Inputs[0].TextStyle = m.Styles.InputFocused
+	m.Inputs[InputProject].Focus()
+	m.Inputs[InputProject].PromptStyle = m.Styles.InputFocused
+	m.Inputs[InputProject].TextStyle = m.Styles.InputFocused
 
 	// Blur other inputs
-	for i := 1; i < len(m.Inputs); i++ {
+	for i := InputTitle; i < len(m.Inputs); i++ {
 		m.Inputs[i].Blur()
 		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
 		m.Inputs[i].TextStyle = m.Styles.InputBlurred
@@ -158,7 +158,7 @@ func openStartMode(m *Model, entry models.TimeEntry) {
 // openStartModeBlank opens start mode with blank values
 func openStartModeBlank(m *Model) {
 	m.CurrentMode = m.StartMode
-	m.FocusIndex = 0
+	m.FocusIndex = InputProject
 
 	// Clear all inputs
 	for i := range m.Inputs {
@@ -167,16 +167,16 @@ func openStartModeBlank(m *Model) {
 
 	// Set current time as default
 	now := time.Now()
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
 
 	// Set focus to first input
-	m.Inputs[0].Focus()
-	m.Inputs[0].PromptStyle = m.Styles.InputFocused
-	m.Inputs[0].TextStyle = m.Styles.InputFocused
+	m.Inputs[InputProject].Focus()
+	m.Inputs[InputProject].PromptStyle = m.Styles.InputFocused
+	m.Inputs[InputProject].TextStyle = m.Styles.InputFocused
 
 	// Blur other inputs
-	for i := 1; i < len(m.Inputs); i++ {
+	for i := InputTitle; i < len(m.Inputs); i++ {
 		m.Inputs[i].Blur()
 		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
 		m.Inputs[i].TextStyle = m.Styles.InputBlurred
@@ -208,16 +208,16 @@ func renderStartContent(m *Model, availableHeight int) string {
 
 	// Create project input section
 	projectLabel := m.Styles.Label.Render("Project:")
-	projectInput := m.Inputs[0].View()
+	projectInput := m.Inputs[InputProject].View()
 
 	// Create title input section
 	titleLabel := m.Styles.Label.Render("Title:")
-	titleInput := m.Inputs[1].View()
+	titleInput := m.Inputs[InputTitle].View()
 
 	// Create time input section
 	timeLabel := m.Styles.Label.Render("Time (HH:MM):")
-	hourInput := m.Inputs[2].View()
-	minuteInput := m.Inputs[3].View()
+	hourInput := m.Inputs[InputHour].View()
+	minuteInput := m.Inputs[InputMinute].View()
 
 	// Build content
 	var content strings.Builder

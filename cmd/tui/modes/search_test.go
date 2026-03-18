@@ -542,8 +542,8 @@ func TestEditAndDeleteUseUnderlyingSourceIndexWhenFilterApplied(t *testing.T) {
 	if updatedModel.FormState.EditingIdx != 2 {
 		t.Fatalf("FormState.EditingIdx = %d, expected %d", updatedModel.FormState.EditingIdx, 2)
 	}
-	if updatedModel.Inputs[0].Value() != "Backend" || updatedModel.Inputs[1].Value() != "Review logs" {
-		t.Fatalf("expected edit form to be prefilled from source index 2, got project=%q title=%q", updatedModel.Inputs[0].Value(), updatedModel.Inputs[1].Value())
+	if updatedModel.Inputs[InputProject].Value() != "Backend" || updatedModel.Inputs[InputTitle].Value() != "Review logs" {
+		t.Fatalf("expected edit form to be prefilled from source index 2, got project=%q title=%q", updatedModel.Inputs[InputProject].Value(), updatedModel.Inputs[InputTitle].Value())
 	}
 
 	updatedModel.SelectedIdx = 2

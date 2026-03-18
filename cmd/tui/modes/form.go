@@ -75,8 +75,8 @@ func openNewMode(m *Model) {
 
 	// Set current time as default
 	now := time.Now()
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
 
 	setupFormInputs(m)
 }
@@ -88,10 +88,10 @@ func openEditMode(m *Model, entry models.TimeEntry, idx int) {
 	m.Status = ""
 
 	// Pre-fill all inputs from entry
-	m.Inputs[0].SetValue(entry.Project)
-	m.Inputs[1].SetValue(entry.Title)
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", entry.Start.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", entry.Start.Minute()))
+	m.Inputs[InputProject].SetValue(entry.Project)
+	m.Inputs[InputTitle].SetValue(entry.Title)
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", entry.Start.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", entry.Start.Minute()))
 
 	setupFormInputs(m)
 }
@@ -103,13 +103,13 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	m.Status = ""
 
 	// Pre-fill project and title from entry
-	m.Inputs[0].SetValue(entry.Project)
-	m.Inputs[1].SetValue(entry.Title)
+	m.Inputs[InputProject].SetValue(entry.Project)
+	m.Inputs[InputTitle].SetValue(entry.Title)
 
 	// Set current time as default
 	now := time.Now()
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
 
 	setupFormInputs(m)
 }
@@ -138,8 +138,8 @@ func createFormKeyHandler(formMode FormMode) func(*Model, tea.KeyMsg) (*Model, t
 
 // handleFormSubmit handles form submission for new/edit/resume modes
 func handleFormSubmit(m *Model, formMode FormMode) (*Model, tea.Cmd) {
-	project := m.Inputs[0].Value()
-	title := m.Inputs[1].Value()
+	project := m.Inputs[InputProject].Value()
+	title := m.Inputs[InputTitle].Value()
 
 	// For new/resume modes, require project and title
 	// For edit mode, allow empty values (to create blank entries/gaps)
@@ -215,8 +215,8 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 // Returns the parsed time on today (or yesterday if time is in the future)
 // If baseDate is provided, uses that as the date instead of today
 func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
-	hourStr := m.Inputs[2].Value()
-	minuteStr := m.Inputs[3].Value()
+	hourStr := m.Inputs[InputHour].Value()
+	minuteStr := m.Inputs[InputMinute].Value()
 
 	if hourStr == "" {
 		hourStr = "00"
@@ -251,12 +251,12 @@ func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
 
 // setupFormInputs sets up form inputs with focus on first field
 func setupFormInputs(m *Model) {
-	m.FocusIndex = 0
-	m.Inputs[0].Focus()
-	m.Inputs[0].PromptStyle = m.Styles.InputFocused
-	m.Inputs[0].TextStyle = m.Styles.InputFocused
+	m.FocusIndex = InputProject
+	m.Inputs[InputProject].Focus()
+	m.Inputs[InputProject].PromptStyle = m.Styles.InputFocused
+	m.Inputs[InputProject].TextStyle = m.Styles.InputFocused
 
-	for i := 1; i < len(m.Inputs); i++ {
+	for i := InputTitle; i < len(m.Inputs); i++ {
 		m.Inputs[i].Blur()
 		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
 		m.Inputs[i].TextStyle = m.Styles.InputBlurred
@@ -268,12 +268,12 @@ func renderFormContent(m *Model, title string, availableHeight int) string {
 	_ = availableHeight // Available for future use
 
 	projectLabel := m.Styles.Label.Render("Project:")
-	projectInput := m.Inputs[0].View()
+	projectInput := m.Inputs[InputProject].View()
 	titleLabel := m.Styles.Label.Render("Title:")
-	titleInput := m.Inputs[1].View()
+	titleInput := m.Inputs[InputTitle].View()
 	timeLabel := m.Styles.Label.Render("Time (HH:MM):")
-	hourInput := m.Inputs[2].View()
-	minuteInput := m.Inputs[3].View()
+	hourInput := m.Inputs[InputHour].View()
+	minuteInput := m.Inputs[InputMinute].View()
 
 	var content strings.Builder
 	content.WriteString(m.Styles.Title.Render(title) + "\n\n")

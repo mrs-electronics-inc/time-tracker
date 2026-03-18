@@ -1,8 +1,10 @@
 ---
 number: 11
-status: draft
+status: approved
 author: Addison Emig
 creation_date: 2026-03-13
+approved_by: Addison Emig
+approval_date: 2026-03-18
 ---
 
 # Edit Entry Start Date

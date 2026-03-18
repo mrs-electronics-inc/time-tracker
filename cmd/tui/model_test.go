@@ -63,8 +63,8 @@ func TestModelInitialization(t *testing.T) {
 func TestModelInitializationCreatesDateInputs(t *testing.T) {
 	m := newTestModel()
 
-	if len(m.Inputs) != modes.InputDay+1 {
-		t.Fatalf("len(Inputs) = %d, expected %d", len(m.Inputs), modes.InputDay+1)
+	if len(m.Inputs) != modes.InputMinute+1 {
+		t.Fatalf("len(Inputs) = %d, expected %d", len(m.Inputs), modes.InputMinute+1)
 	}
 
 	if got := m.Inputs[modes.InputYear].Placeholder; got != "YYYY" {
@@ -810,7 +810,7 @@ func TestInputFieldNavigation(t *testing.T) {
 	updated, _ = model.Update(msg)
 	model = updated.(*Model)
 
-	if model.FocusIndex != modes.InputHour {
+	if model.FocusIndex != modes.InputYear {
 		t.Errorf("Expected focus to move to field 2, got %d", model.FocusIndex)
 	}
 

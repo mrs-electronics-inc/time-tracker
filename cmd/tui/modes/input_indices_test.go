@@ -9,19 +9,19 @@ func TestInputIndexConstants(t *testing.T) {
 	if InputTitle != 1 {
 		t.Fatalf("InputTitle = %d, expected 1", InputTitle)
 	}
-	if InputHour != 2 {
-		t.Fatalf("InputHour = %d, expected 2", InputHour)
+	if InputYear != 2 {
+		t.Fatalf("InputYear = %d, expected 2", InputYear)
 	}
-	if InputMinute != 3 {
-		t.Fatalf("InputMinute = %d, expected 3", InputMinute)
+	if InputMonth != 3 {
+		t.Fatalf("InputMonth = %d, expected 3", InputMonth)
 	}
-	if InputYear != 4 {
-		t.Fatalf("InputYear = %d, expected 4", InputYear)
+	if InputDay != 4 {
+		t.Fatalf("InputDay = %d, expected 4", InputDay)
 	}
-	if InputMonth != 5 {
-		t.Fatalf("InputMonth = %d, expected 5", InputMonth)
+	if InputHour != 5 {
+		t.Fatalf("InputHour = %d, expected 5", InputHour)
 	}
-	if InputDay != 6 {
-		t.Fatalf("InputDay = %d, expected 6", InputDay)
+	if InputMinute != 6 {
+		t.Fatalf("InputMinute = %d, expected 6", InputMinute)
 	}
 }

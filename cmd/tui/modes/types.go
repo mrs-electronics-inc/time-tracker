@@ -26,11 +26,11 @@ type Mode struct {
 const (
 	InputProject = iota
 	InputTitle
-	InputHour
-	InputMinute
 	InputYear
 	InputMonth
 	InputDay
+	InputHour
+	InputMinute
 )
 
 // Styles defines the visual styling for different UI elements
@@ -66,7 +66,7 @@ type Model struct {
 	// Mode state
 	CurrentMode       *Mode             // Current TUI mode
 	PreviousMode      *Mode             // Previous mode (used for help context)
-	Inputs            []textinput.Model // Text inputs for project, title, hour, minute, year, month, day
+	Inputs            []textinput.Model // Text inputs for project, title, year, month, day, hour, minute
 	FocusIndex        int               // Currently focused input index
 	ProjectInputs     []textinput.Model // Text inputs for project metadata form (name, code, category)
 	ProjectFocusIndex int               // Currently focused metadata input

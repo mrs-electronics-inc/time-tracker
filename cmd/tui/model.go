@@ -24,7 +24,7 @@ type Model struct {
 // NewModel creates a new TUI model
 func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	// Create textinput models for start mode
-	inputs := make([]textinput.Model, modes.InputDay+1)
+	inputs := make([]textinput.Model, modes.InputMinute+1)
 
 	// Project input
 	inputs[modes.InputProject] = textinput.New()
@@ -41,22 +41,6 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[modes.InputTitle].Width = 40
 	inputs[modes.InputTitle].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[modes.InputTitle].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-
-	// Hour input
-	inputs[modes.InputHour] = textinput.New()
-	inputs[modes.InputHour].Placeholder = "HH"
-	inputs[modes.InputHour].CharLimit = 2
-	inputs[modes.InputHour].Width = 2
-	inputs[modes.InputHour].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	inputs[modes.InputHour].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-
-	// Minute input
-	inputs[modes.InputMinute] = textinput.New()
-	inputs[modes.InputMinute].Placeholder = "MM"
-	inputs[modes.InputMinute].CharLimit = 2
-	inputs[modes.InputMinute].Width = 2
-	inputs[modes.InputMinute].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	inputs[modes.InputMinute].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	// Year input
 	inputs[modes.InputYear] = textinput.New()
@@ -81,6 +65,22 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[modes.InputDay].Width = 2
 	inputs[modes.InputDay].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[modes.InputDay].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Hour input
+	inputs[modes.InputHour] = textinput.New()
+	inputs[modes.InputHour].Placeholder = "HH"
+	inputs[modes.InputHour].CharLimit = 2
+	inputs[modes.InputHour].Width = 2
+	inputs[modes.InputHour].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputHour].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Minute input
+	inputs[modes.InputMinute] = textinput.New()
+	inputs[modes.InputMinute].Placeholder = "MM"
+	inputs[modes.InputMinute].CharLimit = 2
+	inputs[modes.InputMinute].Width = 2
+	inputs[modes.InputMinute].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputMinute].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	projectInputs := make([]textinput.Model, 3)
 

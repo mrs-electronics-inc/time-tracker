@@ -11,7 +11,7 @@ import (
 )
 
 func newFormTimeTestModel() *Model {
-	inputs := make([]textinput.Model, InputDay+1)
+	inputs := make([]textinput.Model, InputMinute+1)
 	for i := range inputs {
 		inputs[i] = textinput.New()
 	}

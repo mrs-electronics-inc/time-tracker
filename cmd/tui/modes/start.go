@@ -103,6 +103,10 @@ var StartMode = &Mode{
 		projectInput := m.Inputs[InputProject].View()
 		titleLabel := m.Styles.Label.Render("Title:")
 		titleInput := m.Inputs[InputTitle].View()
+		dateLabel := m.Styles.Label.Render("Date (YYYY-MM-DD):")
+		yearInput := m.Inputs[InputYear].View()
+		monthInput := m.Inputs[InputMonth].View()
+		dayInput := m.Inputs[InputDay].View()
 		timeLabel := m.Styles.Label.Render("Time (HH:MM):")
 		hourInput := m.Inputs[InputHour].View()
 		minuteInput := m.Inputs[InputMinute].View()
@@ -113,6 +117,8 @@ var StartMode = &Mode{
 		content.WriteString(projectInput + "\n\n")
 		content.WriteString(titleLabel + "\n")
 		content.WriteString(titleInput + "\n\n")
+		content.WriteString(dateLabel + "\n")
+		content.WriteString(yearInput + " - " + monthInput + " - " + dayInput + "\n\n")
 		content.WriteString(timeLabel + "\n")
 		content.WriteString(hourInput + " : " + minuteInput + "\n\n")
 
@@ -216,6 +222,12 @@ func renderStartContent(m *Model, availableHeight int) string {
 	titleLabel := m.Styles.Label.Render("Title:")
 	titleInput := m.Inputs[InputTitle].View()
 
+	// Create date input section
+	dateLabel := m.Styles.Label.Render("Date (YYYY-MM-DD):")
+	yearInput := m.Inputs[InputYear].View()
+	monthInput := m.Inputs[InputMonth].View()
+	dayInput := m.Inputs[InputDay].View()
+
 	// Create time input section
 	timeLabel := m.Styles.Label.Render("Time (HH:MM):")
 	hourInput := m.Inputs[InputHour].View()
@@ -228,6 +240,8 @@ func renderStartContent(m *Model, availableHeight int) string {
 	content.WriteString(projectInput + "\n\n")
 	content.WriteString(titleLabel + "\n")
 	content.WriteString(titleInput + "\n\n")
+	content.WriteString(dateLabel + "\n")
+	content.WriteString(yearInput + " - " + monthInput + " - " + dayInput + "\n\n")
 	content.WriteString(timeLabel + "\n")
 	content.WriteString(hourInput + " : " + minuteInput + "\n\n")
 

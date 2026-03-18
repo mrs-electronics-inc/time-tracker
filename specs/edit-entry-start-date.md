@@ -15,52 +15,25 @@ Currently, edit mode only allows changing the hour and minute, while preserving 
 
 ### User Interaction
 
-- When editing an entry, the form now shows three input fields for the start datetime:
-  - Date (YYYY-MM-DD format)
-  - Hour (HH)
-  - Minute (MM)
-- Tab/Shift+Tab navigation cycles through all fields (project, title, date, hour, minute)
-- Validation ensures date is in valid ISO 8601 format
-- Submit saves the entry with the new full datetime
+- All form modes (new, edit, resume) now show three separate input fields for the date (year, month, day) in addition to the existing hour and minute fields
+- Tab/Shift+Tab/Up/Down navigation cycles through all fields: Project → Title → Year → Month → Day → Hour → Minute
+- Date fields default to today's date for new/resume modes, and the entry's existing date for edit mode
+- The "assume yesterday" auto-adjustment logic is removed — the user-entered date is always used as-is
+- Full date validation: month must be 1-12, day must be valid for the given month/year (including leap year handling)
+- Submit saves the entry with the full datetime constructed from all input fields
 
 ### Form Layout
 
 - Project
 - Title
-- Date (YYYY-MM-DD)
-- Time (HH:MM)
+- Date: `YYYY - MM - DD` (three side-by-side inputs with separators, matching the time layout)
+- Time: `HH : MM`
 
 ## Task List
 
-### Form Input Updates
+### Add date fields to all forms
 
-- [ ] Test: Add date input field to Model.Inputs array
-- [ ] Test: Date field displays in YYYY-MM-DD format
-- [ ] Test: Tab navigation includes the new date field
-- [ ] Implement: Add fourth input field for date before the time fields
-
-### Edit Mode Integration
-
-- [ ] Test: openEditMode pre-fills date field with entry's start date in YYYY-MM-DD format
-- [ ] Test: Pre-fill hour and minute as before
-- [ ] Implement: Update openEditMode to extract and set the date field
-
-### Form Rendering
-
-- [ ] Test: renderFormContent displays date label and input
-- [ ] Test: Form layout shows Date field between Title and Time
-- [ ] Implement: Update renderFormContent to include date field rendering
-
-### Date Parsing & Validation
-
-- [ ] Test: parseFormTime reads date from inputs and combines with time
-- [ ] Test: Invalid date formats are rejected with clear error message
-- [ ] Test: Valid dates like "2025-12-23" are parsed correctly
-- [ ] Implement: Update parseFormTime to parse and validate date field
-- [ ] Implement: Add date validation helper function
-
-### Navigation & Focus
-
-- [ ] Test: FocusIndex correctly increments/decrements across all 5 fields (project, title, date, hour, minute)
-- [ ] Test: Shift+Tab from first field wraps to last field
-- [ ] Implement: Adjust form field navigation logic for new field count
+- [ ] Extract input index constants (`InputProject`, `InputTitle`, `InputHour`, `InputMinute`) in `types.go` and replace all hardcoded indices across `model.go`, `form.go`, `start.go`, and `search_test.go`
+- [ ] Add year, month, day text inputs to `NewModel` in `model.go`, update index constants to include `InputYear`, `InputMonth`, `InputDay`, and update all form open functions (`openNewMode`, `openEditMode`, `openResumeMode`, `openStartMode`, `openStartModeBlank`) to set date defaults
+- [ ] Update `renderFormContent` in `form.go` and `StartMode.RenderContent`/`renderStartContent` in `start.go` to render date as `YYYY - MM - DD` above time
+- [ ] Update `parseFormTime` in `form.go` and the inline parsing in `StartMode.HandleKeyMsg` in `start.go` to read date from input fields, add full date validation, and remove the "assume yesterday" logic

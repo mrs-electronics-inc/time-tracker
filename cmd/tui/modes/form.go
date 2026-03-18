@@ -73,10 +73,8 @@ func openNewMode(m *Model) {
 		m.Inputs[i].SetValue("")
 	}
 
-	// Set current time as default
-	now := time.Now()
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	// Set current date/time as default
+	setCurrentDateTimeDefaults(m, time.Now())
 
 	setupFormInputs(m)
 }
@@ -88,10 +86,11 @@ func openEditMode(m *Model, entry models.TimeEntry, idx int) {
 	m.Status = ""
 
 	// Pre-fill all inputs from entry
-	m.Inputs[0].SetValue(entry.Project)
-	m.Inputs[1].SetValue(entry.Title)
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", entry.Start.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", entry.Start.Minute()))
+	m.Inputs[InputProject].SetValue(entry.Project)
+	m.Inputs[InputTitle].SetValue(entry.Title)
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", entry.Start.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", entry.Start.Minute()))
+	setDateDefaults(m, entry.Start)
 
 	setupFormInputs(m)
 }
@@ -103,13 +102,11 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	m.Status = ""
 
 	// Pre-fill project and title from entry
-	m.Inputs[0].SetValue(entry.Project)
-	m.Inputs[1].SetValue(entry.Title)
+	m.Inputs[InputProject].SetValue(entry.Project)
+	m.Inputs[InputTitle].SetValue(entry.Title)
 
-	// Set current time as default
-	now := time.Now()
-	m.Inputs[2].SetValue(fmt.Sprintf("%02d", now.Hour()))
-	m.Inputs[3].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	// Set current date/time as default
+	setCurrentDateTimeDefaults(m, time.Now())
 
 	setupFormInputs(m)
 }
@@ -138,8 +135,8 @@ func createFormKeyHandler(formMode FormMode) func(*Model, tea.KeyMsg) (*Model, t
 
 // handleFormSubmit handles form submission for new/edit/resume modes
 func handleFormSubmit(m *Model, formMode FormMode) (*Model, tea.Cmd) {
-	project := m.Inputs[0].Value()
-	title := m.Inputs[1].Value()
+	project := m.Inputs[InputProject].Value()
+	title := m.Inputs[InputTitle].Value()
 
 	// For new/resume modes, require project and title
 	// For edit mode, allow empty values (to create blank entries/gaps)
@@ -148,14 +145,7 @@ func handleFormSubmit(m *Model, formMode FormMode) (*Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// When editing, preserve the original entry's date
-	var baseDate *time.Time
-	if formMode == FormModeEdit && m.FormState.EditingIdx < len(m.Entries) {
-		originalDate := m.Entries[m.FormState.EditingIdx].Start
-		baseDate = &originalDate
-	}
-
-	startTime, err := parseFormTime(m, baseDate)
+	startTime, err := parseFormTime(m)
 	if err != nil {
 		m.Status = "Error: " + err.Error()
 		return m, nil
@@ -211,12 +201,13 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 	return m, nil, false
 }
 
-// parseFormTime parses hour and minute from form inputs
-// Returns the parsed time on today (or yesterday if time is in the future)
-// If baseDate is provided, uses that as the date instead of today
-func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
-	hourStr := m.Inputs[2].Value()
-	minuteStr := m.Inputs[3].Value()
+// parseFormTime parses date and time from form inputs.
+func parseFormTime(m *Model) (time.Time, error) {
+	yearStr := m.Inputs[InputYear].Value()
+	monthStr := m.Inputs[InputMonth].Value()
+	dayStr := m.Inputs[InputDay].Value()
+	hourStr := m.Inputs[InputHour].Value()
+	minuteStr := m.Inputs[InputMinute].Value()
 
 	if hourStr == "" {
 		hourStr = "00"
@@ -225,62 +216,90 @@ func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
 		minuteStr = "00"
 	}
 
-	var hour, minute int
-	if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
-		return time.Time{}, fmt.Errorf("invalid hour (0-23)")
+	year, err := parseRangedInt(yearStr, "year", 1, 9999)
+	if err != nil {
+		return time.Time{}, err
 	}
-	if n, err := fmt.Sscanf(minuteStr, "%d", &minute); err != nil || n != 1 || minute < 0 || minute > 59 {
-		return time.Time{}, fmt.Errorf("invalid minute (0-59)")
+	month, err := parseRangedInt(monthStr, "month", 1, 12)
+	if err != nil {
+		return time.Time{}, err
+	}
+	day, err := parseRangedInt(dayStr, "day", 1, 31)
+	if err != nil {
+		return time.Time{}, err
+	}
+	hour, err := parseRangedInt(hourStr, "hour", 0, 23)
+	if err != nil {
+		return time.Time{}, err
+	}
+	minute, err := parseRangedInt(minuteStr, "minute", 0, 59)
+	if err != nil {
+		return time.Time{}, err
 	}
 
-	now := time.Now()
-	date := now
-
-	// If baseDate provided (edit mode), use its date
-	if baseDate != nil {
-		date = *baseDate
-	} else {
-		// If time is in the future, assume yesterday
-		if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
-			date = now.AddDate(0, 0, -1)
-		}
+	loc := time.Now().Location()
+	startTime := time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc)
+	if startTime.Year() != year || int(startTime.Month()) != month || startTime.Day() != day {
+		return time.Time{}, fmt.Errorf("invalid day for month/year")
 	}
 
-	return time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location()), nil
+	return startTime, nil
+}
+
+func parseRangedInt(value, field string, min, max int) (int, error) {
+	var parsed int
+	if n, err := fmt.Sscanf(value, "%d", &parsed); err != nil || n != 1 || parsed < min || parsed > max {
+		return 0, fmt.Errorf("invalid %s (%d-%d)", field, min, max)
+	}
+
+	return parsed, nil
 }
 
 // setupFormInputs sets up form inputs with focus on first field
 func setupFormInputs(m *Model) {
-	m.FocusIndex = 0
-	m.Inputs[0].Focus()
-	m.Inputs[0].PromptStyle = m.Styles.InputFocused
-	m.Inputs[0].TextStyle = m.Styles.InputFocused
+	m.FocusIndex = InputProject
+	m.Inputs[InputProject].Focus()
+	m.Inputs[InputProject].PromptStyle = m.Styles.InputFocused
+	m.Inputs[InputProject].TextStyle = m.Styles.InputFocused
 
-	for i := 1; i < len(m.Inputs); i++ {
+	for i := InputTitle; i < len(m.Inputs); i++ {
 		m.Inputs[i].Blur()
 		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
 		m.Inputs[i].TextStyle = m.Styles.InputBlurred
 	}
 }
 
-// renderFormContent renders the form with a given title
-func renderFormContent(m *Model, title string, availableHeight int) string {
-	_ = availableHeight // Available for future use
+func setDateDefaults(m *Model, date time.Time) {
+	m.Inputs[InputYear].SetValue(fmt.Sprintf("%04d", date.Year()))
+	m.Inputs[InputMonth].SetValue(fmt.Sprintf("%02d", int(date.Month())))
+	m.Inputs[InputDay].SetValue(fmt.Sprintf("%02d", date.Day()))
+}
 
+func setCurrentDateTimeDefaults(m *Model, now time.Time) {
+	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
+	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	setDateDefaults(m, now)
+}
+
+func renderEntryFormBody(m *Model, content *strings.Builder) {
 	projectLabel := m.Styles.Label.Render("Project:")
-	projectInput := m.Inputs[0].View()
+	projectInput := m.Inputs[InputProject].View()
 	titleLabel := m.Styles.Label.Render("Title:")
-	titleInput := m.Inputs[1].View()
+	titleInput := m.Inputs[InputTitle].View()
+	dateLabel := m.Styles.Label.Render("Date (YYYY-MM-DD):")
+	yearInput := m.Inputs[InputYear].View()
+	monthInput := m.Inputs[InputMonth].View()
+	dayInput := m.Inputs[InputDay].View()
 	timeLabel := m.Styles.Label.Render("Time (HH:MM):")
-	hourInput := m.Inputs[2].View()
-	minuteInput := m.Inputs[3].View()
+	hourInput := m.Inputs[InputHour].View()
+	minuteInput := m.Inputs[InputMinute].View()
 
-	var content strings.Builder
-	content.WriteString(m.Styles.Title.Render(title) + "\n\n")
 	content.WriteString(projectLabel + "\n")
 	content.WriteString(projectInput + "\n\n")
 	content.WriteString(titleLabel + "\n")
 	content.WriteString(titleInput + "\n\n")
+	content.WriteString(dateLabel + "\n")
+	content.WriteString(yearInput + " - " + monthInput + " - " + dayInput + "\n\n")
 	content.WriteString(timeLabel + "\n")
 	content.WriteString(hourInput + " : " + minuteInput + "\n\n")
 
@@ -291,6 +310,15 @@ func renderFormContent(m *Model, title string, availableHeight int) string {
 			content.WriteString(m.Styles.StatusSuccess.Render(m.Status) + "\n\n")
 		}
 	}
+}
+
+// renderFormContent renders the form with a given title
+func renderFormContent(m *Model, title string, availableHeight int) string {
+	_ = availableHeight // Available for future use
+
+	var content strings.Builder
+	content.WriteString(m.Styles.Title.Render(title) + "\n\n")
+	renderEntryFormBody(m, &content)
 
 	return content.String()
 }

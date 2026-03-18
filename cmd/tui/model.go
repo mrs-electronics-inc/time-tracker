@@ -24,39 +24,63 @@ type Model struct {
 // NewModel creates a new TUI model
 func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	// Create textinput models for start mode
-	inputs := make([]textinput.Model, 4)
+	inputs := make([]textinput.Model, modes.InputMinute+1)
 
 	// Project input
-	inputs[0] = textinput.New()
-	inputs[0].Placeholder = "Project"
-	inputs[0].CharLimit = 128
-	inputs[0].Width = 40
-	inputs[0].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	inputs[0].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	inputs[modes.InputProject] = textinput.New()
+	inputs[modes.InputProject].Placeholder = "Project"
+	inputs[modes.InputProject].CharLimit = 128
+	inputs[modes.InputProject].Width = 40
+	inputs[modes.InputProject].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	inputs[modes.InputProject].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 	// Title input
-	inputs[1] = textinput.New()
-	inputs[1].Placeholder = "Title"
-	inputs[1].CharLimit = 128
-	inputs[1].Width = 40
-	inputs[1].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	inputs[1].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputTitle] = textinput.New()
+	inputs[modes.InputTitle].Placeholder = "Title"
+	inputs[modes.InputTitle].CharLimit = 128
+	inputs[modes.InputTitle].Width = 40
+	inputs[modes.InputTitle].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputTitle].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Year input
+	inputs[modes.InputYear] = textinput.New()
+	inputs[modes.InputYear].Placeholder = "YYYY"
+	inputs[modes.InputYear].CharLimit = 4
+	inputs[modes.InputYear].Width = 4
+	inputs[modes.InputYear].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputYear].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Month input
+	inputs[modes.InputMonth] = textinput.New()
+	inputs[modes.InputMonth].Placeholder = "MM"
+	inputs[modes.InputMonth].CharLimit = 2
+	inputs[modes.InputMonth].Width = 2
+	inputs[modes.InputMonth].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputMonth].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Day input
+	inputs[modes.InputDay] = textinput.New()
+	inputs[modes.InputDay].Placeholder = "DD"
+	inputs[modes.InputDay].CharLimit = 2
+	inputs[modes.InputDay].Width = 2
+	inputs[modes.InputDay].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputDay].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	// Hour input
-	inputs[2] = textinput.New()
-	inputs[2].Placeholder = "HH"
-	inputs[2].CharLimit = 2
-	inputs[2].Width = 2
-	inputs[2].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	inputs[2].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputHour] = textinput.New()
+	inputs[modes.InputHour].Placeholder = "HH"
+	inputs[modes.InputHour].CharLimit = 2
+	inputs[modes.InputHour].Width = 2
+	inputs[modes.InputHour].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputHour].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	// Minute input
-	inputs[3] = textinput.New()
-	inputs[3].Placeholder = "MM"
-	inputs[3].CharLimit = 2
-	inputs[3].Width = 2
-	inputs[3].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	inputs[3].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputMinute] = textinput.New()
+	inputs[modes.InputMinute].Placeholder = "MM"
+	inputs[modes.InputMinute].CharLimit = 2
+	inputs[modes.InputMinute].Width = 2
+	inputs[modes.InputMinute].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputMinute].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	projectInputs := make([]textinput.Model, 3)
 
@@ -88,7 +112,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 		Projects:           []models.Project{},
 		SelectedIdx:        0,
 		Inputs:             inputs,
-		FocusIndex:         0,
+		FocusIndex:         modes.InputProject,
 		ProjectInputs:      projectInputs,
 		ProjectFocusIndex:  0,
 		Loading:            false,

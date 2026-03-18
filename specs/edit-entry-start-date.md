@@ -1,6 +1,6 @@
 ---
 number: 11
-status: approved
+status: completed
 author: Addison Emig
 creation_date: 2026-03-13
 approved_by: Addison Emig
@@ -35,7 +35,7 @@ Currently, edit mode only allows changing the hour and minute, while preserving 
 
 ### Add date fields to all forms
 
-- [ ] Extract input index constants (`InputProject`, `InputTitle`, `InputHour`, `InputMinute`) in `types.go` and replace hardcoded input indices across all affected TUI code and tests
-- [ ] Add year, month, day text inputs to `NewModel` in `model.go`, update index constants to include `InputYear`, `InputMonth`, `InputDay`, and update all form open functions (`openNewMode`, `openEditMode`, `openResumeMode`, `openStartMode`, `openStartModeBlank`) to set date defaults
-- [ ] Update `renderFormContent` in `form.go` and `StartMode.RenderContent`/`renderStartContent` in `start.go` to render date as `YYYY - MM - DD` above time
-- [ ] Update `parseFormTime` in `form.go` and the inline parsing in `StartMode.HandleKeyMsg` in `start.go` to read date from input fields, add full date validation, and remove the "assume yesterday" logic
+- [x] Extract input index constants (`InputProject`, `InputTitle`, `InputHour`, `InputMinute`) in `types.go` and replace hardcoded input indices across all affected TUI code and tests
+- [x] Add year, month, day text inputs to `NewModel` in `model.go`, update index constants to include `InputYear`, `InputMonth`, `InputDay`, and update all form open functions (`openNewMode`, `openEditMode`, `openResumeMode`, `openStartMode`, `openStartModeBlank`) to set date defaults
+- [x] Update `renderFormContent` in `form.go` and `StartMode.RenderContent`/`renderStartContent` in `start.go` to render date as `YYYY - MM - DD` above time
+- [x] Update `parseFormTime` in `form.go` and the inline parsing in `StartMode.HandleKeyMsg` in `start.go` to read date from input fields, add full date validation, and remove the "assume yesterday" logic

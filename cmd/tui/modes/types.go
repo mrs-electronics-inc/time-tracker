@@ -23,6 +23,16 @@ type Mode struct {
 	RenderContent func(*Model, int) string
 }
 
+const (
+	InputProject = iota
+	InputTitle
+	InputYear
+	InputMonth
+	InputDay
+	InputHour
+	InputMinute
+)
+
 // Styles defines the visual styling for different UI elements
 type Styles struct {
 	Header        lipgloss.Style // Header row style
@@ -56,8 +66,8 @@ type Model struct {
 	// Mode state
 	CurrentMode       *Mode             // Current TUI mode
 	PreviousMode      *Mode             // Previous mode (used for help context)
-	Inputs            []textinput.Model // Text inputs for project, title, hour, minute
-	FocusIndex        int               // Currently focused input (0 = project, 1 = title, 2 = hour, 3 = minute)
+	Inputs            []textinput.Model // Text inputs for project, title, year, month, day, hour, minute
+	FocusIndex        int               // Currently focused input index
 	ProjectInputs     []textinput.Model // Text inputs for project metadata form (name, code, category)
 	ProjectFocusIndex int               // Currently focused metadata input
 

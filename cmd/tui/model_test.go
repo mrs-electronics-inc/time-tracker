@@ -7,6 +7,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"time-tracker/cmd/tui/modes"
 	"time-tracker/utils"
 )
 
@@ -56,6 +57,24 @@ func TestModelInitialization(t *testing.T) {
 	}
 	if m.SearchAppliedQuery != "" {
 		t.Error("Expected search applied query to be empty initially")
+	}
+}
+
+func TestModelInitializationCreatesDateInputs(t *testing.T) {
+	m := newTestModel()
+
+	if len(m.Inputs) != modes.InputMinute+1 {
+		t.Fatalf("len(Inputs) = %d, expected %d", len(m.Inputs), modes.InputMinute+1)
+	}
+
+	if got := m.Inputs[modes.InputYear].Placeholder; got != "YYYY" {
+		t.Fatalf("year placeholder = %q, expected YYYY", got)
+	}
+	if got := m.Inputs[modes.InputMonth].Placeholder; got != "MM" {
+		t.Fatalf("month placeholder = %q, expected MM", got)
+	}
+	if got := m.Inputs[modes.InputDay].Placeholder; got != "DD" {
+		t.Fatalf("day placeholder = %q, expected DD", got)
 	}
 }
 
@@ -444,8 +463,8 @@ func TestResumeShortcutOnNonBlankEntry(t *testing.T) {
 		t.Error("Expected mode to switch to resume mode after 'r' key on non-blank entry")
 	}
 	// Check that project is pre-filled
-	if model.Inputs[0].Value() != "test-project" {
-		t.Errorf("Expected project to be pre-filled, got %q", model.Inputs[0].Value())
+	if model.Inputs[modes.InputProject].Value() != "test-project" {
+		t.Errorf("Expected project to be pre-filled, got %q", model.Inputs[modes.InputProject].Value())
 	}
 }
 
@@ -490,11 +509,11 @@ func TestEditShortcut(t *testing.T) {
 		t.Error("Expected mode to switch to edit mode after 'e' key")
 	}
 	// Check that fields are pre-filled
-	if model.Inputs[0].Value() != "test-project" {
-		t.Errorf("Expected project to be pre-filled, got %q", model.Inputs[0].Value())
+	if model.Inputs[modes.InputProject].Value() != "test-project" {
+		t.Errorf("Expected project to be pre-filled, got %q", model.Inputs[modes.InputProject].Value())
 	}
-	if model.Inputs[2].Value() != "10" {
-		t.Errorf("Expected hour to be pre-filled with entry time, got %q", model.Inputs[2].Value())
+	if model.Inputs[modes.InputHour].Value() != "10" {
+		t.Errorf("Expected hour to be pre-filled with entry time, got %q", model.Inputs[modes.InputHour].Value())
 	}
 }
 
@@ -585,13 +604,17 @@ func TestStartEntryViaUI(t *testing.T) {
 
 	// Switch to start mode
 	m.CurrentMode = m.StartMode
-	m.FocusIndex = 0
+	m.FocusIndex = modes.InputProject
 
 	// Set project
-	m.Inputs[0].SetValue("test-project")
-	m.Inputs[1].SetValue("test-task")
-	m.Inputs[2].SetValue("14")
-	m.Inputs[3].SetValue("30")
+	m.Inputs[modes.InputProject].SetValue("test-project")
+	m.Inputs[modes.InputTitle].SetValue("test-task")
+	now := time.Now()
+	m.Inputs[modes.InputYear].SetValue(fmt.Sprintf("%04d", now.Year()))
+	m.Inputs[modes.InputMonth].SetValue(fmt.Sprintf("%02d", int(now.Month())))
+	m.Inputs[modes.InputDay].SetValue(fmt.Sprintf("%02d", now.Day()))
+	m.Inputs[modes.InputHour].SetValue("14")
+	m.Inputs[modes.InputMinute].SetValue("30")
 
 	// Simulate Enter key
 	msg := tea.KeyMsg{Type: tea.KeyEnter}
@@ -771,14 +794,14 @@ func TestNavigationWithArrowKeys(t *testing.T) {
 func TestInputFieldNavigation(t *testing.T) {
 	m := newTestModel()
 	m.CurrentMode = m.StartMode
-	m.FocusIndex = 0
+	m.FocusIndex = modes.InputProject
 
 	// Tab forward
 	msg := tea.KeyMsg{Type: tea.KeyTab}
 	updated, _ := m.Update(msg)
 	model := updated.(*Model)
 
-	if model.FocusIndex != 1 {
+	if model.FocusIndex != modes.InputTitle {
 		t.Errorf("Expected focus to move to field 1, got %d", model.FocusIndex)
 	}
 
@@ -787,7 +810,7 @@ func TestInputFieldNavigation(t *testing.T) {
 	updated, _ = model.Update(msg)
 	model = updated.(*Model)
 
-	if model.FocusIndex != 2 {
+	if model.FocusIndex != modes.InputYear {
 		t.Errorf("Expected focus to move to field 2, got %d", model.FocusIndex)
 	}
 
@@ -796,7 +819,7 @@ func TestInputFieldNavigation(t *testing.T) {
 	updated, _ = model.Update(msg)
 	model = updated.(*Model)
 
-	if model.FocusIndex != 1 {
+	if model.FocusIndex != modes.InputTitle {
 		t.Errorf("Expected focus to move back to field 1, got %d", model.FocusIndex)
 	}
 }

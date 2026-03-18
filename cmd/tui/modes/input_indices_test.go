@@ -15,4 +15,13 @@ func TestInputIndexConstants(t *testing.T) {
 	if InputMinute != 3 {
 		t.Fatalf("InputMinute = %d, expected 3", InputMinute)
 	}
+	if InputYear != 4 {
+		t.Fatalf("InputYear = %d, expected 4", InputYear)
+	}
+	if InputMonth != 5 {
+		t.Fatalf("InputMonth = %d, expected 5", InputMonth)
+	}
+	if InputDay != 6 {
+		t.Fatalf("InputDay = %d, expected 6", InputDay)
+	}
 }

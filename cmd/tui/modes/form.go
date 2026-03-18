@@ -77,6 +77,7 @@ func openNewMode(m *Model) {
 	now := time.Now()
 	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
 	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	setDateDefaults(m, now)
 
 	setupFormInputs(m)
 }
@@ -92,6 +93,7 @@ func openEditMode(m *Model, entry models.TimeEntry, idx int) {
 	m.Inputs[InputTitle].SetValue(entry.Title)
 	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", entry.Start.Hour()))
 	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", entry.Start.Minute()))
+	setDateDefaults(m, entry.Start)
 
 	setupFormInputs(m)
 }
@@ -110,6 +112,7 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	now := time.Now()
 	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
 	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	setDateDefaults(m, now)
 
 	setupFormInputs(m)
 }
@@ -261,6 +264,12 @@ func setupFormInputs(m *Model) {
 		m.Inputs[i].PromptStyle = m.Styles.InputBlurred
 		m.Inputs[i].TextStyle = m.Styles.InputBlurred
 	}
+}
+
+func setDateDefaults(m *Model, date time.Time) {
+	m.Inputs[InputYear].SetValue(fmt.Sprintf("%04d", date.Year()))
+	m.Inputs[InputMonth].SetValue(fmt.Sprintf("%02d", int(date.Month())))
+	m.Inputs[InputDay].SetValue(fmt.Sprintf("%02d", date.Day()))
 }
 
 // renderFormContent renders the form with a given title

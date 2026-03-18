@@ -24,7 +24,7 @@ type Model struct {
 // NewModel creates a new TUI model
 func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	// Create textinput models for start mode
-	inputs := make([]textinput.Model, 4)
+	inputs := make([]textinput.Model, modes.InputDay+1)
 
 	// Project input
 	inputs[modes.InputProject] = textinput.New()
@@ -57,6 +57,30 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[modes.InputMinute].Width = 2
 	inputs[modes.InputMinute].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	inputs[modes.InputMinute].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Year input
+	inputs[modes.InputYear] = textinput.New()
+	inputs[modes.InputYear].Placeholder = "YYYY"
+	inputs[modes.InputYear].CharLimit = 4
+	inputs[modes.InputYear].Width = 4
+	inputs[modes.InputYear].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputYear].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Month input
+	inputs[modes.InputMonth] = textinput.New()
+	inputs[modes.InputMonth].Placeholder = "MM"
+	inputs[modes.InputMonth].CharLimit = 2
+	inputs[modes.InputMonth].Width = 2
+	inputs[modes.InputMonth].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputMonth].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Day input
+	inputs[modes.InputDay] = textinput.New()
+	inputs[modes.InputDay].Placeholder = "DD"
+	inputs[modes.InputDay].CharLimit = 2
+	inputs[modes.InputDay].Width = 2
+	inputs[modes.InputDay].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	inputs[modes.InputDay].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
 	projectInputs := make([]textinput.Model, 3)
 

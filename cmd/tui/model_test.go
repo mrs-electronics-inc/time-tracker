@@ -60,6 +60,24 @@ func TestModelInitialization(t *testing.T) {
 	}
 }
 
+func TestModelInitializationCreatesDateInputs(t *testing.T) {
+	m := newTestModel()
+
+	if len(m.Inputs) != modes.InputDay+1 {
+		t.Fatalf("len(Inputs) = %d, expected %d", len(m.Inputs), modes.InputDay+1)
+	}
+
+	if got := m.Inputs[modes.InputYear].Placeholder; got != "YYYY" {
+		t.Fatalf("year placeholder = %q, expected YYYY", got)
+	}
+	if got := m.Inputs[modes.InputMonth].Placeholder; got != "MM" {
+		t.Fatalf("month placeholder = %q, expected MM", got)
+	}
+	if got := m.Inputs[modes.InputDay].Placeholder; got != "DD" {
+		t.Fatalf("day placeholder = %q, expected DD", got)
+	}
+}
+
 func TestProjectsViewRendersProjectMetadata(t *testing.T) {
 	m := newTestModel()
 

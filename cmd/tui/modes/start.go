@@ -141,6 +141,7 @@ func openStartMode(m *Model, entry models.TimeEntry) {
 	now := time.Now()
 	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
 	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	setDateDefaults(m, now)
 
 	// Set focus to first input
 	m.Inputs[InputProject].Focus()
@@ -169,6 +170,7 @@ func openStartModeBlank(m *Model) {
 	now := time.Now()
 	m.Inputs[InputHour].SetValue(fmt.Sprintf("%02d", now.Hour()))
 	m.Inputs[InputMinute].SetValue(fmt.Sprintf("%02d", now.Minute()))
+	setDateDefaults(m, now)
 
 	// Set focus to first input
 	m.Inputs[InputProject].Focus()

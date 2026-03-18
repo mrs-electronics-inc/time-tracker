@@ -609,6 +609,10 @@ func TestStartEntryViaUI(t *testing.T) {
 	// Set project
 	m.Inputs[modes.InputProject].SetValue("test-project")
 	m.Inputs[modes.InputTitle].SetValue("test-task")
+	now := time.Now()
+	m.Inputs[modes.InputYear].SetValue(fmt.Sprintf("%04d", now.Year()))
+	m.Inputs[modes.InputMonth].SetValue(fmt.Sprintf("%02d", int(now.Month())))
+	m.Inputs[modes.InputDay].SetValue(fmt.Sprintf("%02d", now.Day()))
 	m.Inputs[modes.InputHour].SetValue("14")
 	m.Inputs[modes.InputMinute].SetValue("30")
 

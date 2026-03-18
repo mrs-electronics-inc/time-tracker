@@ -41,39 +41,17 @@ var StartMode = &Mode{
 		case "enter":
 			project := m.Inputs[InputProject].Value()
 			title := m.Inputs[InputTitle].Value()
-			hourStr := m.Inputs[InputHour].Value()
-			minuteStr := m.Inputs[InputMinute].Value()
 
 			if project == "" || title == "" {
 				m.Status = "Project and title are required"
 				return m, nil
 			}
 
-			if hourStr == "" {
-				hourStr = "00"
-			}
-			if minuteStr == "" {
-				minuteStr = "00"
-			}
-
-			var hour, minute int
-			if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
-				m.Status = "Invalid hour (0-23)"
+			startTime, err := parseFormTime(m)
+			if err != nil {
+				m.Status = "Invalid date/time: " + err.Error()
 				return m, nil
 			}
-			if n, err := fmt.Sscanf(minuteStr, "%d", &minute); err != nil || n != 1 || minute < 0 || minute > 59 {
-				m.Status = "Invalid minute (0-59)"
-				return m, nil
-			}
-
-			now := time.Now()
-			date := now
-
-			if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
-				date = now.AddDate(0, 0, -1)
-			}
-
-			startTime := time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location())
 
 			if _, err := m.TaskManager.StartEntryAt(project, title, startTime); err != nil {
 				m.Status = "Error starting entry: " + err.Error()

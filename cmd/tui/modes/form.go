@@ -151,14 +151,7 @@ func handleFormSubmit(m *Model, formMode FormMode) (*Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// When editing, preserve the original entry's date
-	var baseDate *time.Time
-	if formMode == FormModeEdit && m.FormState.EditingIdx < len(m.Entries) {
-		originalDate := m.Entries[m.FormState.EditingIdx].Start
-		baseDate = &originalDate
-	}
-
-	startTime, err := parseFormTime(m, baseDate)
+	startTime, err := parseFormTime(m)
 	if err != nil {
 		m.Status = "Error: " + err.Error()
 		return m, nil
@@ -214,10 +207,11 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 	return m, nil, false
 }
 
-// parseFormTime parses hour and minute from form inputs
-// Returns the parsed time on today (or yesterday if time is in the future)
-// If baseDate is provided, uses that as the date instead of today
-func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
+// parseFormTime parses date and time from form inputs.
+func parseFormTime(m *Model) (time.Time, error) {
+	yearStr := m.Inputs[InputYear].Value()
+	monthStr := m.Inputs[InputMonth].Value()
+	dayStr := m.Inputs[InputDay].Value()
 	hourStr := m.Inputs[InputHour].Value()
 	minuteStr := m.Inputs[InputMinute].Value()
 
@@ -228,7 +222,16 @@ func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
 		minuteStr = "00"
 	}
 
-	var hour, minute int
+	var year, month, day, hour, minute int
+	if n, err := fmt.Sscanf(yearStr, "%d", &year); err != nil || n != 1 || year < 1 || year > 9999 {
+		return time.Time{}, fmt.Errorf("invalid year (1-9999)")
+	}
+	if n, err := fmt.Sscanf(monthStr, "%d", &month); err != nil || n != 1 || month < 1 || month > 12 {
+		return time.Time{}, fmt.Errorf("invalid month (1-12)")
+	}
+	if n, err := fmt.Sscanf(dayStr, "%d", &day); err != nil || n != 1 || day < 1 || day > 31 {
+		return time.Time{}, fmt.Errorf("invalid day (1-31)")
+	}
 	if n, err := fmt.Sscanf(hourStr, "%d", &hour); err != nil || n != 1 || hour < 0 || hour > 23 {
 		return time.Time{}, fmt.Errorf("invalid hour (0-23)")
 	}
@@ -236,20 +239,13 @@ func parseFormTime(m *Model, baseDate *time.Time) (time.Time, error) {
 		return time.Time{}, fmt.Errorf("invalid minute (0-59)")
 	}
 
-	now := time.Now()
-	date := now
-
-	// If baseDate provided (edit mode), use its date
-	if baseDate != nil {
-		date = *baseDate
-	} else {
-		// If time is in the future, assume yesterday
-		if hour > now.Hour() || (hour == now.Hour() && minute > now.Minute()) {
-			date = now.AddDate(0, 0, -1)
-		}
+	loc := time.Now().Location()
+	startTime := time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc)
+	if startTime.Year() != year || int(startTime.Month()) != month || startTime.Day() != day {
+		return time.Time{}, fmt.Errorf("invalid day for month/year")
 	}
 
-	return time.Date(date.Year(), date.Month(), date.Day(), hour, minute, 0, 0, date.Location()), nil
+	return startTime, nil
 }
 
 // setupFormInputs sets up form inputs with focus on first field

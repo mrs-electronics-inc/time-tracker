@@ -20,8 +20,8 @@ type ProjectFormState struct {
 }
 
 var projectFormKeyBindings = []KeyBinding{
-	{Keys: "Tab / ↓", Label: "NEXT", Description: "Next field"},
-	{Keys: "Shift+Tab / ↑", Label: "PREV", Description: "Previous field"},
+	{Keys: "Tab", Label: "NEXT", Description: "Next field"},
+	{Keys: "Shift+Tab", Label: "PREV", Description: "Previous field"},
 	{Keys: "Enter", Label: "SUBMIT", Description: "Save project"},
 	{Keys: "Esc", Label: "CANCEL", Description: "Cancel"},
 }

@@ -37,7 +37,7 @@ Once [Project Metadata](./project-metadata.md) ships, the `Project` input in all
 ### Keybinding Changes
 
 - [x] Remove Up/Down as field navigation aliases from `handleFormKeyMsg`
-- [ ] Update form help text to show only Tab/Shift+Tab for field navigation
+- [x] Update form help text to show only Tab/Shift+Tab for field navigation
 
 ### Project Autocomplete
 

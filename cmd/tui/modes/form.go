@@ -26,8 +26,8 @@ type FormState struct {
 }
 
 var formKeyBindings = []KeyBinding{
-	{Keys: "Tab / ↓", Label: "NEXT", Description: "Next field"},
-	{Keys: "Shift+Tab / ↑", Label: "PREV", Description: "Previous field"},
+	{Keys: "Tab", Label: "NEXT", Description: "Next field"},
+	{Keys: "Shift+Tab", Label: "PREV", Description: "Previous field"},
 	{Keys: "Enter", Label: "SUBMIT", Description: "Submit entry"},
 	{Keys: "Esc", Label: "CANCEL", Description: "Cancel"},
 }

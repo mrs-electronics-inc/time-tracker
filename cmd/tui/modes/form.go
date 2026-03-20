@@ -184,12 +184,12 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 		m.Status = ""
 		return m, nil, true
 
-	case "tab", "down":
+	case "tab":
 		m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
 		updateInputFocus(m)
 		return m, nil, true
 
-	case "shift+tab", "up":
+	case "shift+tab":
 		m.FocusIndex--
 		if m.FocusIndex < 0 {
 			m.FocusIndex = len(m.Inputs) - 1

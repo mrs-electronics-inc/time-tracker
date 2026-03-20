@@ -26,8 +26,8 @@ type FormState struct {
 }
 
 var formKeyBindings = []KeyBinding{
-	{Keys: "Tab / ↓", Label: "NEXT", Description: "Next field"},
-	{Keys: "Shift+Tab / ↑", Label: "PREV", Description: "Previous field"},
+	{Keys: "Tab", Label: "NEXT", Description: "Next field"},
+	{Keys: "Shift+Tab", Label: "PREV", Description: "Previous field"},
 	{Keys: "Enter", Label: "SUBMIT", Description: "Submit entry"},
 	{Keys: "Esc", Label: "CANCEL", Description: "Cancel"},
 }
@@ -184,12 +184,12 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 		m.Status = ""
 		return m, nil, true
 
-	case "tab", "down":
+	case "tab":
 		m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
 		updateInputFocus(m)
 		return m, nil, true
 
-	case "shift+tab", "up":
+	case "shift+tab":
 		m.FocusIndex--
 		if m.FocusIndex < 0 {
 			m.FocusIndex = len(m.Inputs) - 1

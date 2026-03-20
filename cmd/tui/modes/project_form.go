@@ -20,8 +20,8 @@ type ProjectFormState struct {
 }
 
 var projectFormKeyBindings = []KeyBinding{
-	{Keys: "Tab / ↓", Label: "NEXT", Description: "Next field"},
-	{Keys: "Shift+Tab / ↑", Label: "PREV", Description: "Previous field"},
+	{Keys: "Tab", Label: "NEXT", Description: "Next field"},
+	{Keys: "Shift+Tab", Label: "PREV", Description: "Previous field"},
 	{Keys: "Enter", Label: "SUBMIT", Description: "Save project"},
 	{Keys: "Esc", Label: "CANCEL", Description: "Cancel"},
 }
@@ -94,12 +94,12 @@ func handleProjectFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 		m.Status = ""
 		return m, nil, true
 
-	case "tab", "down":
+	case "tab":
 		m.ProjectFocusIndex = (m.ProjectFocusIndex + 1) % len(m.ProjectInputs)
 		updateProjectInputFocus(m)
 		return m, nil, true
 
-	case "shift+tab", "up":
+	case "shift+tab":
 		m.ProjectFocusIndex--
 		if m.ProjectFocusIndex < 0 {
 			m.ProjectFocusIndex = len(m.ProjectInputs) - 1

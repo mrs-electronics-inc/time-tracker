@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"sort"
+	"strings"
 	"time-tracker/models"
 )
 
@@ -44,14 +46,55 @@ func (ms *MemoryStorage) LoadProjects() ([]models.Project, error) {
 		if entry.Project == "" {
 			continue
 		}
-		if _, ok := byName[entry.Project]; ok {
+		projectName := strings.TrimSpace(entry.Project)
+		if projectName == "" {
 			continue
 		}
-		projects = append(projects, models.Project{Name: entry.Project})
-		byName[entry.Project] = struct{}{}
+		if _, ok := byName[projectName]; ok {
+			continue
+		}
+		projects = append(projects, models.Project{Name: projectName})
+		byName[projectName] = struct{}{}
 	}
 
-	return projects, nil
+	return normalizeProjects(projects), nil
+}
+
+func normalizeProjects(projects []models.Project) []models.Project {
+	type projectGroup struct {
+		name string
+		key  string
+	}
+
+	seen := make(map[string]models.Project, len(projects))
+	groups := make([]projectGroup, 0, len(projects))
+
+	for _, project := range projects {
+		name := strings.TrimSpace(project.Name)
+		if name == "" {
+			continue
+		}
+		key := strings.ToLower(name)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		project.Name = name
+		seen[key] = project
+		groups = append(groups, projectGroup{name: name, key: key})
+	}
+
+	sort.SliceStable(groups, func(i, j int) bool {
+		if groups[i].key != groups[j].key {
+			return groups[i].key < groups[j].key
+		}
+		return groups[i].name < groups[j].name
+	})
+
+	normalized := make([]models.Project, 0, len(groups))
+	for _, group := range groups {
+		normalized = append(normalized, seen[group.key])
+	}
+	return normalized
 }
 
 func (ms *MemoryStorage) SaveProjects(projects []models.Project) error {

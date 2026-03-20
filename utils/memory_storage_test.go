@@ -58,3 +58,34 @@ func TestMemoryStorage_LoadProjectsIncludesProjectsFromEntries(t *testing.T) {
 		t.Fatalf("Expected both inferred and metadata-backed projects, got %+v", projects)
 	}
 }
+
+func TestMemoryStorage_LoadProjectsNormalizesAndSorts(t *testing.T) {
+	storage := NewMemoryStorage()
+
+	if err := storage.SaveProjects([]models.Project{
+		{Name: " beta "},
+		{Name: "Alpha"},
+		{Name: "alpha"},
+		{Name: ""},
+		{Name: "  Gamma  "},
+	}); err != nil {
+		t.Fatalf("Failed to save projects: %v", err)
+	}
+
+	projects, err := storage.LoadProjects()
+	if err != nil {
+		t.Fatalf("Failed to load projects: %v", err)
+	}
+
+	if len(projects) != 3 {
+		t.Fatalf("Expected 3 normalized projects, got %d: %+v", len(projects), projects)
+	}
+
+	got := []string{projects[0].Name, projects[1].Name, projects[2].Name}
+	want := []string{"Alpha", "beta", "Gamma"}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("project[%d] = %q, expected %q (all=%+v)", i, got[i], want[i], got)
+		}
+	}
+}

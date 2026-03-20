@@ -8,6 +8,15 @@ import (
 	"time-tracker/models"
 )
 
+type projectSuggestionStorage struct {
+	projects []models.Project
+}
+
+func (s projectSuggestionStorage) Load() ([]models.TimeEntry, error)       { return nil, nil }
+func (s projectSuggestionStorage) Save([]models.TimeEntry) error           { return nil }
+func (s projectSuggestionStorage) LoadProjects() ([]models.Project, error) { return s.projects, nil }
+func (s projectSuggestionStorage) SaveProjects([]models.Project) error     { return nil }
+
 func newFormDateTestModel() *Model {
 	inputs := make([]textinput.Model, InputMinute+1)
 	for i := range inputs {
@@ -73,4 +82,25 @@ func TestOpenResumeModeSetsCurrentDateDefaults(t *testing.T) {
 	openResumeMode(m, entry)
 
 	assertCurrentDateDefault(t, before, m)
+}
+
+func TestOpenFormModesSetProjectSuggestions(t *testing.T) {
+	projects := []models.Project{{Name: " beta "}, {Name: "Alpha"}, {Name: "alpha"}, {Name: ""}, {Name: "Gamma"}}
+	m := newFormDateTestModel()
+	m.Storage = projectSuggestionStorage{projects: projects}
+
+	openNewMode(m)
+	if got := m.Inputs[InputProject].AvailableSuggestions(); len(got) != 3 || got[0] != "Alpha" || got[1] != "beta" || got[2] != "Gamma" {
+		t.Fatalf("new mode suggestions = %+v", got)
+	}
+
+	openEditMode(m, models.TimeEntry{Project: "beta", Title: "task", Start: time.Now()}, 0)
+	if got := m.Inputs[InputProject].AvailableSuggestions(); len(got) != 3 || got[0] != "Alpha" || got[1] != "beta" || got[2] != "Gamma" {
+		t.Fatalf("edit mode suggestions = %+v", got)
+	}
+
+	openResumeMode(m, models.TimeEntry{Project: "beta", Title: "task"})
+	if got := m.Inputs[InputProject].AvailableSuggestions(); len(got) != 3 || got[0] != "Alpha" || got[1] != "beta" || got[2] != "Gamma" {
+		t.Fatalf("resume mode suggestions = %+v", got)
+	}
 }

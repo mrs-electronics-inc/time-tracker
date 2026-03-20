@@ -2,6 +2,7 @@ package modes
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -67,6 +68,7 @@ func openNewMode(m *Model) {
 	m.CurrentMode = m.NewMode
 	m.FormState = FormState{Mode: FormModeNew}
 	m.Status = ""
+	setProjectSuggestions(m)
 
 	// Clear all inputs
 	for i := range m.Inputs {
@@ -84,6 +86,7 @@ func openEditMode(m *Model, entry models.TimeEntry, idx int) {
 	m.CurrentMode = m.EditMode
 	m.FormState = FormState{Mode: FormModeEdit, EditingIdx: idx}
 	m.Status = ""
+	setProjectSuggestions(m)
 
 	// Pre-fill all inputs from entry
 	m.Inputs[InputProject].SetValue(entry.Project)
@@ -100,6 +103,7 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	m.CurrentMode = m.ResumeMode
 	m.FormState = FormState{Mode: FormModeResume}
 	m.Status = ""
+	setProjectSuggestions(m)
 
 	// Pre-fill project and title from entry
 	m.Inputs[InputProject].SetValue(entry.Project)
@@ -109,6 +113,67 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	setCurrentDateTimeDefaults(m, time.Now())
 
 	setupFormInputs(m)
+}
+
+func setProjectSuggestions(m *Model) {
+	if m.Storage == nil || len(m.Inputs) <= InputProject {
+		return
+	}
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		return
+	}
+
+	projects = normalizeProjectsForSuggestions(projects)
+
+	suggestions := make([]string, 0, len(projects))
+	for _, project := range projects {
+		name := strings.TrimSpace(project.Name)
+		if name == "" {
+			continue
+		}
+		suggestions = append(suggestions, name)
+	}
+
+	m.Inputs[InputProject].SetSuggestions(suggestions)
+}
+
+func normalizeProjectsForSuggestions(projects []models.Project) []models.Project {
+	type projectGroup struct {
+		name string
+		key  string
+	}
+
+	seen := make(map[string]models.Project, len(projects))
+	groups := make([]projectGroup, 0, len(projects))
+
+	for _, project := range projects {
+		name := strings.TrimSpace(project.Name)
+		if name == "" {
+			continue
+		}
+		key := strings.ToLower(name)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		project.Name = name
+		seen[key] = project
+		groups = append(groups, projectGroup{name: name, key: key})
+	}
+
+	sort.SliceStable(groups, func(i, j int) bool {
+		if groups[i].key != groups[j].key {
+			return groups[i].key < groups[j].key
+		}
+		return groups[i].name < groups[j].name
+	})
+
+	normalized := make([]models.Project, 0, len(groups))
+	for _, group := range groups {
+		normalized = append(normalized, seen[group.key])
+	}
+	return normalized
 }
 
 // createFormKeyHandler creates a key handler for a form mode

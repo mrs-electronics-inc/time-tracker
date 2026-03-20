@@ -41,6 +41,6 @@ Once [Project Metadata](./project-metadata.md) ships, the `Project` input in all
 
 ### Project Autocomplete
 
-- [ ] Enable `ShowSuggestions` on the project text input
+- [x] Enable `ShowSuggestions` on the project text input
 - [ ] Load project names via `LoadProjects`, normalize (trim, drop empty, case-insensitive dedupe preserving first-seen display casing, case-insensitive sort with raw string tie-breaker), and call `SetSuggestions` when opening form modes (new, edit, resume)
 - [ ] When project input is focused and has matched suggestions, let Tab pass through to accept the suggestion instead of navigating fields

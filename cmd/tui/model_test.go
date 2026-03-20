@@ -76,6 +76,9 @@ func TestModelInitializationCreatesDateInputs(t *testing.T) {
 	if got := m.Inputs[modes.InputDay].Placeholder; got != "DD" {
 		t.Fatalf("day placeholder = %q, expected DD", got)
 	}
+	if !m.Inputs[modes.InputProject].ShowSuggestions {
+		t.Fatal("expected project input suggestions to be enabled")
+	}
 }
 
 func TestProjectsViewRendersProjectMetadata(t *testing.T) {

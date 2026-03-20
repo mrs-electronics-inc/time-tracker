@@ -429,22 +429,6 @@ func TestModeTransitionFromListToNew(t *testing.T) {
 	}
 }
 
-// TestModeTransitionFromStartToList verifies canceling start mode
-func TestModeTransitionFromStartToList(t *testing.T) {
-	m := newTestModel()
-	// Manually switch to start mode
-	m.CurrentMode = m.StartMode
-
-	// Simulate Esc key (should return to list mode)
-	msg := tea.KeyMsg{Type: tea.KeyEsc}
-	updated, _ := m.Update(msg)
-	model := updated.(*Model)
-
-	if model.CurrentMode != model.ListMode {
-		t.Error("Expected mode to return to list mode after Esc")
-	}
-}
-
 // TestResumeShortcutOnNonBlankEntry verifies r opens resume mode on non-blank entry
 func TestResumeShortcutOnNonBlankEntry(t *testing.T) {
 	m := newTestModel()
@@ -602,8 +586,8 @@ func TestStartEntryViaUI(t *testing.T) {
 		t.Fatalf("Failed to load entries: %v", err)
 	}
 
-	// Switch to start mode
-	m.CurrentMode = m.StartMode
+	// Switch to new mode
+	m.CurrentMode = m.NewMode
 	m.FocusIndex = modes.InputProject
 
 	// Set project
@@ -793,7 +777,7 @@ func TestNavigationWithArrowKeys(t *testing.T) {
 // TestInputFieldNavigation verifies tabbing between input fields
 func TestInputFieldNavigation(t *testing.T) {
 	m := newTestModel()
-	m.CurrentMode = m.StartMode
+	m.CurrentMode = m.NewMode
 	m.FocusIndex = modes.InputProject
 
 	// Tab forward

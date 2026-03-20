@@ -16,7 +16,6 @@ func newFormDateTestModel() *Model {
 
 	return &Model{
 		Inputs:     inputs,
-		StartMode:  StartMode,
 		NewMode:    NewMode,
 		EditMode:   EditMode,
 		ResumeMode: ResumeMode,
@@ -72,25 +71,6 @@ func TestOpenResumeModeSetsCurrentDateDefaults(t *testing.T) {
 
 	before := time.Now()
 	openResumeMode(m, entry)
-
-	assertCurrentDateDefault(t, before, m)
-}
-
-func TestOpenStartModeSetsCurrentDateDefaults(t *testing.T) {
-	m := newFormDateTestModel()
-	entry := models.TimeEntry{Project: "backend", Title: "review"}
-
-	before := time.Now()
-	openStartMode(m, entry)
-
-	assertCurrentDateDefault(t, before, m)
-}
-
-func TestOpenStartModeBlankSetsCurrentDateDefaults(t *testing.T) {
-	m := newFormDateTestModel()
-
-	before := time.Now()
-	openStartModeBlank(m)
 
 	assertCurrentDateDefault(t, before, m)
 }

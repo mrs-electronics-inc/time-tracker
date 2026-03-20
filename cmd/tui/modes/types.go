@@ -76,7 +76,6 @@ type Model struct {
 
 	// Mode references for navigation
 	ListMode        *Mode
-	StartMode       *Mode
 	HelpMode        *Mode
 	StatsMode       *Mode
 	ProjectsMode    *Mode

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/utils"
 )
 
@@ -22,7 +21,6 @@ func newFormTimeTestModel() *Model {
 		Storage:     storage,
 		TaskManager: utils.NewTaskManager(storage),
 		Inputs:      inputs,
-		StartMode:   StartMode,
 		ListMode:    ListMode,
 	}
 }
@@ -63,33 +61,5 @@ func TestParseFormTimeRejectsInvalidCalendarDate(t *testing.T) {
 
 	if !strings.Contains(strings.ToLower(err.Error()), "day") {
 		t.Fatalf("expected day-related validation error, got %q", err.Error())
-	}
-}
-
-func TestStartModeHandleEnterRejectsInvalidCalendarDate(t *testing.T) {
-	m := newFormTimeTestModel()
-	m.CurrentMode = m.StartMode
-	m.Inputs[InputProject].SetValue("backend")
-	m.Inputs[InputTitle].SetValue("review")
-	m.Inputs[InputYear].SetValue("2025")
-	m.Inputs[InputMonth].SetValue("02")
-	m.Inputs[InputDay].SetValue("29")
-	m.Inputs[InputHour].SetValue("09")
-	m.Inputs[InputMinute].SetValue("30")
-
-	updatedModel, _ := StartMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyEnter})
-	m = updatedModel
-
-	if !strings.Contains(strings.ToLower(m.Status), "invalid") {
-		t.Fatalf("expected invalid date error status, got %q", m.Status)
-	}
-
-	entries, err := m.Storage.Load()
-	if err != nil {
-		t.Fatalf("failed to load entries: %v", err)
-	}
-
-	if len(entries) != 0 {
-		t.Fatalf("expected no entries saved on invalid date, got %d", len(entries))
 	}
 }

@@ -52,19 +52,3 @@ func TestRenderFormContentRendersDateAboveTime(t *testing.T) {
 
 	assertDateRendersAboveTime(t, content)
 }
-
-func TestStartModeRenderContentRendersDateAboveTime(t *testing.T) {
-	m := newDateRenderTestModel()
-
-	content := StartMode.RenderContent(m, 10)
-
-	assertDateRendersAboveTime(t, content)
-}
-
-func TestRenderStartContentRendersDateAboveTime(t *testing.T) {
-	m := newDateRenderTestModel()
-
-	content := renderStartContent(m, 10)
-
-	assertDateRendersAboveTime(t, content)
-}

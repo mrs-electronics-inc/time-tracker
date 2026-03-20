@@ -255,6 +255,21 @@ func parseRangedInt(value, field string, min, max int) (int, error) {
 	return parsed, nil
 }
 
+// updateInputFocus updates the focus styling on all inputs
+func updateInputFocus(m *Model) {
+	for i := range m.Inputs {
+		if i == m.FocusIndex {
+			m.Inputs[i].Focus()
+			m.Inputs[i].PromptStyle = m.Styles.InputFocused
+			m.Inputs[i].TextStyle = m.Styles.InputFocused
+		} else {
+			m.Inputs[i].Blur()
+			m.Inputs[i].PromptStyle = m.Styles.InputBlurred
+			m.Inputs[i].TextStyle = m.Styles.InputBlurred
+		}
+	}
+}
+
 // setupFormInputs sets up form inputs with focus on first field
 func setupFormInputs(m *Model) {
 	m.FocusIndex = InputProject

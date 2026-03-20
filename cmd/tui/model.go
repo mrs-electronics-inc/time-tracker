@@ -138,7 +138,6 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 
 	// Initialize modes
 	modesModel.ListMode = modes.ListMode
-	modesModel.StartMode = modes.StartMode
 	modesModel.HelpMode = modes.HelpMode
 	modesModel.StatsMode = modes.StatsMode
 	modesModel.ProjectsMode = modes.ProjectsMode

@@ -1,6 +1,6 @@
 ---
 number: 12
-status: approved
+status: in-progress
 author: Addison Emig
 creation_date: 2026-03-13
 approved_by: Addison Emig
@@ -36,7 +36,7 @@ Once [Project Metadata](./project-metadata.md) ships, the `Project` input in all
 
 ### Keybinding Changes
 
-- [ ] Remove Up/Down as field navigation aliases from `handleFormKeyMsg`
+- [x] Remove Up/Down as field navigation aliases from `handleFormKeyMsg`
 - [ ] Update form help text to show only Tab/Shift+Tab for field navigation
 
 ### Project Autocomplete

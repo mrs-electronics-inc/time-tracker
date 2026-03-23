@@ -207,7 +207,8 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 
 	case "tab":
 		if shouldPassTabToProjectSuggestions(m) {
-			return m, nil, false
+			m.Inputs[InputProject].SetValue(m.Inputs[InputProject].CurrentSuggestion())
+			return m, nil, true
 		}
 		m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
 		updateInputFocus(m)

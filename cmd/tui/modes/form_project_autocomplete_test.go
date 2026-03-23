@@ -58,7 +58,7 @@ func TestFormModeTabAcceptsProjectSuggestionBeforeChangingFocus(t *testing.T) {
 
 	updatedModel, _ := NewMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyTab})
 
-	if updatedModel.Inputs[InputProject].Value() != "backend" {
+	if updatedModel.Inputs[InputProject].Value() != "Backend" {
 		t.Fatalf("project value = %q, expected suggestion to be accepted", updatedModel.Inputs[InputProject].Value())
 	}
 	if updatedModel.FocusIndex != InputProject {

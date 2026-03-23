@@ -250,6 +250,9 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 		return m, nil, true
 
 	case "tab":
+		if shouldPassTabToProjectSuggestions(m) {
+			return m, nil, false
+		}
 		m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
 		updateInputFocus(m)
 		return m, nil, true
@@ -264,6 +267,10 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 	}
 
 	return m, nil, false
+}
+
+func shouldPassTabToProjectSuggestions(m *Model) bool {
+	return m.FocusIndex == InputProject && len(m.Inputs[InputProject].MatchedSuggestions()) > 0
 }
 
 // parseFormTime parses date and time from form inputs.

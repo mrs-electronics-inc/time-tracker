@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 	"time-tracker/models"
 )
 
@@ -22,6 +23,7 @@ func newFormDateTestModel() *Model {
 	for i := range inputs {
 		inputs[i] = textinput.New()
 	}
+	inputs[InputProject].ShowSuggestions = true
 
 	return &Model{
 		Inputs:     inputs,
@@ -102,5 +104,31 @@ func TestOpenFormModesSetProjectSuggestions(t *testing.T) {
 	openResumeMode(m, models.TimeEntry{Project: "beta", Title: "task"})
 	if got := m.Inputs[InputProject].AvailableSuggestions(); len(got) != 3 || got[0] != "Alpha" || got[1] != "beta" || got[2] != "Gamma" {
 		t.Fatalf("resume mode suggestions = %+v", got)
+	}
+}
+
+func TestFormModeTabAcceptsProjectSuggestionBeforeChangingFocus(t *testing.T) {
+	m := newFormDateTestModel()
+	m.Storage = projectSuggestionStorage{projects: []models.Project{{Name: "Backend"}}}
+
+	openNewMode(m)
+
+	var cmd tea.Cmd
+	m.Inputs[InputProject], cmd = m.Inputs[InputProject].Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	if cmd != nil {
+		cmd()
+	}
+
+	if got := m.Inputs[InputProject].MatchedSuggestions(); len(got) != 1 || got[0] != "Backend" {
+		t.Fatalf("matched suggestions = %+v", got)
+	}
+
+	updatedModel, _ := NewMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyTab})
+
+	if updatedModel.Inputs[InputProject].Value() != "backend" {
+		t.Fatalf("project value = %q, expected suggestion to be accepted", updatedModel.Inputs[InputProject].Value())
+	}
+	if updatedModel.FocusIndex != InputProject {
+		t.Fatalf("focus index = %d, expected project input to stay focused", updatedModel.FocusIndex)
 	}
 }

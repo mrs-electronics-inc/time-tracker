@@ -13,6 +13,7 @@ func newFormDateTestModel() *Model {
 	for i := range inputs {
 		inputs[i] = textinput.New()
 	}
+	inputs[InputProject].ShowSuggestions = true
 
 	return &Model{
 		Inputs:     inputs,

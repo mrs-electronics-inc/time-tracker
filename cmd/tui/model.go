@@ -31,6 +31,7 @@ func NewModel(storage models.Storage, taskManager *utils.TaskManager) *Model {
 	inputs[modes.InputProject].Placeholder = "Project"
 	inputs[modes.InputProject].CharLimit = 128
 	inputs[modes.InputProject].Width = 40
+	inputs[modes.InputProject].ShowSuggestions = true
 	inputs[modes.InputProject].PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	inputs[modes.InputProject].TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 

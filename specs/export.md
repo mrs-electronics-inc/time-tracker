@@ -15,7 +15,7 @@ Add a CLI command to export time tracking data as TSV (tab-separated values) for
 
 ### Daily-Projects Format (default)
 
-Each row aggregates all tasks completed for a single project in a single day. The task titles are combined into a comma-separated "description" column. This format matches the display output of stats mode from [spec #5](./005-stats-mode.md).
+Each row aggregates all tasks completed for a single project in a single day. The task titles are combined into a comma-separated "description" column. This format matches the display output of stats mode from [Stats Mode](./005-stats-mode.md).
 
 **Columns:**
 
@@ -66,7 +66,7 @@ Each row represents a single time entry (blank entries are filtered out).
 
 ### Daily-Projects Export
 
-**Prerequisite**: Aggregation function from [spec #5](./005-stats-mode.md) (`ProjectDateEntry` and `AggregateByProjectDate`)
+**Prerequisite**: Aggregation function from [Stats Mode](./005-stats-mode.md) (`ProjectDateEntry` and `AggregateByProjectDate`)
 
 - [x] Test: `ExportDailyProjects` writes TSV with header row and correct columns (Project, Date, Duration, Description)
 - [x] Test: `ExportDailyProjects` uses `encoding/csv` with `Comma: '\t'` for proper escaping

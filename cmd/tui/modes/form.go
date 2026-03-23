@@ -67,6 +67,7 @@ func openNewMode(m *Model) {
 	m.CurrentMode = m.NewMode
 	m.FormState = FormState{Mode: FormModeNew}
 	m.Status = ""
+	setProjectSuggestions(m)
 
 	// Clear all inputs
 	for i := range m.Inputs {
@@ -84,6 +85,7 @@ func openEditMode(m *Model, entry models.TimeEntry, idx int) {
 	m.CurrentMode = m.EditMode
 	m.FormState = FormState{Mode: FormModeEdit, EditingIdx: idx}
 	m.Status = ""
+	setProjectSuggestions(m)
 
 	// Pre-fill all inputs from entry
 	m.Inputs[InputProject].SetValue(entry.Project)
@@ -100,6 +102,7 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	m.CurrentMode = m.ResumeMode
 	m.FormState = FormState{Mode: FormModeResume}
 	m.Status = ""
+	setProjectSuggestions(m)
 
 	// Pre-fill project and title from entry
 	m.Inputs[InputProject].SetValue(entry.Project)
@@ -109,6 +112,24 @@ func openResumeMode(m *Model, entry models.TimeEntry) {
 	setCurrentDateTimeDefaults(m, time.Now())
 
 	setupFormInputs(m)
+}
+
+func setProjectSuggestions(m *Model) {
+	if m.Storage == nil || len(m.Inputs) <= InputProject {
+		return
+	}
+
+	projects, err := m.Storage.LoadProjects()
+	if err != nil {
+		return
+	}
+
+	suggestions := make([]string, 0, len(projects))
+	for _, project := range projects {
+		suggestions = append(suggestions, project.Name)
+	}
+
+	m.Inputs[InputProject].SetSuggestions(suggestions)
 }
 
 // createFormKeyHandler creates a key handler for a form mode
@@ -185,6 +206,10 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 		return m, nil, true
 
 	case "tab":
+		if shouldPassTabToProjectSuggestions(m) {
+			m.Inputs[InputProject].SetValue(m.Inputs[InputProject].CurrentSuggestion())
+			return m, nil, true
+		}
 		m.FocusIndex = (m.FocusIndex + 1) % len(m.Inputs)
 		updateInputFocus(m)
 		return m, nil, true
@@ -199,6 +224,20 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 	}
 
 	return m, nil, false
+}
+
+func shouldPassTabToProjectSuggestions(m *Model) bool {
+	if m.FocusIndex != InputProject {
+		return false
+	}
+
+	projectInput := m.Inputs[InputProject]
+	currentSuggestion := projectInput.CurrentSuggestion()
+	if currentSuggestion == "" {
+		return false
+	}
+
+	return len([]rune(projectInput.Value())) < len([]rune(currentSuggestion))
 }
 
 // parseFormTime parses date and time from form inputs.

@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"sort"
+	"strings"
 
 	"path/filepath"
 	"time-tracker/models"
@@ -294,14 +295,18 @@ func (fs *FileStorage) LoadProjects() ([]models.Project, error) {
 		if entry.Project == "" {
 			continue
 		}
-		if _, ok := byName[entry.Project]; ok {
+		projectName := strings.TrimSpace(entry.Project)
+		if projectName == "" {
 			continue
 		}
-		projects = append(projects, models.Project{Name: entry.Project})
-		byName[entry.Project] = struct{}{}
+		if _, ok := byName[projectName]; ok {
+			continue
+		}
+		projects = append(projects, models.Project{Name: projectName})
+		byName[projectName] = struct{}{}
 	}
 
-	return projects, nil
+	return normalizeProjects(projects), nil
 }
 
 func (fs *FileStorage) SaveProjects(projects []models.Project) error {

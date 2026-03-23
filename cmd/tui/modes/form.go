@@ -270,7 +270,17 @@ func handleFormKeyMsg(m *Model, msg tea.KeyMsg) (*Model, tea.Cmd, bool) {
 }
 
 func shouldPassTabToProjectSuggestions(m *Model) bool {
-	return m.FocusIndex == InputProject && len(m.Inputs[InputProject].MatchedSuggestions()) > 0
+	if m.FocusIndex != InputProject {
+		return false
+	}
+
+	projectInput := m.Inputs[InputProject]
+	currentSuggestion := projectInput.CurrentSuggestion()
+	if currentSuggestion == "" {
+		return false
+	}
+
+	return len([]rune(projectInput.Value())) < len([]rune(currentSuggestion))
 }
 
 // parseFormTime parses date and time from form inputs.

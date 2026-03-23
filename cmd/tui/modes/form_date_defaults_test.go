@@ -132,3 +132,20 @@ func TestFormModeTabAcceptsProjectSuggestionBeforeChangingFocus(t *testing.T) {
 		t.Fatalf("focus index = %d, expected project input to stay focused", updatedModel.FocusIndex)
 	}
 }
+
+func TestFormModeTabNavigatesWhenProjectAlreadyExactlyMatchesSuggestion(t *testing.T) {
+	m := newFormDateTestModel()
+	m.Storage = projectSuggestionStorage{projects: []models.Project{{Name: "Backend"}}}
+
+	openNewMode(m)
+	m.Inputs[InputProject].SetValue("Backend")
+
+	updatedModel, _ := NewMode.HandleKeyMsg(m, tea.KeyMsg{Type: tea.KeyTab})
+
+	if updatedModel.Inputs[InputProject].Value() != "Backend" {
+		t.Fatalf("project value = %q, expected project value to remain unchanged", updatedModel.Inputs[InputProject].Value())
+	}
+	if updatedModel.FocusIndex != InputTitle {
+		t.Fatalf("focus index = %d, expected focus to move to title input", updatedModel.FocusIndex)
+	}
+}

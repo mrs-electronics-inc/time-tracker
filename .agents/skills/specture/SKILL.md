@@ -5,16 +5,16 @@ description: Follow the Specture System for spec-driven development. Use when cr
 
 # Specture System
 
-Specture is a spec-driven development system. Specs are design documents in the `specs/` directory that describe planned changes — features, refactors, redesigns, tooling improvements. Each spec contains the design rationale, decisions, and an implementation task list.
+Specture is a spec-driven development system. Specs are design documents in the `specs/` tree that live in `SPEC.md` files and may nest to any number of levels. Each spec contains metadata, goals, and design decisions.
 
-Spec numbers are stored in the YAML frontmatter `number` field. New specs use slug-only filenames (e.g., `my-feature.md`). Older specs may retain `NNN-slug.md` filenames — both naming patterns are valid.
+Spec numbers are stored in the YAML frontmatter `number` field. The number is a local identifier within its parent scope, and the full dotted reference is derived from the directory tree.
 
 ## Design Workflow
 
 When designing a spec (writing or refining a `draft` spec):
 
 1. Create a new branch for the spec design work (e.g., `spec/my-feature`)
-2. Write or refine the spec content — description, design decisions, task list
+2. Write or refine the spec content — description, goals, and design decisions
 3. Commit and push the spec changes
 4. Open a PR for review and discussion
 
@@ -28,54 +28,44 @@ When starting implementation of an `approved` spec:
 
 Then follow this loop:
 
-1. Run `specture status` to see the current spec and next task
-2. Complete one or more tasks from the task list
-3. Edit the spec file: change `- [ ]` to `- [x]` for every task completed in this commit
-4. Stage both the implementation files **and** the spec file update
-5. Commit together with a conventional commit message (e.g., `feat: implement feature X`)
+1. Read the spec
+2. Analyze the codebase
+3. Implement one small chunk of the spec
+4. Update the spec docs and tests as needed
+5. Commit the implementation changes
 6. Push the changes
 7. Repeat from step 1
 
 **Critical rules:**
 
-- Every commit that completes a task MUST include the spec file checkbox update alongside the implementation changes. Never commit implementation without the corresponding `- [x]` update. This is the most important rule.
-- If a single commit completes multiple tasks, check off all of them in that same commit. Do NOT make separate empty commits just to check off tasks that were already implemented.
-- Do NOT edit spec design decisions or descriptions without explicit user permission. You may only mark tasks complete and add/remove tasks during implementation.
-- When editing a spec, keep the design decisions section and task list in sync. If a description is updated, update all corresponding task descriptions to match, and vice versa.
-- When all tasks are checked off, update the frontmatter `status` to `completed`.
+- Use plain-language markdown headings in specs. Do **not** number section headers (`## 1. Design Decisions`, `### 2.1 Foundation`, etc.).
+- Any cross-spec mention MUST use an inline markdown link to the other spec file with the correct repo-root-relative path (for example, `[Status command](specs/002-status-command/SPEC.md)`).
+- Do NOT edit spec design decisions or descriptions without explicit user permission.
+- When all work is complete, update the frontmatter `status` to `completed`.
 
 ## CLI Commands
 
 Always use non-interactive flags. Interactive mode will hang waiting for input.
+To find specs, use `specture ls`/`specture list` — do **not** scan with `grep`, `find`, or manual filename searching.
 
-### specture list and specture status
+### specture list
 
-Use `list` to see all specs at a glance, then `status` to drill into a specific one.
+Use `list` to see all specs at a glance. To inspect a specific spec in detail, read its `SPEC.md` file directly.
 
-**`specture list`** — overview of all specs (number, status, progress, name).
+**`specture list`** — overview of all specs (ref, name, status, path).
 
 ```bash
 specture list                            # All specs
 specture list --status in-progress       # Filter by status
 specture list --status draft,approved    # Multiple statuses
-specture list -f json                    # JSON output with full metadata
+specture list -f json                    # JSON output with ref, name, status, and path
 ```
 
 Aliases: `list`, `ls`
 
-**`specture status`** — detailed view of one spec, including tasks and current task.
-
-```bash
-specture status                          # Current in-progress spec
-specture status --spec 3                 # Specific spec by number
-specture status -f json                  # JSON output
-```
-
-Typical workflow: run `specture list` to find the spec you need, then `specture status --spec N` to see its tasks and progress.
-
 ### specture new
 
-Create a new spec file with automatic numbering and branch.
+Create a new spec directory with automatic numbering and branch.
 
 ```bash
 # Non-interactive: provide title via flag (required for agents)
@@ -109,7 +99,7 @@ specture validate --spec 3
 specture validate -s 42
 ```
 
-Checks: valid frontmatter (number and status), no duplicate numbers, description present, task list present. Warns on number/filename mismatch.
+Checks: valid frontmatter (number and status), no duplicate numbers, description present. Warns on number/filename mismatch.
 
 Aliases: `validate`, `v`
 
@@ -132,10 +122,10 @@ Aliases: `setup`, `update`, `u`
 
 ### specture rename
 
-Rename a spec file and update all markdown links in the specs directory.
+Rename a spec directory and update all markdown links in the specs tree.
 
 ```bash
-# Rename spec 3 to status-command.md
+# Rename spec 3 to status-command
 specture rename --spec 3 status-command
 
 # Preview changes
@@ -148,14 +138,11 @@ Specs move through these statuses:
 
 1. **draft** — Being written and refined
 2. **approved** — Ready for implementation
-3. **in-progress** — Implementation underway (tasks being checked off)
-4. **completed** — All tasks done
+3. **in-progress** — Implementation underway
+4. **completed** — All planned work is done and goals are achieved
 5. **rejected** — Reviewed and rejected
 
-If a spec has no explicit `status` in frontmatter, it is inferred from tasks:
-- No task list or no complete tasks → `draft`
-- Mix of complete and incomplete → `in-progress`
-- All tasks complete → `completed`
+If a spec has no explicit `status` in frontmatter, it is treated as `draft` until the status is set explicitly.
 
 ## Commit Messages
 
@@ -169,7 +156,7 @@ Use conventional commits:
 
 ## Precedence
 
-Higher-numbered specs take precedence over lower-numbered ones when they conflict. Completed specs are historical records — do not retroactively update them (except to fix typos or factual errors).
+Completed specs are historical records — do not retroactively update them (except to fix typos or factual errors).
 
 ## Spec Format Reference
 

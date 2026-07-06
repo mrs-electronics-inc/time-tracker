@@ -201,7 +201,7 @@ var statsCmd = &cobra.Command{
 func init() {
 	statsCmd.Flags().BoolP("monthly", "m", false, "Show monthly totals")
 	statsCmd.Flags().BoolP("weekly", "w", false, "Show weekly totals")
-	statsCmd.Flags().IntP("rows", "r", 14, "Number of rows to display (days for daily, weeks for weekly, months for monthly)")
+	statsCmd.Flags().IntP("rows", "r", 14, "Number of rows to display")
 
 	rootCmd.AddCommand(statsCmd)
 }

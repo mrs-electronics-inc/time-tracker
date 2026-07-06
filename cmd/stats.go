@@ -36,6 +36,13 @@ func collectProjects(projectMaps []map[string]time.Duration) []string {
 	return result
 }
 
+func validateStatsFlags(weeklyFlag, monthlyFlag bool) error {
+	if weeklyFlag && monthlyFlag {
+		return fmt.Errorf("weekly and monthly flags cannot be used together")
+	}
+	return nil
+}
+
 var statsCmd = &cobra.Command{
 	Use:   "stats",
 	Short: "Display time tracking statistics",
@@ -46,14 +53,28 @@ var statsCmd = &cobra.Command{
 			return fmt.Errorf("failed to parse weekly flag: %w", err)
 		}
 
+		monthlyFlag, err := cmd.Flags().GetBool("monthly")
+		if err != nil {
+			return fmt.Errorf("failed to parse monthly flag: %w", err)
+		}
+
+		if err := validateStatsFlags(weeklyFlag, monthlyFlag); err != nil {
+			return err
+		}
+
 		rows, err := cmd.Flags().GetInt("rows")
 		if err != nil {
 			return fmt.Errorf("failed to parse rows flag: %w", err)
 		}
 
-		// Set default to 4 weeks for weekly view if user didn't specify rows
-		if weeklyFlag && !cmd.Flags().Changed("rows") {
-			rows = 4
+		// Set default row counts based on view mode if user didn't specify rows
+		if !cmd.Flags().Changed("rows") {
+			switch {
+			case weeklyFlag:
+				rows = 4
+			case monthlyFlag:
+				rows = 6
+			}
 		}
 
 		// Validate rows value
@@ -72,7 +93,43 @@ var statsCmd = &cobra.Command{
 		}
 
 		// Time-based stats
-		if weeklyFlag {
+		if monthlyFlag {
+			monthlyTotals := utils.CalculateMonthlyTotals(entries, rows)
+			if len(monthlyTotals) == 0 {
+				fmt.Println("No data available")
+				return nil
+			}
+			projectMaps := make([]map[string]time.Duration, len(monthlyTotals))
+			for i, total := range monthlyTotals {
+				projectMaps[i] = total.Projects
+			}
+			projects := collectProjects(projectMaps)
+
+			headers := []string{"Month", "Total"}
+			headers = append(headers, projects...)
+
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader(headers)
+			table.SetBorder(true)
+			table.SetRowLine(true)
+			table.SetAutoWrapText(false)
+			for _, total := range monthlyTotals {
+				row := []string{
+					total.Month.Format("2006-01"),
+					formatTimeHHMM(total.Total),
+				}
+				for _, p := range projects {
+					dur := total.Projects[p]
+					if dur == 0 {
+						row = append(row, "")
+					} else {
+						row = append(row, formatTimeHHMM(dur))
+					}
+				}
+				table.Append(row)
+			}
+			table.Render()
+		} else if weeklyFlag {
 			weeklyTotals := utils.CalculateWeeklyTotals(entries, rows)
 			if len(weeklyTotals) == 0 {
 				fmt.Println("No data available")
@@ -153,8 +210,9 @@ var statsCmd = &cobra.Command{
 }
 
 func init() {
+	statsCmd.Flags().BoolP("monthly", "m", false, "Show monthly totals")
 	statsCmd.Flags().BoolP("weekly", "w", false, "Show weekly totals")
-	statsCmd.Flags().IntP("rows", "r", 14, "Number of rows to display (days for daily, weeks for weekly)")
+	statsCmd.Flags().IntP("rows", "r", 14, "Number of rows to display")
 
 	rootCmd.AddCommand(statsCmd)
 }

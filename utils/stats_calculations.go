@@ -12,6 +12,13 @@ type DailyTotal struct {
 	Projects map[string]time.Duration
 }
 
+// MonthlyTotal represents total time for a calendar month
+type MonthlyTotal struct {
+	Month    time.Time
+	Total    time.Duration
+	Projects map[string]time.Duration
+}
+
 // WeeklyTotal represents total time for a week starting on Monday
 type WeeklyTotal struct {
 	WeekStart time.Time
@@ -109,6 +116,51 @@ func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTot
 			projects = make(map[string]time.Duration)
 		}
 		totals = append(totals, WeeklyTotal{WeekStart: weekStart, Total: total, Projects: projects})
+	}
+
+	return totals
+}
+
+// CalculateMonthlyTotals calculates total time per calendar month for the specified number of months
+func CalculateMonthlyTotals(entries []models.TimeEntry, numMonths int) []MonthlyTotal {
+	return calculateMonthlyTotals(entries, numMonths, time.Now())
+}
+
+func calculateMonthlyTotals(entries []models.TimeEntry, numMonths int, now time.Time) []MonthlyTotal {
+	if numMonths <= 0 {
+		return nil
+	}
+	monthlyMap := make(map[string]time.Duration)
+	monthlyProjectsMap := make(map[string]map[string]time.Duration)
+
+	for _, entry := range entries {
+		if entry.IsBlank() {
+			continue
+		}
+
+		monthStr := entry.Start.Format("2006-01")
+
+		monthsDiff := (int(now.Year())-int(entry.Start.Year()))*12 + int(now.Month()) - int(entry.Start.Month())
+		if monthsDiff >= 0 && monthsDiff < numMonths {
+			monthlyMap[monthStr] += entry.Duration()
+			if monthlyProjectsMap[monthStr] == nil {
+				monthlyProjectsMap[monthStr] = make(map[string]time.Duration)
+			}
+			monthlyProjectsMap[monthStr][entry.Project] += entry.Duration()
+		}
+	}
+
+	var totals []MonthlyTotal
+	currentMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	for i := numMonths - 1; i >= 0; i-- {
+		monthTime := currentMonth.AddDate(0, -i, 0)
+		monthStr := monthTime.Format("2006-01")
+		total := monthlyMap[monthStr]
+		projects := monthlyProjectsMap[monthStr]
+		if projects == nil {
+			projects = make(map[string]time.Duration)
+		}
+		totals = append(totals, MonthlyTotal{Month: monthTime, Total: total, Projects: projects})
 	}
 
 	return totals

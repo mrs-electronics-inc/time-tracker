@@ -44,9 +44,8 @@ func TestCalculateDailyTotals(t *testing.T) {
 }
 
 func TestCalculateMonthlyTotals(t *testing.T) {
-	now := time.Now()
-	// Create an entry about 2 months ago (but same month to avoid edge cases)
-	entryTime := now.AddDate(0, -2, -5)
+	now := time.Date(2026, 6, 15, 12, 0, 0, 0, time.UTC)
+	entryTime := time.Date(2026, 4, 10, 9, 0, 0, 0, time.UTC)
 	entries := []models.TimeEntry{
 		{
 			Start:   entryTime,
@@ -56,7 +55,7 @@ func TestCalculateMonthlyTotals(t *testing.T) {
 		},
 	}
 
-	totals := CalculateMonthlyTotals(entries, 6)
+	totals := calculateMonthlyTotals(entries, 6, now)
 
 	if len(totals) != 6 {
 		t.Errorf("Expected 6 monthly totals, got %d", len(totals))
@@ -74,6 +73,41 @@ func TestCalculateMonthlyTotals(t *testing.T) {
 	}
 	if !found {
 		t.Errorf("Project 'test-project' with 3 hours not found in any month")
+	}
+}
+
+func TestCalculateMonthlyTotalsAnchorsMonthIteration(t *testing.T) {
+	now := time.Date(2026, 3, 31, 12, 0, 0, 0, time.UTC)
+	entryTime := time.Date(2026, 2, 14, 9, 0, 0, 0, time.UTC)
+	entryEnd := entryTime.Add(2 * time.Hour)
+	entries := []models.TimeEntry{
+		{
+			Start:   entryTime,
+			End:     &entryEnd,
+			Project: "february-project",
+			Title:   "some task",
+		},
+	}
+
+	totals := calculateMonthlyTotals(entries, 3, now)
+
+	if len(totals) != 3 {
+		t.Fatalf("Expected 3 monthly totals, got %d", len(totals))
+	}
+
+	expectedMonths := []string{"2026-01", "2026-02", "2026-03"}
+	for i, expected := range expectedMonths {
+		if got := totals[i].Month.Format("2006-01"); got != expected {
+			t.Fatalf("Expected month %d to be %s, got %s", i, expected, got)
+		}
+	}
+
+	if totals[1].Total != 2*time.Hour {
+		t.Fatalf("Expected February total to be 2 hours, got %v", totals[1].Total)
+	}
+
+	if totals[1].Projects["february-project"] != 2*time.Hour {
+		t.Fatalf("Expected February project total to be 2 hours, got %v", totals[1].Projects["february-project"])
 	}
 }
 

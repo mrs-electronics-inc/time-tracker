@@ -36,6 +36,13 @@ func collectProjects(projectMaps []map[string]time.Duration) []string {
 	return result
 }
 
+func validateStatsFlags(weeklyFlag, monthlyFlag bool) error {
+	if weeklyFlag && monthlyFlag {
+		return fmt.Errorf("weekly and monthly flags cannot be used together")
+	}
+	return nil
+}
+
 var statsCmd = &cobra.Command{
 	Use:   "stats",
 	Short: "Display time tracking statistics",
@@ -49,6 +56,10 @@ var statsCmd = &cobra.Command{
 		monthlyFlag, err := cmd.Flags().GetBool("monthly")
 		if err != nil {
 			return fmt.Errorf("failed to parse monthly flag: %w", err)
+		}
+
+		if err := validateStatsFlags(weeklyFlag, monthlyFlag); err != nil {
+			return err
 		}
 
 		rows, err := cmd.Flags().GetInt("rows")

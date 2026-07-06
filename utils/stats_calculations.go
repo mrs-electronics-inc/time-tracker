@@ -123,10 +123,13 @@ func CalculateWeeklyTotals(entries []models.TimeEntry, numWeeks int) []WeeklyTot
 
 // CalculateMonthlyTotals calculates total time per calendar month for the specified number of months
 func CalculateMonthlyTotals(entries []models.TimeEntry, numMonths int) []MonthlyTotal {
+	return calculateMonthlyTotals(entries, numMonths, time.Now())
+}
+
+func calculateMonthlyTotals(entries []models.TimeEntry, numMonths int, now time.Time) []MonthlyTotal {
 	if numMonths <= 0 {
 		return nil
 	}
-	now := time.Now()
 	monthlyMap := make(map[string]time.Duration)
 	monthlyProjectsMap := make(map[string]map[string]time.Duration)
 
@@ -148,9 +151,9 @@ func CalculateMonthlyTotals(entries []models.TimeEntry, numMonths int) []Monthly
 	}
 
 	var totals []MonthlyTotal
+	currentMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	for i := numMonths - 1; i >= 0; i-- {
-		year, month, _ := now.AddDate(0, -i, 0).Date()
-		monthTime := time.Date(year, month, 1, 0, 0, 0, 0, now.Location())
+		monthTime := currentMonth.AddDate(0, -i, 0)
 		monthStr := monthTime.Format("2006-01")
 		total := monthlyMap[monthStr]
 		projects := monthlyProjectsMap[monthStr]

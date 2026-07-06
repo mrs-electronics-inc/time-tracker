@@ -43,6 +43,40 @@ func TestCalculateDailyTotals(t *testing.T) {
 	}
 }
 
+func TestCalculateMonthlyTotals(t *testing.T) {
+	now := time.Now()
+	// Create an entry about 2 months ago (but same month to avoid edge cases)
+	entryTime := now.AddDate(0, -2, -5)
+	entries := []models.TimeEntry{
+		{
+			Start:   entryTime,
+			End:     &[]time.Time{entryTime.Add(3 * time.Hour)}[0],
+			Project: "test-project",
+			Title:   "some task",
+		},
+	}
+
+	totals := CalculateMonthlyTotals(entries, 6)
+
+	if len(totals) != 6 {
+		t.Errorf("Expected 6 monthly totals, got %d", len(totals))
+	}
+
+	found := false
+	for _, total := range totals {
+		if total.Projects["test-project"] == 3*time.Hour {
+			if total.Total != 3*time.Hour {
+				t.Errorf("Expected 3 hours total, got %v", total.Total)
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Project 'test-project' with 3 hours not found in any month")
+	}
+}
+
 func TestCalculateWeeklyTotals(t *testing.T) {
 	now := time.Now()
 	entries := []models.TimeEntry{

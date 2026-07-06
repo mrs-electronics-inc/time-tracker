@@ -1,5 +1,7 @@
 # Just file for common development tasks
 
+export CGO_ENABLED := "0"
+
 # List recipes
 default:
     @just --list

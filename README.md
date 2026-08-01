@@ -1,5 +1,7 @@
 # Time Tracker ⏲️👣
 
+> This project has been moved to GitLab. Development will continue in https://gitlab.com/mrs-electronics/dx/time-tracker
+
 Time Tracker is a simple CLI tool to track the time you spend on different projects and tasks throughout the day. It stores time entries in a JSON file and ensures only one entry can be active at a time.
 
 > [!NOTE]
